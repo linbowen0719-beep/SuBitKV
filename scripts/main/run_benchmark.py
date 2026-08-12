@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run similarity, VBench-10, and final table aggregation in order."""
+"""Run similarity, 10-dimension VBench, and final table aggregation in order."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ REPO = Path(__file__).resolve().parents[2]
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--config", type=Path, default=REPO / "configs/main/paper-main-10prompt.yaml")
+    parser.add_argument("--config", type=Path, default=REPO / "configs/main/moviegen-1003.yaml")
     parser.add_argument("--run-id", required=True)
     parser.add_argument("--gpus", default="0,1,2,3,4,5,6,7")
     parser.add_argument("--execute", action="store_true")

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prepare and monitor create-only VBench-10 jobs for a method directory."""
+"""Prepare and monitor create-only 10-dimension VBench jobs for a method directory."""
 
 from __future__ import annotations
 
@@ -46,8 +46,8 @@ def main() -> None:
     methods = tuple(value for value in args.methods.split(",") if value)
     gpus = tuple(int(value) for value in args.gpus.split(",") if value)
     prompt_stop = args.prompt_start + args.prompt_count
-    if not 0 <= args.prompt_start < prompt_stop <= 10:
-        raise ValueError("prompt range must be within [0, 10)")
+    if not 0 <= args.prompt_start < prompt_stop:
+        raise ValueError("prompt start must be nonnegative and count must be positive")
     vbench = shutil.which(args.vbench) or args.vbench
     args.output_root.mkdir(parents=True, exist_ok=True)
     inputs_root = args.output_root / "inputs"

@@ -25,7 +25,7 @@ from paper_main_common import (  # noqa: E402
 )
 
 
-DEFAULT_CONFIG = REPO_ROOT / "configs/main/paper-main-10prompt.yaml"
+DEFAULT_CONFIG = REPO_ROOT / "configs/main/moviegen-1003.yaml"
 MODELS = ("wan2_2_5b", "self_forcing")
 STAGES = ("generate", "quality", "vbench", "aggregate")
 RUN_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")

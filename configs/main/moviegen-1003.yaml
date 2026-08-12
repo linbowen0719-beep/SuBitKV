@@ -1,0 +1,110 @@
+schema_version: 1
+experiment_id: moviegen-1003
+name: MovieGenVideoBench-1003 — Wan2.2 5B and Self-Forcing
+description: >-
+  Complete 1003-prompt closed-loop generation, same-seed BF16 similarity,
+  physical KV payload accounting, and 10-dimension VBench evaluation.
+
+protocol:
+  prompt_file: ${QVG_REPO_ROOT}/assets/MovieGenVideoBench.txt
+  prompt_sha256: 72921e5b91ed14665d6cac50fca51f04dff356baddeffbab324ac9280e8ec05a
+  prompt_count: 1003
+  bf16_kv_cpu_offload: true
+  vbench_dimensions:
+    - subject_consistency
+    - background_consistency
+    - temporal_flickering
+    - motion_smoothness
+    - dynamic_degree
+    - aesthetic_quality
+    - imaging_quality
+    - human_action
+    - temporal_style
+    - overall_consistency
+
+methods:
+  wan2_2_5b:
+    - bf16
+    - quantvideo_prerope_int4
+    - kivi_all_int4
+    - turboquant_prod_k4_v4
+    - adaptive_temporal_int8_avg4
+    - adaptive_temporal_int8_avg3
+    - quantvideo_prerope_int2
+    - kivi_all_int2
+    - turboquant_prod_k2_v2
+    - adaptive_temporal_int8_avg2
+    - adaptive_temporal_int8_avg1
+  self_forcing:
+    - bf16
+    - quantvideo_prerope_int4
+    - kivi_all_int4
+    - turboquant_prod_k4_v4
+    - adaptive_temporal_avg4
+    - adaptive_temporal_avg3
+    - quantvideo_prerope_int2
+    - kivi_all_int2
+    - turboquant_prod_k2_v2
+    - adaptive_temporal_avg2
+    - adaptive_temporal_avg1
+
+rvq_training:
+  prompt_file: ${QVG_REPO_ROOT}/assets/moviegen_train20.txt
+  prompt_sha256: e7a4ad6f324a3671b4205f8c2c9ff3c487370d8ea7089836556ec4b3b3b6cdc0
+  prompt_count: 20
+  levels: 16
+  centroids: 64
+  input_norm_mode: none
+  sample_size: 90000
+  kmeans_max_iters: 20
+  models:
+    wan2_2_5b: {layers: 30, heads: 24}
+    self_forcing: {layers: 30, heads: 12}
+
+models:
+  wan2_2_5b:
+    seed: 42
+    resources: 1 GPU per job; validated on RTX 6000 Ada 48 GiB
+    checkpoint_root: ${QVG_CKPT_ROOT}/HY-WorldPlay
+    output_root: ${QVG_OUTPUT_ROOT}/moviegen-1003/wan2_2_5b
+  self_forcing:
+    seed: 0
+    resources: 1 GPU per job; validated on RTX 6000 Ada 48 GiB
+    base_model: ${QVG_CKPT_ROOT}/Self-Forcing/Wan2.1-T2V-1.3B
+    checkpoint: ${QVG_CKPT_ROOT}/Self-Forcing/self_forcing_dmd.pt
+    output_root: ${QVG_OUTPUT_ROOT}/moviegen-1003/self_forcing
+
+bundle:
+  root: ${QVG_DATA_ROOT}/paper_main_v1
+  manifest: ${QVG_DATA_ROOT}/paper_main_v1/manifest.json
+  shared:
+    tree: ${QVG_DATA_ROOT}/paper_main_v1/shared/tree_params.pt
+    progressive_v: ${QVG_DATA_ROOT}/paper_main_v1/shared/progressive_v_params.pt
+    temporal_profile: ${QVG_DATA_ROOT}/paper_main_v1/shared/temporal_profile.json
+  wan2_2_5b:
+    routing: ${QVG_DATA_ROOT}/paper_main_v1/wan2_2_5b/routing.json
+    k_codebooks: ${QVG_DATA_ROOT}/paper_main_v1/wan2_2_5b/nonorm_k_l16c64_codebooks
+    v_codebooks: ${QVG_DATA_ROOT}/paper_main_v1/wan2_2_5b/nonorm_v_l16c64_codebooks
+  self_forcing:
+    routing: ${QVG_DATA_ROOT}/paper_main_v1/self_forcing/routing.json
+    k_codebooks: ${QVG_DATA_ROOT}/paper_main_v1/self_forcing/nonorm_k_l16c64_codebooks
+    v_codebooks: ${QVG_DATA_ROOT}/paper_main_v1/self_forcing/nonorm_v_l16c64_codebooks
+
+expected_hashes:
+  shared/tree_params.pt: 0ae63a0ab385105c0296c96dfcefb86b02d48ac14eeec4013581ad62c8742a6c
+  shared/progressive_v_params.pt: 36c9a90e6f8f2a3dfc48b3d1e77d6132aaf3bf200eecea191d690dfb370f8fb3
+  shared/temporal_profile.json: 2c7c16d50a26a4ca999751e8e5c1ce25fe2525536f934e10641eec590fb24f1f
+  wan2_2_5b/routing.json: 9f84cc6425045fd45322d315c781930f135844362d1cdaf00b918fbd05294b9e
+  wan2_2_5b/nonorm_k_l16c64_codebooks: d9416509b58f3e944f2044e4fbb95949643d8e6e76a31b5192cadca4f49d5a81
+  wan2_2_5b/nonorm_v_l16c64_codebooks: b13a5984a745a9eed27c2eaeb546525e4a2a5bcd553caec277dc1162503007e6
+  self_forcing/routing.json: 6d63c481c5f75aac325ca25ed806dbf63e9aea3d4b46bfb5a221ed5eb3d2d8f0
+  self_forcing/nonorm_k_l16c64_codebooks: 226e96f9840a3e4256ccee504a7f17a28ca47bc7701df7fb5d2d6d148f67f435
+  self_forcing/nonorm_v_l16c64_codebooks: 874e6ed8139c76ff6ed1460c9826a9f5f7191db09b1d9af7abcb6c6f0efa1c24
+
+output:
+  aggregate_root: ${QVG_OUTPUT_ROOT}/moviegen-1003/aggregate
+  required_files:
+    - main_results.csv
+    - main_results.tex
+    - per_prompt.csv
+    - run_info.json

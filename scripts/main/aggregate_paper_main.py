@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate 10-prompt outputs and create the paper main-table CSV/LaTeX."""
+"""Validate full-protocol outputs and create the paper main-table CSV/LaTeX."""
 
 from __future__ import annotations
 

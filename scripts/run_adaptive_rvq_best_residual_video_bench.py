@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the 10-prompt closed-loop adaptive-RVQ versus uniform-L8 benchmark.
+"""Run the MovieGenVideoBench closed-loop KV-compression benchmark.
 
 Generation uses the frozen pre-position KV path and quantizes every completed
 four-frame chunk independently (``kv_quant_factor=1``).  The runner is
@@ -39,7 +39,7 @@ PYTHON = Path(os.environ.get("QVG_PYTHON", os.fspath(Path(sys.executable))))
 VBENCH = Path(os.environ.get("QVG_VBENCH", "vbench"))
 PROMPT_FILE = Path(os.environ.get(
     "QVG_MAIN_PROMPT_FILE",
-    DATA / "truncatable_residual_benchmark_20260722/prompts.txt",
+    REPO_ROOT / "assets/MovieGenVideoBench.txt",
 ))
 ROUTING = (
     Path(os.environ["QVG_WAN_ROUTING"])
@@ -92,7 +92,9 @@ TEMPORAL_INT8_PROFILE = (
     else REPO_ROOT / "results/analysis/adaptive_rvq_temporal_residual_calibration_int8_train20_20260731/profile.json"
 )
 SEED = 42
-PROMPTS = 10
+PROMPTS = sum(
+    1 for line in PROMPT_FILE.read_text(encoding="utf-8").splitlines() if line.strip()
+)
 ALL_METHODS = (
     "bf16",
     "bf16_prerope",
@@ -275,8 +277,7 @@ def parse_args() -> argparse.Namespace:
         "--prompt-count",
         type=int,
         default=PROMPTS,
-        choices=range(1, PROMPTS + 1),
-        help="Run the first N held-out prompts; use 1 for runtime-only replay.",
+        help=f"Run the first N prompts from the {PROMPTS}-prompt input file.",
     )
     parser.add_argument(
         "--methods",
@@ -289,6 +290,8 @@ def parse_args() -> argparse.Namespace:
     )
     args = parser.parse_args()
     args.output_root = args.output_root.expanduser().resolve()
+    if not 1 <= args.prompt_count <= PROMPTS:
+        raise ValueError(f"--prompt-count must be within [1, {PROMPTS}]")
     args.gpus = tuple(int(value) for value in args.gpus.split(","))
     if not args.gpus:
         raise ValueError("--gpus cannot be empty")

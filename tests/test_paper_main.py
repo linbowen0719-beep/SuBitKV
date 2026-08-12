@@ -40,17 +40,17 @@ def portable_environment(tmp_path: Path) -> dict[str, str]:
 
 
 def test_frozen_protocol_has_11_rows_per_model() -> None:
-    config_path = REPO / "configs/main/paper-main-10prompt.yaml"
+    config_path = REPO / "configs/main/moviegen-1003.yaml"
     payload = yaml.safe_load(config_path.read_text(encoding="utf-8"))
-    prompt = REPO / "assets/paper_main_10prompts.txt"
+    prompt = REPO / "assets/MovieGenVideoBench.txt"
 
     assert len(payload["methods"]["wan2_2_5b"]) == 11
     assert len(payload["methods"]["self_forcing"]) == 11
-    assert len(prompt.read_text(encoding="utf-8").splitlines()) == 10
+    assert len(prompt.read_text(encoding="utf-8").splitlines()) == 1003
     train_prompts = REPO / "assets/moviegen_train20.txt"
     assert len(train_prompts.read_text(encoding="utf-8").splitlines()) == 20
     assert payload["protocol"]["prompt_sha256"] == (
-        "875762aa06d8a4e15a25e831c4c60bfa2c1b04e70b26362873d01821ad64bc77"
+        "72921e5b91ed14665d6cac50fca51f04dff356baddeffbab324ac9280e8ec05a"
     )
     assert "turboquant_prod_k4_v4" in payload["methods"]["wan2_2_5b"]
     assert "turboquant_prod_k2_v2" in payload["methods"]["self_forcing"]
@@ -105,7 +105,7 @@ def test_paper_doctor_reports_missing_assets(tmp_path: Path) -> None:
 
 def test_supported_paper_files_have_no_personal_absolute_paths() -> None:
     paths = [
-        REPO / "configs/main/paper-main-10prompt.yaml",
+        REPO / "configs/main/moviegen-1003.yaml",
         REPO / "scripts/run_paper_main.py",
         REPO / "scripts/main/paper_main_common.py",
         REPO / "scripts/main/export_main_table_bundle.py",

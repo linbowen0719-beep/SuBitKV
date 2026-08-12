@@ -47,8 +47,8 @@ def main() -> None:
     args = parser.parse_args()
     methods = tuple(value for value in args.methods.split(",") if value)
     prompt_stop = args.prompt_start + args.prompt_count
-    if not 0 <= args.prompt_start < prompt_stop <= 10:
-        raise ValueError("prompt range must be within [0, 10)")
+    if not 0 <= args.prompt_start < prompt_stop:
+        raise ValueError("prompt start must be nonnegative and count must be positive")
     tasks = [
         (method, prompt)
         for method in methods

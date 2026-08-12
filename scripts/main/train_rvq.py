@@ -17,7 +17,7 @@ from paper_main_common import (
 )
 
 
-DEFAULT_CONFIG = REPO_ROOT / "configs/main/paper-main-10prompt.yaml"
+DEFAULT_CONFIG = REPO_ROOT / "configs/main/moviegen-1003.yaml"
 TRAINER = REPO_ROOT / "scripts/rvq/diag/run_rvq_diag.py"
 
 

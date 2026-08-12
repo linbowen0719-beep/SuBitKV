@@ -1,14 +1,14 @@
 # ICLR2026_RVQ
 
 组内复现仓库：在 **Wan2.2 5B** 和 **Self-Forcing** 上训练 progressive
-RVQ，并运行 MovieGen 10-prompt KV-cache 压缩主实验。
+RVQ，并运行完整 MovieGenVideoBench 1003-prompt KV-cache 压缩主实验。
 
 > 这是给实验协作者使用的入口。请优先使用 `scripts/main/`，不要从
 > `scripts/` 中随机选择历史研究脚本。
 
 ## 实验矩阵
 
-两个模型使用相同的 10 个测试 prompt。每个模型运行以下 11 个配置：
+两个模型使用相同的 1003 个测试 prompt。每个模型运行以下 11 个配置：
 
 | 方法 | 配置 |
 | --- | --- |
@@ -21,7 +21,8 @@ RVQ，并运行 MovieGen 10-prompt KV-cache 压缩主实验。
 RVQ 1/2/3/4 共用一套 progressive L16C64 K/V codebook，只改变运行时
 bit budget，不需要分别训练四套 codebook。
 
-主协议位于 [`configs/main/paper-main-10prompt.yaml`](configs/main/paper-main-10prompt.yaml)。
+主协议位于 [`configs/main/moviegen-1003.yaml`](configs/main/moviegen-1003.yaml)，
+prompt 固定为 [`assets/MovieGenVideoBench.txt`](assets/MovieGenVideoBench.txt)。
 
 ## 1. 克隆和安装
 
@@ -80,10 +81,39 @@ ${QVG_CKPT_ROOT}/
     └── self_forcing_dmd.pt
 ```
 
-## 4. 放置 RVQ 实验资产
+## 4. 训练 RVQ
+
+RVQ 训练是正式运行流程的一部分。它使用冻结的 20 条 calibration prompt；
+RVQ 1/2/3/4 共用训练得到的 progressive L16C64 codebook。先准备逐层 KV dump：
+
+```text
+<work-root>/kv_dump/train/<prompt-index>/layer_<layer>.pt
+```
+
+然后先 dry-run，再执行 K/V 训练：
+
+```bash
+python scripts/main/train_rvq.py \
+  --model wan2_2_5b \
+  --work-root /shared/calibration/wan2_2_5b \
+  --gpus 0,1,2,3,4,5,6,7
+
+python scripts/main/train_rvq.py \
+  --model wan2_2_5b \
+  --work-root /shared/calibration/wan2_2_5b \
+  --gpus 0,1,2,3,4,5,6,7 \
+  --execute
+```
+
+Self-Forcing 将 `--model` 改为 `self_forcing` 并使用独立 work-root。训练入口
+依次训练 K/V，记录 hash 与 `run_info.json`，且不会覆盖已有 codebook。当前入口
+从已采集 KV dump 开始；KV dump 不进入 Git。
+
+## 5. 组装运行资产
 
 训练后的 codebook、routing、tree 和 temporal profile 约 1.1 GB，不保存在
-GitHub。请从实验负责人处获取 `paper_main_v1` bundle，并放到：
+GitHub。训练完成后将 codebook 与固定 routing/tree/temporal profile 组装为
+`paper_main_v1`；只负责生成的协作者也可直接获取该 bundle，并放到：
 
 ```text
 ${QVG_DATA_ROOT}/paper_main_v1/
@@ -104,7 +134,7 @@ ${QVG_DATA_ROOT}/paper_main_v1/
 
 不要修改 bundle 内的文件名。`doctor` 会验证 prompt、文件数量和 SHA-256。
 
-## 5. 运行环境检查
+## 6. 运行环境检查
 
 ```bash
 python scripts/run_paper_main.py doctor --full-hash
@@ -118,7 +148,7 @@ python scripts/run_paper_main.py doctor --full-hash
 
 才开始正式生成。如果检查失败，根据 `errors` 中给出的具体路径补齐文件。
 
-## 6. 先检查运行计划
+## 7. 先检查运行计划
 
 下面的命令只打印任务，不创建输出，也不加载模型：
 
@@ -128,10 +158,10 @@ python scripts/main/run_moviegen.py \
   --gpus 0,1,2,3,4,5,6,7
 ```
 
-正式矩阵共有 2 个模型 × 11 个方法 × 10 个 prompt，即 220 个视频任务。
+正式矩阵共有 2 个模型 × 11 个方法 × 1003 个 prompt，即 22,066 个视频任务。
 每个任务使用一张 GPU，调度器会自动填满 `--gpus` 指定的设备。
 
-## 7. 正式生成 MovieGen-10
+## 8. 正式生成 MovieGenVideoBench-1003
 
 ```bash
 python scripts/main/run_moviegen.py \
@@ -154,7 +184,7 @@ python scripts/main/run_moviegen.py \
 `completed.json` 的任务会跳过。改变 prompt、seed、方法或配置时必须换一个
 新的 `run-id`。
 
-## 8. Benchmark 和论文表格
+## 9. Benchmark 和论文表格
 
 两套模型的 BF16 和压缩视频全部完成后运行：
 
@@ -183,7 +213,7 @@ Benchmark 按顺序执行：
 聚合器缺少任何一个 method、prompt、quality 文件或 VBench dimension 时都会
 失败，不会对不完整结果静默取平均。
 
-## 9. 输出位置
+## 10. 输出位置
 
 ```text
 ${QVG_OUTPUT_ROOT}/main-YYYYMMDD-r1/
@@ -211,37 +241,6 @@ ${QVG_OUTPUT_ROOT}/main-YYYYMMDD-r1/
 最终论文表格是 `aggregate/main_results.tex`，机器可读主结果是
 `aggregate/main_results.csv`。
 
-## 10. 可选：重新训练 RVQ
-
-通常协作者直接使用共享的 `paper_main_v1` bundle。需要重新训练时，先准备
-冻结的 MovieGen 20-prompt KV captures：
-
-```text
-<work-root>/kv_dump/train/<prompt-index>/layer_<layer>.pt
-```
-
-然后先 dry-run：
-
-```bash
-python scripts/main/train_rvq.py \
-  --model wan2_2_5b \
-  --work-root /shared/calibration/wan2_2_5b \
-  --gpus 0,1,2,3,4,5,6,7
-```
-
-确认后执行：
-
-```bash
-python scripts/main/train_rvq.py \
-  --model wan2_2_5b \
-  --work-root /shared/calibration/wan2_2_5b \
-  --gpus 0,1,2,3,4,5,6,7 \
-  --execute
-```
-
-Self-Forcing 使用 `--model self_forcing`。训练入口是 create-only，不会覆盖
-已有 codebook。
-
 ## 主要代码结构
 
 ```text
@@ -256,7 +255,7 @@ quant_videogen/                   # RVQ、KIVI、TurboQuant、QuantVideo codec
 experiments/HY-WorldPlay/         # Wan2.2 5B 集成
 experiments/Self-Forcing/         # Self-Forcing 集成
 configs/main/                     # 冻结实验协议
-assets/                           # 固定 train/test prompts
+assets/                           # 固定 20 条训练 prompts 与 1003 条生成 prompts
 tests/                            # CPU 和可选 CUDA tests
 ```
 

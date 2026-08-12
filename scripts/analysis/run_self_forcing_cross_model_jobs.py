@@ -57,14 +57,20 @@ def main() -> None:
     parser.add_argument("--v-params", type=Path, required=True)
     parser.add_argument("--profile", type=Path, required=True)
     args = parser.parse_args()
+    prompt_total = sum(
+        1 for line in args.prompt_file.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    )
     methods = tuple(value for value in args.methods.split(",") if value)
     gpus = tuple(int(value) for value in args.gpus.split(",") if value)
     prompt_stop = args.prompt_start + args.prompt_count
     if (
-        not methods or not gpus or not 0 <= args.prompt_start < 10
-        or not 1 <= args.prompt_count <= 10 or prompt_stop > 10
+        not methods or not gpus or not 0 <= args.prompt_start < prompt_total
+        or args.prompt_count < 1 or prompt_stop > prompt_total
     ):
-        raise ValueError("nonempty methods/GPUs and prompt range within [0,10) required")
+        raise ValueError(
+            f"nonempty methods/GPUs and prompt range within [0,{prompt_total}) required"
+        )
     args.output_root.mkdir(parents=True, exist_ok=True)
     log_root = args.output_root / "scheduler_logs"
     log_root.mkdir(exist_ok=True)

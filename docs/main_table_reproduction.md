@@ -1,9 +1,10 @@
-# Paper Main Table: 10-Prompt Large-Scale Run
+# MovieGenVideoBench: 1003-Prompt Large-Scale Run
 
 This is the supported handoff for the paper table comparing Wan2.2 5B and
 Self-Forcing. It runs closed-loop generation, same-prompt/same-seed BF16
-similarity, complete compressed-representation accounting, and VBench-10.
-The protocol is frozen in `configs/main/paper-main-10prompt.yaml`.
+similarity, complete compressed-representation accounting, and 10-dimension VBench.
+The protocol is frozen in `configs/main/moviegen-1003.yaml` and uses all 1003
+MovieGenVideoBench prompts.
 
 ## Code organization
 
@@ -177,7 +178,7 @@ python scripts/main/run_benchmark.py \
   --execute
 ```
 
-Every model has 110 generation jobs (11 methods × 10 prompts). Jobs use one
+Every model has 11,033 generation jobs (11 methods × 1003 prompts). Jobs use one
 GPU each and the scheduler fills the listed GPUs. Completed jobs are skipped
 when the same `run_id` is resumed. Use a new `run_id` for any changed protocol
 or rerun; outputs are create-only.
@@ -195,7 +196,7 @@ python scripts/run_paper_main.py run --run-id main-20260812-r1 --model self_forc
 python scripts/run_paper_main.py run --run-id main-20260812-r1 --model wan2_2_5b --stage vbench --gpus 0,1,2,3,4,5,6,7 --execute
 python scripts/run_paper_main.py run --run-id main-20260812-r1 --model self_forcing --stage vbench --gpus 0,1,2,3,4,5,6,7 --execute
 
-# Validate all 220 runs and build the final table
+# Validate all 22,066 runs and build the final table
 python scripts/run_paper_main.py run --run-id main-20260812-r1 --model both --stage aggregate --gpus 0 --execute
 ```
 
