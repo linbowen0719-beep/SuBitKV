@@ -1,0 +1,12 @@
+study_id: wan5b_historical_kv_rvq_p1_attention_proxy_gap
+exact_config: experiments/rvq_mechanism/p1_exact_replay_schedule_4prompt.yaml
+output_dir: results/analysis/wan5b_rvq_mechanisms_p1_attention_proxy_gap
+hypothesis_registry: artifacts/p1_proxy_gap_hypotheses.csv
+python: /home/bowen/anaconda3/envs/hw8/bin/python
+seed: 42
+methods: [compact30, s30_l10_uniform8]
+query_batch_size: 16
+bootstrap:
+  samples: 10000
+  seed: 20260720
+gpus: [0, 1, 2, 4]

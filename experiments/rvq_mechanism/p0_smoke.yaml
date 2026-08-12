@@ -1,0 +1,53 @@
+study_id: wan5b_historical_kv_rvq_mechanisms_p0_smoke
+data_root: /data/bowen/t2v_kv_bench_moviegen_20train_10test
+output_dir: results/analysis/wan5b_rvq_mechanisms_p0_smoke
+python: /home/bowen/anaconda3/envs/hw8/bin/python
+plot_python: /home/bowen/anaconda3/bin/python
+model_id: Wan-AI/Wan2.2-TI2V-5B-Diffusers
+seed: 42
+folds: 5
+initialization_seeds: [11, 29, 47]
+tensors: [K, V]
+layers: [0, 29]
+heads: [0, 23]
+sample_cache:
+  samples_per_prompt_head: 96
+  train_samples_per_prompt_head: 64
+  eval_samples_per_prompt_head: 16
+  hash_all_source_chunks: false
+rvq:
+  levels: 4
+  codebook_size: 32
+  kmeans_iterations: 3
+  assignment_batch_size: 2048
+  input_norm_mode: none
+  runtime_codebook_storage: int4
+  amortization_vectors_per_group: 35200
+h1:
+  calibration_sizes: [1, 2, 4, 8, 12, 16]
+  calibration_repeats: 2
+  oracle_groups: [[0, 0], [29, 23]]
+h2:
+  representative_layers: [0, 29]
+  representative_heads: [0, 23]
+  pq_subspaces: 4
+  scalar_bits: [1, 2, 4]
+  pca_components: 8
+h4:
+  codebook_counts: [1, 2, 4]
+  transfer_modes: [same_layer, same_head, adjacent_layer]
+  transfer_levels: [1, 4]
+  shared_train_samples: 256
+h6:
+  enabled: true
+  capture_files:
+    - results/report_evidence/wan5b_nonorm_l8c64_int4/paired_capture_aux_20260714T2356-0500/paired_rope/rank_000/layer_00/call_00000.pt
+  codebook_root: /data/bowen/t2v_kv_bench_moviegen_20train_10test
+  k_codebook_dir: nonorm_k_l8c64_codebooks
+  v_codebook_dir: nonorm_v_l8c64_codebooks
+  query_batch_size: 16
+  topk: 32
+bootstrap:
+  samples: 500
+  seed: 20260717
+gpus: [1]

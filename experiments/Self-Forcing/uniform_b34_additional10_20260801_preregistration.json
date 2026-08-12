@@ -1,0 +1,26 @@
+{
+  "objective": "Confirm Self-Forcing Uniform B4 versus B3 on ten new held-out prompts",
+  "prompt_file": "/home/bowen/Quant-VideoGen/experiments/Self-Forcing/prompts_uniform_b34_additional10_20260801.txt",
+  "prompt_sha256": "334c35a4249d4e88381494e410ab301eac9e1444aa0572d8fea187097ef9fb9f",
+  "prompt_count": 10,
+  "overlap_with_train20_or_original_test10": 0,
+  "methods": [
+    "bf16",
+    "adaptive_uniform_b3",
+    "adaptive_uniform_b4"
+  ],
+  "seed": 0,
+  "latent_frames": 30,
+  "latent_frames_per_chunk": 3,
+  "kv_quant_factor": 1,
+  "cache_position": "pre-RoPE",
+  "similarity_rgb_frames": "9:117",
+  "primary_metrics": [
+    "MSE",
+    "PSNR",
+    "SSIM",
+    "LPIPS"
+  ],
+  "hard_gate": "first 3 latent BF16 and first 9 pre-container RGB uint8 hashes match BF16",
+  "selection_rule": "Report all ten prompts without post-hoc exclusion"
+}

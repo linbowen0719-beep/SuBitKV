@@ -1,0 +1,27 @@
+name: CPU checks
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  repository-and-runner:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install lightweight test environment
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . --no-deps
+          python -m pip install "PyYAML>=6" "pytest>=8"
+      - name: Validate package and supported configs
+        run: |
+          python -c "import quant_videogen"
+          python scripts/reproduce.py list
+          python -m compileall -q quant_videogen scripts/reproduce.py
+      - name: Run CPU reproduction tests
+        run: pytest -q tests/test_reproduce.py tests/test_repository_hygiene.py

@@ -1,0 +1,10 @@
+schema_version: 1
+
+# Copy to configs/paths.local.yaml. Values may be absolute paths or paths
+# relative to the repository root. Environment variables take precedence.
+paths:
+  checkpoint_root: ${QVG_CKPT_ROOT:-ckpts}
+  data_root: ${QVG_DATA_ROOT:-data}
+  codebook_root: ${QVG_CODEBOOK_ROOT:-codebooks}
+  output_root: ${QVG_OUTPUT_ROOT:-outputs/reproduction}
+  cache_root: ${QVG_CACHE_ROOT:-.cache}

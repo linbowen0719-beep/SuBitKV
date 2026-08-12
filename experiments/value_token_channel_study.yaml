@@ -1,0 +1,103 @@
+name: wan5b_self_forcing_value_token_channel_matched_budget
+status: queued
+decision_budget:
+  codebook_size: 64
+  value_physical_index_bytes_per_vector: 32
+  value_logical_bits_per_vector: 192
+  value_scale_bytes_per_vector: 0
+  bootstrap_seed: 42
+  bootstrap_samples: 10000
+constraints:
+  - K codebook, prompts, generation seed, and retention policy are paired invariants.
+  - Shared codebook MiB is reported separately from runtime payload.
+  - Existing outputs are never overwritten; resume only skips completed jobs.
+  - Formal generation starts only with the runner's explicit full-run opt-in.
+roots:
+  wan_calibration: /data/bowen/t2v_kv_bench_moviegen_20train_10test
+  wan_reused: /home/bowen/Quant-VideoGen/results/long_video/no_scale_variants_11chunk_10prompt_20260707
+  wan_sentinel: /home/bowen/Quant-VideoGen/results/long_video/value_channel_reuse_sentinel_20260716
+  wan_new: /home/bowen/Quant-VideoGen/results/long_video/value_token_channel_matched_20260716
+  self_calibration: /data/bowen/self_forcing_96latent_rvq_l8c64
+  self_reference: /data/bowen/self_forcing_96latent_moviegen
+  self_new: /data/bowen/self_forcing_96latent_value_matched_20260716
+stages:
+  - name: wan_codebook_and_offline_reconstruction
+    command: >-
+      python scripts/prepare_value_token_channel_codebooks.py --model wan5b
+      --root /data/bowen/t2v_kv_bench_moviegen_20train_10test
+      --prompt-source /data/bowen/t2v_kv_bench_moviegen_20train_10test/prompts_train.txt
+      --stage all
+  - name: wan_channel_policy_sentinels
+    depends_on: wan_codec_smoke
+    command: >-
+      python scripts/benchmark_long_video.py
+      --config experiments/long_video/value_token_channel_matched_11chunk_10prompts.yaml
+      --output-root results/long_video --run-id value_channel_reuse_sentinel_20260716
+      --settings nonorm_k_token_v_channel_l8c64,first_recent_nonorm_k_token_v_channel_l8c64
+      --prompt-start-override 0 --num-prompts-override 1 --execute --allow-full-run --resume
+      --skip_vbench
+  - name: wan_codec_smoke
+    depends_on: wan_codebook_and_offline_reconstruction
+    command: >-
+      python scripts/smoke_value_token_channel_codecs.py --model wan5b
+      --calibration-root /data/bowen/t2v_kv_bench_moviegen_20train_10test
+      --token-v-codebooks /data/bowen/t2v_kv_bench_moviegen_20train_10test/value_token_nonorm_v_l32c64_codebooks
+      --channel-v-codebooks /data/bowen/t2v_kv_bench_moviegen_20train_10test/grouped_direct_nonorm_v_l8c64_codebooks
+      --output-dir results/value_token_channel_codec_smoke/wan5b
+  - name: wan_reuse_audit
+    depends_on: wan_channel_policy_sentinels
+    command: >-
+      python scripts/audit_wan_value_channel_reuse.py
+      --sentinel-root results/long_video/value_channel_reuse_sentinel_20260716
+      --reuse-root results/long_video/no_scale_variants_11chunk_10prompt_20260707
+      --output results/long_video/value_channel_reuse_sentinel_20260716/reuse_audit.json
+    on_failure: >-
+      python scripts/benchmark_long_video.py
+      --config experiments/long_video/value_token_channel_matched_11chunk_10prompts.yaml
+      --output-root results/long_video --run-id value_token_channel_matched_20260716
+      --settings {failed_settings_csv_from_reuse_audit}
+      --execute --allow-full-run --resume --run_vbench
+    fallback_scope: Only settings whose reuse_audit.json entry has reusable=false.
+  - name: wan_token_formal
+    depends_on: wan_reuse_audit
+    command: >-
+      python scripts/benchmark_long_video.py
+      --config experiments/long_video/value_token_channel_matched_11chunk_10prompts.yaml
+      --output-root results/long_video --run-id value_token_channel_matched_20260716
+      --settings nonorm_k_token_l8_v_token_l32c64,first_recent_nonorm_k_token_l8_v_token_l32c64
+      --execute --allow-full-run --resume --run_vbench
+  - name: self_codebook_and_offline_reconstruction
+    command: >-
+      python scripts/prepare_value_token_channel_codebooks.py --model self_forcing_1p3b
+      --root /data/bowen/self_forcing_96latent_rvq_l8c64
+      --prompt-source /data/bowen/t2v_kv_bench_moviegen_20train_10test/prompts_train.txt
+      --stage all
+  - name: self_smoke_sentinel_and_formal
+    depends_on: self_codec_smoke
+    command: >-
+      python scripts/Self-Forcing/watch_96latent_experiment.py --value-study
+      --output-root /data/bowen/self_forcing_96latent_value_matched_20260716
+      --rvq-root /data/bowen/self_forcing_96latent_rvq_l8c64
+      --value-token-v-codebooks /data/bowen/self_forcing_96latent_rvq_l8c64/value_token_nonorm_v_l32c64_codebooks
+      --value-channel-v-codebooks /data/bowen/self_forcing_96latent_rvq_l8c64/grouped_direct_nonorm_v_l8c64_codebooks
+      --reference-root /data/bowen/self_forcing_96latent_moviegen
+  - name: self_codec_smoke
+    depends_on: self_codebook_and_offline_reconstruction
+    command: >-
+      python scripts/smoke_value_token_channel_codecs.py --model self_forcing_1p3b
+      --calibration-root /data/bowen/self_forcing_96latent_rvq_l8c64
+      --token-v-codebooks /data/bowen/self_forcing_96latent_rvq_l8c64/value_token_nonorm_v_l32c64_codebooks
+      --channel-v-codebooks /data/bowen/self_forcing_96latent_rvq_l8c64/grouped_direct_nonorm_v_l8c64_codebooks
+      --output-dir results/value_token_channel_codec_smoke/self_forcing_1p3b
+  - name: paired_summary
+    depends_on:
+      - wan_token_formal
+      - self_smoke_sentinel_and_formal
+    command: >-
+      python scripts/summarize_value_token_channel_study.py
+      --wan-new-root results/long_video/value_token_channel_matched_20260716
+      --wan-reuse-root results/long_video/no_scale_variants_11chunk_10prompt_20260707
+      --wan-sentinel-root results/long_video/value_channel_reuse_sentinel_20260716
+      --wan-reuse-audit results/long_video/value_channel_reuse_sentinel_20260716/reuse_audit.json
+      --self-root /data/bowen/self_forcing_96latent_value_matched_20260716
+      --output-dir results/value_token_channel_matched_20260716

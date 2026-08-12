@@ -1,0 +1,23 @@
+study_id: grid_routing_exact_capture_p67_20260725
+output_dir: /dev/shm/wan5b_grid_routing_exact_captures_p67_20260725
+python: /home/bowen/anaconda3/envs/hw8/bin/python
+prompt_file: /data/bowen/t2v_kv_bench_moviegen_20train_10test/prompts_test.txt
+prompt_ids: [6, 7]
+gpus: [0, 6]
+seed: 42
+num_frames: 173
+num_chunks: 11
+skip_decode: true
+model_id: Wan-AI/Wan2.2-TI2V-5B-Diffusers
+kv_cache_mode: pre_kv_reconstruct
+capture:
+  layers: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
+  min_historical_cache_tokens: 31680
+  query_sample: 64
+  key_sample_limit: 40000
+  max_calls_per_layer: 1
+  seed: 42
+  required_alignment: exact_same_call_same_indices
+  lean: true
+  post_validation_sample: 64
+hypothesis_registry: artifacts/p1_all_layer_map_hypotheses.csv

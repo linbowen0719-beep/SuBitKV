@@ -1,0 +1,46 @@
+{
+  "codebook_hash": {
+    "K": "2aa5748ceb4594291c3ebbeb878bd6d98eb446c8994c97e46940383bb1069b1e",
+    "V": "4667236477996d2bfa873517f696dddb1d000ceaae94218da575f9cb69dd25ae"
+  },
+  "codebook_path": {
+    "K": "/data/bowen/t2v_kv_bench_moviegen_20train_10test/nonorm_k_l16c64_codebooks",
+    "V": "/data/bowen/t2v_kv_bench_moviegen_20train_10test/nonorm_v_l16c64_codebooks"
+  },
+  "config_hash": "c4f3335fc21cfff20ad0ab804aa75aa1a49a689c893c914bd200cee5299e2424",
+  "config_path": "/home/bowen/Quant-VideoGen/scripts/plot_fig6_representation_ablation.py",
+  "data_hashes": {
+    "attention_direct_b1_b3": "8b411b0e705c8800a5a9a22fb5ddc159565b40591f4e4fe0761a41a8975a79f5",
+    "attention_existing": "41adc346a7b278c87cacdbdc011f0f1ff9cb822fab475e0cbf7f7949348033dd",
+    "reconstruction_and_memory": "930394d9ddba8410ac5102acdbfa2ff6ae9f7cc1b700826740c44057f962b509"
+  },
+  "data_paths": {
+    "attention_direct_b1_b3": "/home/bowen/Quant-VideoGen/results/analysis/fig6_representation_ablation_direct_kivi_b13_formal10_20260812/attention_aggregate.csv",
+    "attention_existing": "/home/bowen/Quant-VideoGen/results/analysis/adaptive_rvq_kivi_rate_matched_20260803/exact_attention_all_methods.csv",
+    "reconstruction_and_memory": "/home/bowen/Quant-VideoGen/results/analysis/adaptive_rvq_kivi_rate_matched_20260803/payload_accounting_all_methods.csv"
+  },
+  "git_commit": "11ff61a4f744d125a1d27fa13e2b9ecb89e94e07",
+  "gpu_type": "not applicable (plotting only)",
+  "hostname": "lambda-scalar",
+  "model": "Wan2.2 5B",
+  "outputs": [
+    "/home/bowen/Quant-VideoGen/figures/fig6_representation_ablation.pdf",
+    "/home/bowen/Quant-VideoGen/figures/fig6_representation_ablation.png",
+    "/home/bowen/Quant-VideoGen/figures/fig6_representation_ablation_data.csv"
+  ],
+  "prompt_list": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "seed": 20260803,
+  "target_bits": 2,
+  "timestamp": "2026-08-12T06:11:47.079770+00:00"
+}

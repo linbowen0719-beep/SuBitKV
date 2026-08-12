@@ -1,0 +1,254 @@
+{
+  "schema_version": "wan5b_hypotheses.v1",
+  "study_id": "wan5b_nonorm_l8c64_int4_attention_report",
+  "title": "Wan 5B No-Norm L8C64 INT4 Attention/Progressive Encoding 假设驱动验证",
+  "preregistration_policy": {
+    "rule": "所有判断先按本文件的预测、主指标和判定分支执行；结果未知或证据不完整时必须标记为缺失或无法判定。",
+    "evidence_order": [
+      "理论推测",
+      "预注册预测",
+      "受控实验",
+      "真实数据",
+      "支持/反驳",
+      "机制解释"
+    ],
+    "existing_normalized_results_role": "background_only",
+    "small_prompt_video_role": "mechanism_trend_only",
+    "missing_evidence_policy": "mark_missing_never_impute"
+  },
+  "baseline": {
+    "baseline_id": "nonorm_l8c64_int4",
+    "model_family": "Wan 5B",
+    "model_id": "Wan-AI/Wan2.2-TI2V-5B-Diffusers",
+    "implementation": "HY-WorldPlay",
+    "input_norm_mode": "none",
+    "rvq_levels": 8,
+    "rvq_centroids": 64,
+    "codebook_compute_dtype": "bf16",
+    "codebook_storage_dtype": "int4",
+    "scale_storage": {
+      "configured_dtype": "uint4",
+      "stored_in_no_norm_payload": false,
+      "accounting_rule": "no-norm payload 不计 per-token RMS scale"
+    },
+    "runtime_index_dtype": "uint8",
+    "fixed_index_physical_bytes_per_vector": 8.0,
+    "fixed_index_logical_6bit_bytes_per_vector": 6.0,
+    "k_codebook_path": "/data/bowen/t2v_kv_bench_moviegen_20train_10test/nonorm_k_l8c64_codebooks",
+    "v_codebook_path": "/data/bowen/t2v_kv_bench_moviegen_20train_10test/nonorm_v_l8c64_codebooks",
+    "k_codebook_hash": "5af517995a57748a10b7e8605deae85a5728af551adc2fb3302d3ca6c73a5a0e",
+    "v_codebook_hash": "3cfc3d684729aae6b628e4e418411eef567dbce15e9114ca78674f926fbcfdec"
+  },
+  "reporting_contract": {
+    "latency": "CUDA event；报告计时间隔、warmup、repeat、median、p10、p90；完整路径不得漏掉 route/top-k/gather/decode/RoPE。",
+    "memory": "MiB；分别列 index、metadata、scale、codebook，并声明 BF16 baseline。",
+    "reconstruction": "K/V 分开报告；QK/KL 与 PV output error 不得互相替代。",
+    "provenance": "每个新实验必须提供 run_info，至少含 git_commit、config_path/hash、codebook_path/hash、hostname、gpu_type、seed、prompt_list、timestamp。",
+    "verdict": "聚合器只展示证据文件中的显式判定；不根据缺失字段或自由文本自动生成科学结论。"
+  },
+  "hypotheses": [
+    {
+      "id": "H1",
+      "title": "Exact compressed attention 因 no-norm RVQ decode 开销而失败",
+      "theory": "L8C64 需要 8 级不规则 codebook gather/accumulate。完整 fused attention 不写出大规模 [Q,K] logits，因而无法像 standalone QK 一样用 logits 写回成本隐藏 decode。",
+      "predictions": [
+        {"id": "H1-P1", "text": "在短到中等 K 上，exact compressed full attention 慢于 BF16 fused SDPA。"},
+        {"id": "H1-P2", "text": "standalone QK 只可能在长 K 上出现 break-even。"},
+        {"id": "H1-P3", "text": "失败路径相对 BF16 的额外时间主要来自 K/V decode。"}
+      ],
+      "controlled_experiment": {
+        "representation": "Wan 5B 真实 post-RoPE Q/K/V",
+        "layers": [10, 20],
+        "q_tokens": 64,
+        "k_tokens": [3520, 14080, 28160, "full_cache_approximately_35k"],
+        "variants": ["bf16_sdpa", "standalone_qk", "explicit_decode_plus_sdpa", "exact_compressed_attention"],
+        "diagnostic_reference": "PyTorch blockwise pre-K/V decode + saved per-token standard RoPE; full attention uses FP32 stable online softmax and is not a fused Triton production kernel",
+        "validity_gate": {
+          "metric": "exact_streaming_vs_explicit_decode_rope_sdpa_relative_l2",
+          "max": 0.005,
+          "failure_action": "invalidate exact-reference timing rather than interpret it as attention acceleration evidence"
+        },
+        "controls": ["相同 Q/K/V slice", "相同 head/layer", "相同 dtype", "相同 warmup/repeat"]
+      },
+      "primary_metrics": ["full_attention_speedup_vs_bf16", "standalone_qk_speedup_vs_bf16", "decode_fraction_of_extra_latency", "attention_output_relative_l2"],
+      "decision_rules": [
+        {"id": "H1-R1", "if": "full_attention_speedup_vs_bf16 < 1.0 at every tested K in at least three K sizes", "verdict": "supports_full_attention_failure"},
+        {"id": "H1-R2", "if": "standalone_qk_speedup_vs_bf16 > 1.0 for K >= 28160 while full_attention_speedup_vs_bf16 < 1.0", "verdict": "supports_logit_write_hiding_explanation"},
+        {"id": "H1-R3", "if": "decode_fraction_of_extra_latency >= 0.5", "verdict": "supports_decode_bottleneck"},
+        {"id": "H1-R4", "if": "standalone_qk_speedup_vs_bf16 <= 1.0 at every tested K", "verdict": "current_shapes_do_not_cross_qk_break_even"}
+      ],
+      "required_evidence": ["h1_real_post_rope_attention_timing"]
+    },
+    {
+      "id": "H2",
+      "title": "Token Progressive 同时受 metadata、错误目标和不规则 runtime 限制",
+      "theory": "C64 的信息量是 6 bit/index，但当前 runtime index tensor 是 uint8：L8 fixed 的物理 index payload 是 8 bytes/vector，6 bytes/vector 只是理想 bitpack 的逻辑值。token progressive 额外存 1-byte depth，因此忽略 offsets 时当前物理格式的平均深度 break-even 是 7.0；若未来真正做 6-bit bitpack，逻辑 break-even 才是 6.67。residual RMS 又未按 QK/PV 敏感度加权，而 variable mask/gather/scatter 破坏规则 GPU decode。",
+      "predictions": [
+        {"id": "H2-P1", "text": "当前 uint8 index 格式下平均深度高于 7.0 时，progressive 的实测物理 payload 不会小于 fixed L8；6.67 只是假设 6-bit bitpack 后的逻辑 break-even。"},
+        {"id": "H2-P2", "text": "匹配近似平均深度时，fixed/coarse bucket decode 快于 token progressive。"},
+        {"id": "H2-P3", "text": "residual RMS 与 QK/PV sensitivity 的相关性不足以可靠分配 depth。"},
+        {"id": "H2-P4", "text": "fixed L6 可能在 rate/quality/runtime 上支配 avg-depth-7 token progressive。"}
+      ],
+      "controlled_experiment": {
+        "variants": ["fixed_l8", "fixed_l6", "token_progressive_avg7", "coarse_chunk_l4_l6_l8"],
+        "controls": ["相同真实 Q/K/V", "同一 no-norm L8C64 codebook family/prefix", "相同 INT4 storage", "相同 token 数量"],
+        "storage_formula": {
+          "current_physical_uint8": "progressive_index_bytes_per_vector approximately avg_depth + 1; fixed_l8 = 8; break_even avg_depth = 7 (offsets make the exact threshold slightly lower)",
+          "hypothetical_logical_6bit_pack": "progressive_index_bytes_per_vector = 0.75 * avg_depth + 1; fixed_l8 = 6; break_even avg_depth = 6.6666667"
+        }
+      },
+      "primary_metrics": ["payload_bytes", "encode_latency_ms", "decode_latency_ms", "qk_attention_kl", "pv_relative_l2", "residual_sensitivity_spearman"],
+      "decision_rules": [
+        {"id": "H2-R1", "if": "measured progressive physical tensor bytes >= measured fixed_l8 physical tensor bytes", "verdict": "supports_metadata_limit"},
+        {"id": "H2-R2", "if": "token_progressive_decode_latency / matched_fixed_decode_latency >= 1.05", "verdict": "supports_irregular_runtime_limit"},
+        {"id": "H2-R3", "if": "abs(residual_sensitivity_spearman) < 0.3", "verdict": "supports_objective_mismatch"},
+        {"id": "H2-R4", "if": "abs(residual_sensitivity_spearman) >= 0.5", "verdict": "contradicts_weak_sensitivity_proxy_prediction"}
+      ],
+      "required_evidence": ["existing_no_norm_progressive_10prompt", "h2_fixed_progressive_control"]
+    },
+    {
+      "id": "H3",
+      "title": "Min-QK scalar 只能修正少量径向误差",
+      "theory": "K_hat' = alpha K_hat 只有一个径向自由度，无法修正 angular、channel、subspace 或 query-dependent error；QK surrogate 的改善也不保证 PV 或视频质量改善。",
+      "predictions": [
+        {"id": "H3-P1", "text": "最佳 alpha 集中在 1 附近。"},
+        {"id": "H3-P2", "text": "Q-weighted scalar radial recoverable ratio 较低。"},
+        {"id": "H3-P3", "text": "per-channel 或 Q-covariance 方法比 scalar 更能降低 QK error。"},
+        {"id": "H3-P4", "text": "只改善 QK 而不改善 PV 的方法不会稳定提升视频质量。"}
+      ],
+      "controlled_experiment": {
+        "layers": [0, 10, 20, 29],
+        "variants": ["no_calibration", "block_scalar", "per_channel_diagonal", "q_covariance_whitening_upper_bound"],
+        "controls": ["相同 Q/K/V", "相同 RVQ reconstruction", "相同 layer/head/token sample"]
+      },
+      "primary_metrics": ["radial_recoverable_ratio", "pv_relative_l2", "qk_mse", "attention_kl", "k_mse"],
+      "decision_rules": [
+        {"id": "H3-R1", "if": "median radial_recoverable_ratio <= 0.2 in at least three of four layers", "verdict": "supports_low_scalar_ceiling"},
+        {"id": "H3-R2", "if": "median radial_recoverable_ratio >= 0.5 in at least three of four layers", "verdict": "contradicts_low_scalar_ceiling"},
+        {"id": "H3-R3", "if": "per_channel QK error reduction exceeds scalar reduction by at least 10 percent relative", "verdict": "supports_missing_directional_freedom"},
+        {"id": "H3-R4", "if": "QK MSE improves but PV relative L2 or video quality worsens", "verdict": "supports_surrogate_mismatch"}
+      ],
+      "required_evidence": ["existing_no_norm_qk_scale_10prompt", "h3_radial_angular_decomposition"]
+    },
+    {
+      "id": "H4",
+      "title": "Codebook 更适合做 Sparse Router，而不是直接替代 token",
+      "theory": "softmax(Q mean(K)) mean(V) 不能保持组内 token 差异，但 routing 只需近似保持 page 排名；先 route、再精确解码选中 token 可能保留质量并降低长 K 计算。",
+      "predictions": [
+        {"id": "H4-P1", "text": "group-mean token replacement 的 output error 高。"},
+        {"id": "H4-P2", "text": "level-0/page summary 仍可能保持较高 oracle top-page recall。"},
+        {"id": "H4-P3", "text": "sparse output error 随 selection fraction 增加而下降。"},
+        {"id": "H4-P4", "text": "速度收益随 K 增长，且 layer 20 比更 diffuse 的 layer 10 更适合 sparse。"}
+      ],
+      "controlled_experiment": {
+        "representation": "Wan 5B 真实 post-RoPE Q/K/V",
+        "layers": [10, 20],
+        "page_size": 32,
+        "selection_fractions": [0.05, 0.1, 0.2],
+        "variants": ["bf16_dense", "group_mean", "rvq_routed_selected_exact", "rvq_routed_sparse_with_grouped_tail"],
+        "timed_interval": "route + top-k + indices gather + selected decode + SDPA"
+      },
+      "primary_metrics": ["top_page_recall", "captured_attention_mass", "attention_output_relative_l2", "attention_output_cosine", "complete_path_speedup_vs_bf16"],
+      "decision_rules": [
+        {"id": "H4-R1", "if": "group_mean_attention_output_relative_l2 >= 0.5", "verdict": "supports_group_mean_replacement_failure"},
+        {"id": "H4-R2", "if": "top_page_recall >= 0.8 at selection_fraction 0.2", "verdict": "supports_router_representation"},
+        {"id": "H4-R3", "if": "complete_path_speedup_vs_bf16 > 1.0 and attention_output_relative_l2 <= 0.15", "verdict": "viable_acceleration_point"},
+        {"id": "H4-R4", "if": "top_page_recall is high but complete_path_speedup_vs_bf16 <= 1.0", "verdict": "representation_supported_runtime_not_yet_viable"}
+      ],
+      "required_evidence": ["h4_real_post_rope_codebook_routing"]
+    },
+    {
+      "id": "H5",
+      "title": "Recent KV 依靠局部连续性部分替代历史，first chunk 提供全局 anchor",
+      "theory": "recent KV 携带当前运动、外观与 continuation 状态，first chunk 提供主体、场景和构图 anchor；middle history 的部分信息冗余。",
+      "predictions": [
+        {"id": "H5-P1", "text": "attention mass 总体随时间距离下降，但强度随 layer/head 变化。"},
+        {"id": "H5-P2", "text": "同 token 预算下 recent-only 优于 uniform temporal sampling。"},
+        {"id": "H5-P3", "text": "first+recent 优于 recent-only。"},
+        {"id": "H5-P4", "text": "content/codebook routing 进一步优于固定时间策略。"}
+      ],
+      "controlled_experiment": {
+        "attention_variants": ["recent_only", "first_plus_recent", "uniform_temporal", "codebook_routing", "oracle_pages"],
+        "selection_fractions": [0.1, 0.2],
+        "video_smoke_variants": ["first_plus_static_last", "first_plus_dynamic_recent"],
+        "video_smoke_prompts": 3,
+        "controls": ["相同 token/KV bytes 预算", "相同 prompts/seeds", "相同 no-norm L8C64 payload"]
+      },
+      "primary_metrics": ["captured_attention_mass", "effective_key_count", "pv_relative_l2", "psnr", "ssim", "lpips"],
+      "decision_rules": [
+        {"id": "H5-R1", "if": "recent_only PV relative L2 < uniform_temporal PV relative L2 at matched budget", "verdict": "supports_temporal_locality"},
+        {"id": "H5-R2", "if": "first_plus_recent PV relative L2 < recent_only PV relative L2 at matched budget", "verdict": "supports_first_chunk_anchor"},
+        {"id": "H5-R3", "if": "codebook_routing PV relative L2 < first_plus_recent PV relative L2", "verdict": "content_routing_adds_information_beyond_time_prior"},
+        {"id": "H5-R4", "if": "trend appears only in a subset of layers", "verdict": "layer_dependent_policy_required"}
+      ],
+      "required_evidence": ["h5_real_post_rope_temporal_masks", "h5_three_prompt_no_norm_video_smoke"]
+    },
+    {
+      "id": "H6",
+      "title": "Pre-RoPE 只有在位置感知 routing 保持排序时才能加速",
+      "theory": "RoPE 保持单向量 norm，但 post-RoPE score 是 q^T R_i^T R_j k。naive pre-RoPE q^T k 漏掉相对位置；只有位置感知 router 保持 post-RoPE page 排名，才能在 full decode/RoPE 前安全筛选。",
+      "predictions": [
+        {"id": "H6-P1", "text": "naive pre-RoPE router 弱于 post-RoPE routing upper bound。"},
+        {"id": "H6-P2", "text": "position-aware pre-RoPE router 提升 recall。"},
+        {"id": "H6-P3", "text": "selected-only RoPE latency 随 selection fraction 降低。"},
+        {"id": "H6-P4", "text": "只有 recall 与 output error 过关时 selective decode/RoPE 才有净加速。"}
+      ],
+      "controlled_experiment": {
+        "paired_dump": ["pre_rope_q", "pre_rope_k", "post_rope_q", "post_rope_k", "v", "token_positions", "cos_sin"],
+        "variants": ["full_decode_full_rope_dense", "naive_pre_rope_route", "position_aware_pre_rope_route", "post_rope_route_upper_bound"],
+        "report_halves_separately": ["standard_rope", "camera_prope"]
+      },
+      "primary_metrics": ["top_page_recall", "captured_attention_mass", "attention_output_relative_l2", "full_path_speedup_vs_bf16", "rope_latency_ms"],
+      "decision_rules": [
+        {"id": "H6-R1", "if": "post_rope_recall - naive_pre_rope_recall >= 0.1", "verdict": "supports_missing_relative_position_problem"},
+        {"id": "H6-R2", "if": "position-aware routing recovers at least 50 percent of the recall gap to post-RoPE upper bound", "verdict": "supports_position_aware_router"},
+        {"id": "H6-R3", "if": "at selection_fraction 0.2, attention_output_relative_l2 <= 0.15 and full_path_speedup_vs_bf16 > 1.0", "verdict": "pre_rope_acceleration_supported"},
+        {"id": "H6-R4", "if": "H6-R3 is false", "verdict": "pre_rope_acceleration_not_yet_viable"}
+      ],
+      "required_evidence": ["h6_paired_pre_post_rope_routing"]
+    },
+    {
+      "id": "H7",
+      "title": "按 KV 年龄分配 depth 应在匹配码率下优于 uniform depth",
+      "theory": "若 first/recent KV 更敏感，同样的 RVQ level budget 应优先分给边界；coarse chunk depth 保持规则 decode，避免 token progressive 的不规则开销。时间距离只是待验证的低成本 sensitivity proxy。",
+      "predictions": [
+        {"id": "H7-P1", "text": "匹配平均 depth=6 时，tiered policy 的 PV error 低于 uniform L6。"},
+        {"id": "H7-P2", "text": "tiered raw reconstruction MSE 不一定低于 uniform L6。"},
+        {"id": "H7-P3", "text": "coarse chunk depth latency接近 fixed L6，并明显快于 token progressive。"}
+      ],
+      "controlled_experiment": {
+        "variants": ["uniform_l8", "uniform_l6", "temporal_tiered"],
+        "temporal_tiered_policy": {
+          "boundary_depth": 8,
+          "middle_depth": 6,
+          "old_depth": 4,
+          "oldest_middle_chunks": 2,
+          "recent_chunks": 1,
+          "full_11_chunk_average_depth": 6
+        },
+        "conditional_video_smoke": {
+          "gate": "H7-R1 and H7-R2 must already pass",
+          "prompts": 3,
+          "seed": 42,
+          "num_generation_chunks": 11,
+          "terminal_cache_chunks": 10,
+          "terminal_tiered_schedule": [8, 4, 4, 6, 6, 6, 6, 6, 6, 8],
+          "uniform_comparator": "same L8C64 prefix at fixed L6",
+          "matched_rate_definition": "equal actual uint8 index payload; measured total KV MiB/runtime reported separately"
+        },
+        "controls": ["同一 L8C64 prefix", "相同实际 index bytes", "chunk 变旧只截断 indices，不重新 encode"]
+      },
+      "primary_metrics": ["actual_payload_bytes", "pv_relative_l2", "k_reconstruction_mse", "v_reconstruction_mse", "decode_latency_ms", "three_prompt_video_quality_if_gate_passes"],
+      "decision_rules": [
+        {"id": "H7-R1", "if": "tiered_payload_bytes == uniform_l6_payload_bytes and tiered PV relative L2 <= uniform_l6 PV relative L2", "verdict": "offline_quality_gate_pass"},
+        {"id": "H7-R2", "if": "tiered_decode_latency / uniform_l6_decode_latency <= 1.10", "verdict": "offline_runtime_gate_pass"},
+        {"id": "H7-R3", "if": "both H7-R1 and H7-R2 pass", "verdict": "run_three_prompt_video_smoke"},
+        {"id": "H7-R4", "if": "either offline gate fails", "verdict": "stop_after_negative_offline_result"}
+      ],
+      "required_evidence": ["h7_matched_rate_offline_gate"],
+      "conditional_evidence": [
+        {"id": "h7_three_prompt_tiered_video_smoke", "when": "H7-R1 and H7-R2 pass"}
+      ]
+    }
+  ]
+}

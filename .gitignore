@@ -1,0 +1,67 @@
+# Checkpoints & model weights
+ckpts/
+weights/
+checkpoints/
+data/
+codebooks/
+*.pt
+*.pth
+*.safetensors
+*.ckpt
+
+# Results & outputs
+results/
+outputs/
+artifacts/
+/reports/
+rvq_diag/
+logs/
+exports/
+tables/
+quant-videogen_condition_videos/
+sparse_kv_first_last_chunk_only/
+external/
+vayne_internal-master/
+vayne_internal-master.zip
+*.mp4
+*.pid
+
+# Local reference clones and generated comparison bundles
+/QuantVideo/
+/experiments/LongCatOfficial/
+/self_forcing_96latent_moviegen/
+/self_forcing_videos/
+/wan2_2_5b_conclusion_summary_videos/
+/plots
+/report.md
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+dist/
+build/
+*.so
+
+# Environment
+.env
+*.env
+.venv/
+.cache/
+configs/paths.local.yaml
+
+# IDE
+.vscode/
+.idea/
+
+# Slurm
+slurm/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+wandb/

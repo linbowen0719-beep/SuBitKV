@@ -1,0 +1,57 @@
+runner:
+  python: /home/bowen/anaconda3/envs/hw8/bin/python
+  vbench_bin: /home/bowen/anaconda3/bin/vbench
+benchmark:
+  prompt_file: /data/bowen/t2v_kv_bench_moviegen_20train_10test/prompts_test.txt
+  prompt_start: 0
+  num_prompts: 10
+  seed: 42
+  num_chunks: 11
+  chunk_size: 4
+  pred_latent_size: 4
+  num_frames: 173
+  num_inference_steps: 50
+  image_path: none
+  pose: w-96
+  memory_frames: 80
+  temporal_context_size: 76
+  offload_text_encoder: true
+  kv_logical_head_dim: 128
+  kv_reference_frames: 80
+rvq:
+  k_codebook_dir: /data/bowen/t2v_kv_bench_moviegen_20train_10test/nonorm_k_l8c64_codebooks
+  v_codebook_dir: /data/bowen/t2v_kv_bench_moviegen_20train_10test/nonorm_v_l8c64_codebooks
+  codebook_storage_dtype: int4
+  scale_storage_dtype: uint4
+rvq_k_token_v_channel:
+  variant: VALUE_CHANNEL_4X_L8C64_MATCHED
+  k_codebook_dir: /data/bowen/t2v_kv_bench_moviegen_20train_10test/nonorm_k_l8c64_codebooks
+  v_codebook_dir: /data/bowen/t2v_kv_bench_moviegen_20train_10test/grouped_direct_nonorm_v_l8c64_codebooks
+  codebook_storage_dtype: int4
+  scale_storage_dtype: uint4
+rvq_k_token_v_token_l32:
+  variant: VALUE_TOKEN_L32C64_MATCHED
+  k_codebook_dir: /data/bowen/t2v_kv_bench_moviegen_20train_10test/nonorm_k_l8c64_codebooks
+  v_codebook_dir: /data/bowen/t2v_kv_bench_moviegen_20train_10test/value_token_nonorm_v_l32c64_codebooks
+  codebook_storage_dtype: int4
+  scale_storage_dtype: uint4
+rvq_diagnostics:
+  enabled: true
+  query_sample: 96
+vbench:
+  bin: /home/bowen/anaconda3/bin/vbench
+  dimensions:
+    - subject_consistency
+    - background_consistency
+    - imaging_quality
+    - aesthetic_quality
+result_source: new
+quality_reference_dir: /home/bowen/Quant-VideoGen/results/long_video/no_scale_variants_11chunk_10prompt_20260707/full_precision_cpu_offload
+smoke:
+  benchmark:
+    prompt_file: assets/t2v_smoke.txt
+    prompt_start: 0
+    num_prompts: 1
+    num_chunks: 11
+    num_frames: 173
+    num_inference_steps: 1

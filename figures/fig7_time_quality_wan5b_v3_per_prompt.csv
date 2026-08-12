@@ -1,0 +1,1431 @@
+panel,metric,method,label,prompt_id,chunk,frame_start,frame_end,frames,value
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,5,9,125,141,16,0.7699847269058228
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,7,1,0,13,13,0.7835339648907
+a,imaging_quality,ours_uniform_b2,Ours B2,2,4,45,61,16,0.7789020586013794
+a,imaging_quality,kivi_int2,KIVI INT2,8,3,29,45,16,0.7703437566757202
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,1,6,77,93,16,0.24933260321617126
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,7,11,157,173,16,0.7592726373672485
+a,imaging_quality,kivi_int2,KIVI INT2,9,9,125,141,16,0.5881018257141113
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,1,8,109,125,16,0.4668069291114807
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,6,2,13,29,16,0.7339178466796875
+a,imaging_quality,ours_uniform_b2,Ours B2,7,7,93,109,16,0.7620457363128662
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,5,4,45,61,16,0.7761226654052734
+a,imaging_quality,kivi_int2,KIVI INT2,4,2,13,29,16,0.7992066478729248
+a,imaging_quality,ours_uniform_b2,Ours B2,2,7,93,109,16,0.7398924541473388
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,1,1,0,13,13,0.7304962334266075
+a,imaging_quality,kivi_int2,KIVI INT2,4,5,61,77,16,0.7971883583068847
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,2,3,29,45,16,0.7680903100967407
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,8,4,45,61,16,0.7728066205978393
+a,imaging_quality,ours_uniform_b2,Ours B2,7,10,141,157,16,0.7684373044967652
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,5,10,141,157,16,0.7631633472442627
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,2,9,125,141,16,0.7786742782592774
+a,imaging_quality,bf16,BF16,8,4,45,61,16,0.7846003580093384
+a,imaging_quality,ours_uniform_b2,Ours B2,4,11,157,173,16,0.7927144479751587
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,9,4,45,61,16,0.4469437861442566
+a,imaging_quality,kivi_int2,KIVI INT2,3,4,45,61,16,0.7826318359375
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,2,10,141,157,16,0.7373302268981934
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,7,8,109,125,16,0.7452669715881348
+a,imaging_quality,ours_uniform_b2,Ours B2,1,11,157,173,16,0.533139705657959
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,9,10,141,157,16,0.6275588607788086
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,3,1,0,13,13,0.7759036783071664
+a,imaging_quality,ours_uniform_b2,Ours B2,6,3,29,45,16,0.7471463108062744
+a,imaging_quality,bf16,BF16,5,7,93,109,16,0.7883650493621827
+a,imaging_quality,bf16,BF16,2,4,45,61,16,0.7784544706344605
+a,imaging_quality,ours_uniform_b2,Ours B2,1,2,13,29,16,0.7500514793395996
+a,imaging_quality,bf16,BF16,7,11,157,173,16,0.7716244697570801
+a,imaging_quality,bf16,BF16,3,9,125,141,16,0.7821364879608155
+a,imaging_quality,bf16,BF16,4,9,125,141,16,0.7134306192398071
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,0,2,13,29,16,0.7899921226501465
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,5,3,29,45,16,0.7214287376403808
+a,imaging_quality,bf16,BF16,8,9,125,141,16,0.7949084520339966
+a,imaging_quality,ours_uniform_b2,Ours B2,5,9,125,141,16,0.775595817565918
+a,imaging_quality,ours_uniform_b2,Ours B2,2,10,141,157,16,0.7596076393127441
+a,imaging_quality,kivi_int2,KIVI INT2,0,6,77,93,16,0.796392741203308
+a,imaging_quality,bf16,BF16,9,2,13,29,16,0.7200877475738525
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,8,8,109,125,16,0.765741925239563
+a,imaging_quality,ours_uniform_b2,Ours B2,0,10,141,157,16,0.7955624103546143
+a,imaging_quality,bf16,BF16,1,11,157,173,16,0.4523365688323975
+a,imaging_quality,bf16,BF16,2,8,109,125,16,0.7359523582458496
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,5,8,109,125,16,0.7109437251091003
+a,imaging_quality,bf16,BF16,1,4,45,61,16,0.7568007659912109
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,2,6,77,93,16,0.7671652221679688
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,6,6,77,93,16,0.6975718545913696
+a,imaging_quality,ours_uniform_b2,Ours B2,3,6,77,93,16,0.7850198459625244
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,1,6,77,93,16,0.5122085738182068
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,1,2,13,29,16,0.7513175392150879
+a,imaging_quality,bf16,BF16,5,3,29,45,16,0.7642588901519776
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,0,4,45,61,16,0.7285977172851562
+a,imaging_quality,kivi_int2,KIVI INT2,7,9,125,141,16,0.7283087921142578
+a,imaging_quality,bf16,BF16,1,9,125,141,16,0.4564192771911621
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,1,11,157,173,16,0.47135448455810547
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,5,8,109,125,16,0.765435881614685
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,4,9,125,141,16,0.7218162631988525
+a,imaging_quality,kivi_int2,KIVI INT2,2,2,13,29,16,0.7738781595230102
+a,imaging_quality,kivi_int2,KIVI INT2,8,4,45,61,16,0.7850285816192627
+a,imaging_quality,kivi_int2,KIVI INT2,4,3,29,45,16,0.7994433307647705
+a,imaging_quality,bf16,BF16,3,7,93,109,16,0.7766001462936402
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,3,8,109,125,16,0.6234072685241699
+a,imaging_quality,ours_uniform_b2,Ours B2,5,3,29,45,16,0.760501675605774
+a,imaging_quality,ours_uniform_b2,Ours B2,1,3,29,45,16,0.7492214918136597
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,6,7,93,109,16,0.746941843032837
+a,imaging_quality,bf16,BF16,7,4,45,61,16,0.7940520668029785
+a,imaging_quality,kivi_int2,KIVI INT2,9,11,157,173,16,0.49286053419113157
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,2,2,13,29,16,0.7724724531173706
+a,imaging_quality,kivi_int2,KIVI INT2,3,6,77,93,16,0.781648325920105
+a,imaging_quality,kivi_int2,KIVI INT2,0,2,13,29,16,0.7906888151168823
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,3,11,157,173,16,0.7716793012619019
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,4,9,125,141,16,0.3402237868309021
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,7,7,93,109,16,0.7609405136108398
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,2,6,77,93,16,0.7762150478363037
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,1,9,125,141,16,0.33615116477012635
+a,imaging_quality,ours_uniform_b2,Ours B2,1,8,109,125,16,0.4862276601791382
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,0,1,0,13,13,0.7849581733116737
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,0,6,77,93,16,0.7853972816467285
+a,imaging_quality,bf16,BF16,5,4,45,61,16,0.7753857946395875
+a,imaging_quality,kivi_int2,KIVI INT2,7,2,13,29,16,0.7787540340423584
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,2,3,29,45,16,0.7770046615600585
+a,imaging_quality,bf16,BF16,5,9,125,141,16,0.7704046201705933
+a,imaging_quality,bf16,BF16,2,7,93,109,16,0.7299029731750488
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,7,4,45,61,16,0.6386986517906189
+a,imaging_quality,ours_uniform_b2,Ours B2,6,7,93,109,16,0.697353925704956
+a,imaging_quality,ours_uniform_b2,Ours B2,0,9,125,141,16,0.7942251920700073
+a,imaging_quality,ours_uniform_b2,Ours B2,3,7,93,109,16,0.7829020071029663
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,5,2,13,29,16,0.7525835275650025
+a,imaging_quality,kivi_int2,KIVI INT2,3,11,157,173,16,0.7665464639663696
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,3,7,93,109,16,0.720075831413269
+a,imaging_quality,ours_uniform_b2,Ours B2,3,10,141,157,16,0.7669253969192504
+a,imaging_quality,ours_uniform_b2,Ours B2,7,11,157,173,16,0.7698093318939209
+a,imaging_quality,bf16,BF16,6,5,61,77,16,0.7285789012908935
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,6,7,93,109,16,0.7291686391830444
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,6,1,0,13,13,0.7387467369666466
+a,imaging_quality,bf16,BF16,2,1,0,13,13,0.7834012369009165
+a,imaging_quality,kivi_int2,KIVI INT2,1,10,141,157,16,0.43354795694351195
+a,imaging_quality,kivi_int2,KIVI INT2,3,3,29,45,16,0.78135817527771
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,1,7,93,109,16,0.4420030236244202
+a,imaging_quality,bf16,BF16,7,6,77,93,16,0.7650958442687988
+a,imaging_quality,ours_uniform_b2,Ours B2,1,9,125,141,16,0.46787458896636963
+a,imaging_quality,ours_uniform_b2,Ours B2,1,4,45,61,16,0.7542502164840699
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,8,1,0,13,13,0.7582020803598257
+a,imaging_quality,kivi_int2,KIVI INT2,4,11,157,173,16,0.7750652408599854
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,8,4,45,61,16,0.7861059856414795
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,6,11,157,173,16,0.3858466863632202
+a,imaging_quality,ours_uniform_b2,Ours B2,2,2,13,29,16,0.7770537090301514
+a,imaging_quality,kivi_int2,KIVI INT2,2,1,0,13,13,0.7840773245004508
+a,imaging_quality,bf16,BF16,8,7,93,109,16,0.7940733528137207
+a,imaging_quality,kivi_int2,KIVI INT2,0,11,157,173,16,0.7999567556381225
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,4,8,109,125,16,0.7595940494537353
+a,imaging_quality,kivi_int2,KIVI INT2,5,2,13,29,16,0.7570680665969849
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,6,2,13,29,16,0.7335995531082153
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,2,7,93,109,16,0.7315341901779174
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,1,5,61,77,16,0.30113471508026124
+a,imaging_quality,ours_uniform_b2,Ours B2,0,3,29,45,16,0.7755036163330078
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,2,9,125,141,16,0.7728099250793456
+a,imaging_quality,ours_uniform_b2,Ours B2,8,6,77,93,16,0.789535927772522
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,0,3,29,45,16,0.7605597114562989
+a,imaging_quality,kivi_int2,KIVI INT2,7,3,29,45,16,0.7827468347549439
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,6,6,77,93,16,0.722749433517456
+a,imaging_quality,ours_uniform_b2,Ours B2,8,9,125,141,16,0.7936956357955932
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,9,9,125,141,16,0.27561436891555785
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,8,5,61,77,16,0.7863151454925537
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,5,5,61,77,16,0.7004201173782348
+a,imaging_quality,kivi_int2,KIVI INT2,2,4,45,61,16,0.7666494083404541
+a,imaging_quality,bf16,BF16,8,10,141,157,16,0.7979095315933228
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,6,2,13,29,16,0.7391997623443604
+a,imaging_quality,kivi_int2,KIVI INT2,2,3,29,45,16,0.7765194606781006
+a,imaging_quality,ours_uniform_b2,Ours B2,5,2,13,29,16,0.7573315954208374
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,9,2,13,29,16,0.676906349658966
+a,imaging_quality,ours_uniform_b2,Ours B2,5,1,0,13,13,0.740120849609375
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,0,5,61,77,16,0.7115633821487427
+a,imaging_quality,bf16,BF16,0,9,125,141,16,0.7974475479125976
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,6,10,141,157,16,0.43365551710128786
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,5,11,157,173,16,0.42455378770828245
+a,imaging_quality,ours_uniform_b2,Ours B2,9,6,77,93,16,0.7510886383056641
+a,imaging_quality,bf16,BF16,6,10,141,157,16,0.7496610498428344
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,7,5,61,77,16,0.7815985202789306
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,0,1,0,13,13,0.7848152806208684
+a,imaging_quality,bf16,BF16,0,2,13,29,16,0.7901154613494873
+a,imaging_quality,bf16,BF16,9,3,29,45,16,0.7185278224945069
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,7,2,13,29,16,0.7754842185974121
+a,imaging_quality,kivi_int2,KIVI INT2,4,9,125,141,16,0.7756815147399903
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,4,11,157,173,16,0.7259199905395508
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,2,2,13,29,16,0.7781310510635376
+a,imaging_quality,bf16,BF16,9,7,93,109,16,0.7492584753036499
+a,imaging_quality,ours_uniform_b2,Ours B2,0,1,0,13,13,0.7848217186560997
+a,imaging_quality,bf16,BF16,7,3,29,45,16,0.7834160375595093
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,7,11,157,173,16,0.4758688235282898
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,7,5,61,77,16,0.7572548580169678
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,0,9,125,141,16,0.68114759683609
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,5,6,77,93,16,0.7451662397384644
+a,imaging_quality,bf16,BF16,6,2,13,29,16,0.7328863048553467
+a,imaging_quality,bf16,BF16,8,2,13,29,16,0.7837286949157715
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,8,10,141,157,16,0.7810048246383667
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,5,3,29,45,16,0.7637369537353516
+a,imaging_quality,ours_uniform_b2,Ours B2,9,5,61,77,16,0.7210442113876343
+a,imaging_quality,bf16,BF16,1,2,13,29,16,0.751554536819458
+a,imaging_quality,bf16,BF16,6,1,0,13,13,0.7382286423903246
+a,imaging_quality,ours_uniform_b2,Ours B2,8,3,29,45,16,0.7669649362564087
+a,imaging_quality,kivi_int2,KIVI INT2,9,8,109,125,16,0.7279120397567749
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,9,10,141,157,16,0.29718390107154846
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,4,1,0,13,13,0.8015936631422776
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,9,11,157,173,16,0.5992040276527405
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,0,5,61,77,16,0.7820370006561279
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,9,9,125,141,16,0.40524341821670534
+a,imaging_quality,kivi_int2,KIVI INT2,5,4,45,61,16,0.776446499824524
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,3,6,77,93,16,0.7544557523727417
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,0,6,77,93,16,0.7735074281692504
+a,imaging_quality,ours_uniform_b2,Ours B2,9,2,13,29,16,0.7191997718811035
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,9,1,0,13,13,0.642713875403771
+a,imaging_quality,ours_uniform_b2,Ours B2,0,11,157,173,16,0.7956613063812256
+a,imaging_quality,ours_uniform_b2,Ours B2,0,2,13,29,16,0.7890806150436401
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,2,4,45,61,16,0.7703742361068726
+a,imaging_quality,bf16,BF16,8,1,0,13,13,0.7602988433837891
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,8,4,45,61,16,0.7755065298080445
+a,imaging_quality,ours_uniform_b2,Ours B2,3,1,0,13,13,0.7753780247614934
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,9,11,157,173,16,0.22016472697257997
+a,imaging_quality,kivi_int2,KIVI INT2,8,5,61,77,16,0.7916360759735107
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,2,5,61,77,16,0.7612496757507324
+a,imaging_quality,kivi_int2,KIVI INT2,0,1,0,13,13,0.7840532038762019
+a,imaging_quality,kivi_int2,KIVI INT2,9,1,0,13,13,0.6487030205359825
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,4,3,29,45,16,0.8006535148620606
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,9,1,0,13,13,0.6432262420654297
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,2,1,0,13,13,0.7833013270451472
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,4,8,109,125,16,0.3150618374347687
+a,imaging_quality,ours_uniform_b2,Ours B2,5,7,93,109,16,0.7935013484954834
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,6,9,125,141,16,0.7135611200332641
+a,imaging_quality,kivi_int2,KIVI INT2,9,5,61,77,16,0.6976069402694702
+a,imaging_quality,kivi_int2,KIVI INT2,4,6,77,93,16,0.8025681495666503
+a,imaging_quality,ours_uniform_b2,Ours B2,7,5,61,77,16,0.7708546018600464
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,5,1,0,13,13,0.7400601783165566
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,8,11,157,173,16,0.632804787158966
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,3,5,61,77,16,0.764369568824768
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,7,4,45,61,16,0.7930011940002442
+a,imaging_quality,ours_uniform_b2,Ours B2,7,2,13,29,16,0.7798963737487793
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,6,10,141,157,16,0.6972002506256103
+a,imaging_quality,bf16,BF16,4,1,0,13,13,0.8020384568434495
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,3,3,29,45,16,0.7790022373199463
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,1,6,77,93,16,0.5323514652252197
+a,imaging_quality,kivi_int2,KIVI INT2,1,11,157,173,16,0.4567266821861267
+a,imaging_quality,ours_uniform_b2,Ours B2,4,10,141,157,16,0.7841785669326782
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,4,1,0,13,13,0.801847405066857
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,3,5,61,77,16,0.7804431056976319
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,1,3,29,45,16,0.6899980449676514
+a,imaging_quality,ours_uniform_b2,Ours B2,6,11,157,173,16,0.726797285079956
+a,imaging_quality,kivi_int2,KIVI INT2,6,9,125,141,16,0.7083619165420533
+a,imaging_quality,bf16,BF16,3,4,45,61,16,0.7812462186813355
+a,imaging_quality,kivi_int2,KIVI INT2,6,4,45,61,16,0.7369141960144043
+a,imaging_quality,ours_uniform_b2,Ours B2,0,5,61,77,16,0.7700426387786865
+a,imaging_quality,ours_uniform_b2,Ours B2,4,9,125,141,16,0.782036452293396
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,0,11,157,173,16,0.5836235475540161
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,7,10,141,157,16,0.7642095375061035
+a,imaging_quality,kivi_int2,KIVI INT2,3,8,109,125,16,0.7654468488693237
+a,imaging_quality,kivi_int2,KIVI INT2,2,9,125,141,16,0.7108528327941894
+a,imaging_quality,kivi_int2,KIVI INT2,1,8,109,125,16,0.5028988027572632
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,8,9,125,141,16,0.7058820247650146
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,1,4,45,61,16,0.7570150518417358
+a,imaging_quality,ours_uniform_b2,Ours B2,7,9,125,141,16,0.7495284605026246
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,9,3,29,45,16,0.6200809502601623
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,7,9,125,141,16,0.7610799884796142
+a,imaging_quality,ours_uniform_b2,Ours B2,7,8,109,125,16,0.7550435447692871
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,6,1,0,13,13,0.7387423177865835
+a,imaging_quality,bf16,BF16,4,5,61,77,16,0.8023096942901611
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,8,2,13,29,16,0.7839010858535767
+a,imaging_quality,kivi_int2,KIVI INT2,8,2,13,29,16,0.7839945268630981
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,8,2,13,29,16,0.7812788581848145
+a,imaging_quality,kivi_int2,KIVI INT2,3,9,125,141,16,0.7754890155792237
+a,imaging_quality,ours_uniform_b2,Ours B2,6,4,45,61,16,0.7319450855255127
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,0,7,93,109,16,0.7941256141662598
+a,imaging_quality,kivi_int2,KIVI INT2,1,5,61,77,16,0.6223735117912292
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,4,7,93,109,16,0.3778389620780945
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,1,3,29,45,16,0.5839803647994996
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,7,7,93,109,16,0.7478380727767945
+a,imaging_quality,kivi_int2,KIVI INT2,5,11,157,173,16,0.7747578573226929
+a,imaging_quality,kivi_int2,KIVI INT2,6,11,157,173,16,0.7478529500961304
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,1,11,157,173,16,0.2621429479122162
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,7,10,141,157,16,0.7573633527755738
+a,imaging_quality,bf16,BF16,8,11,157,173,16,0.799198317527771
+a,imaging_quality,bf16,BF16,3,1,0,13,13,0.7742727074256309
+a,imaging_quality,ours_uniform_b2,Ours B2,8,1,0,13,13,0.7585129840557392
+a,imaging_quality,ours_uniform_b2,Ours B2,4,7,93,109,16,0.7895509099960327
+a,imaging_quality,bf16,BF16,7,5,61,77,16,0.7825481939315796
+a,imaging_quality,bf16,BF16,6,11,157,173,16,0.7650219011306763
+a,imaging_quality,bf16,BF16,2,10,141,157,16,0.7390037155151368
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,4,2,13,29,16,0.7982212352752686
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,8,5,61,77,16,0.7716140365600586
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,3,2,13,29,16,0.7779703140258789
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,2,8,109,125,16,0.7625276279449463
+a,imaging_quality,kivi_int2,KIVI INT2,8,10,141,157,16,0.8016183137893677
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,7,3,29,45,16,0.7758959150314331
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,0,5,61,77,16,0.7586638498306274
+a,imaging_quality,ours_uniform_b2,Ours B2,2,5,61,77,16,0.7629066276550293
+a,imaging_quality,ours_uniform_b2,Ours B2,1,5,61,77,16,0.6672691011428833
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,6,10,141,157,16,0.7465150690078736
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,9,8,109,125,16,0.3286162257194519
+a,imaging_quality,kivi_int2,KIVI INT2,0,9,125,141,16,0.7972133302688599
+a,imaging_quality,bf16,BF16,6,3,29,45,16,0.7447817039489746
+a,imaging_quality,ours_uniform_b2,Ours B2,9,1,0,13,13,0.636091921879695
+a,imaging_quality,ours_uniform_b2,Ours B2,3,2,13,29,16,0.7771974802017212
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,4,6,77,93,16,0.7978436899185181
+a,imaging_quality,kivi_int2,KIVI INT2,3,10,141,157,16,0.7759504222869873
+a,imaging_quality,ours_uniform_b2,Ours B2,4,5,61,77,16,0.7972544193267822
+a,imaging_quality,bf16,BF16,0,4,45,61,16,0.72512300491333
+a,imaging_quality,bf16,BF16,4,6,77,93,16,0.7968541812896729
+a,imaging_quality,kivi_int2,KIVI INT2,5,6,77,93,16,0.7890869522094727
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,6,5,61,77,16,0.7407138633728028
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,3,2,13,29,16,0.7876330757141113
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,8,9,125,141,16,0.7943083810806274
+a,imaging_quality,bf16,BF16,3,6,77,93,16,0.7872820901870727
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,1,10,141,157,16,0.4064240765571594
+a,imaging_quality,bf16,BF16,9,1,0,13,13,0.6422310080895057
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,2,7,93,109,16,0.7793433427810669
+a,imaging_quality,bf16,BF16,0,3,29,45,16,0.7812964534759521
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,0,3,29,45,16,0.7810727548599243
+a,imaging_quality,ours_uniform_b2,Ours B2,0,7,93,109,16,0.7960279035568237
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,7,1,0,13,13,0.7828833888127253
+a,imaging_quality,ours_uniform_b2,Ours B2,7,6,77,93,16,0.7576827669143676
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,6,3,29,45,16,0.7444327306747437
+a,imaging_quality,ours_uniform_b2,Ours B2,1,1,0,13,13,0.73108642578125
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,5,9,125,141,16,0.7549327850341797
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,9,4,45,61,16,0.6847633314132691
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,2,10,141,157,16,0.7684984970092773
+a,imaging_quality,ours_uniform_b2,Ours B2,2,1,0,13,13,0.7829715670072116
+a,imaging_quality,kivi_int2,KIVI INT2,1,1,0,13,13,0.7308107170691857
+a,imaging_quality,bf16,BF16,0,10,141,157,16,0.7943350744247436
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,4,5,61,77,16,0.8022543048858642
+a,imaging_quality,kivi_int2,KIVI INT2,6,3,29,45,16,0.7682802581787109
+a,imaging_quality,bf16,BF16,0,6,77,93,16,0.7906110858917237
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,6,11,157,173,16,0.7269485139846802
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,8,1,0,13,13,0.7586529717078575
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,4,7,93,109,16,0.7863801336288452
+a,imaging_quality,kivi_int2,KIVI INT2,7,10,141,157,16,0.7278020000457763
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,0,4,45,61,16,0.7173369741439819
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,0,10,141,157,16,0.7809319448471069
+a,imaging_quality,ours_uniform_b2,Ours B2,4,8,109,125,16,0.7858632612228393
+a,imaging_quality,bf16,BF16,5,11,157,173,16,0.7822727680206298
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,7,3,29,45,16,0.7245897960662842
+a,imaging_quality,kivi_int2,KIVI INT2,7,5,61,77,16,0.7766364479064941
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,9,2,13,29,16,0.6547361230850219
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,5,9,125,141,16,0.589891984462738
+a,imaging_quality,kivi_int2,KIVI INT2,0,10,141,157,16,0.7946633100509644
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,4,3,29,45,16,0.7757962083816529
+a,imaging_quality,bf16,BF16,1,8,109,125,16,0.44199875354766843
+a,imaging_quality,bf16,BF16,9,11,157,173,16,0.6145295000076294
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,8,10,141,157,16,0.6792196273803711
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,6,1,0,13,13,0.7376440723125751
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,1,2,13,29,16,0.7297390079498292
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,9,11,157,173,16,0.3168709290027618
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,3,10,141,157,16,0.7766622304916382
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,4,2,13,29,16,0.7997454357147217
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,5,7,93,109,16,0.7876873350143433
+a,imaging_quality,bf16,BF16,4,7,93,109,16,0.7881770706176758
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,3,6,77,93,16,0.745517373085022
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,2,7,93,109,16,0.768792929649353
+a,imaging_quality,bf16,BF16,2,5,61,77,16,0.7615128564834595
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,9,4,45,61,16,0.3932883954048157
+a,imaging_quality,bf16,BF16,8,3,29,45,16,0.7814244794845581
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,4,11,157,173,16,0.719771900177002
+a,imaging_quality,bf16,BF16,6,7,93,109,16,0.7411000967025757
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,7,6,77,93,16,0.7679677772521972
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,6,8,109,125,16,0.5415335774421692
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,3,6,77,93,16,0.7867353296279908
+a,imaging_quality,bf16,BF16,0,8,109,125,16,0.8017049884796142
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,2,4,45,61,16,0.7685475063323974
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,6,9,125,141,16,0.4528665471076965
+a,imaging_quality,bf16,BF16,6,9,125,141,16,0.7508846616744995
+a,imaging_quality,kivi_int2,KIVI INT2,8,6,77,93,16,0.7896428489685059
+a,imaging_quality,bf16,BF16,7,1,0,13,13,0.7831904778113732
+a,imaging_quality,bf16,BF16,5,1,0,13,13,0.7393042109562801
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,8,6,77,93,16,0.7497864389419555
+a,imaging_quality,kivi_int2,KIVI INT2,3,5,61,77,16,0.7826720142364502
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,1,10,141,157,16,0.43505760192871096
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,9,7,93,109,16,0.6054162240028381
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,7,10,141,157,16,0.3783496904373169
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,0,2,13,29,16,0.7863901281356811
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,2,2,13,29,16,0.7730888652801514
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,8,6,77,93,16,0.782307858467102
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,5,6,77,93,16,0.7652326345443725
+a,imaging_quality,kivi_int2,KIVI INT2,8,11,157,173,16,0.7976535367965698
+a,imaging_quality,kivi_int2,KIVI INT2,3,2,13,29,16,0.7786986207962037
+a,imaging_quality,kivi_int2,KIVI INT2,1,3,29,45,16,0.7232672452926636
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,9,7,93,109,16,0.7458054161071778
+a,imaging_quality,kivi_int2,KIVI INT2,5,7,93,109,16,0.7815866184234619
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,5,8,109,125,16,0.7183039283752441
+a,imaging_quality,bf16,BF16,5,10,141,157,16,0.7764370155334472
+a,imaging_quality,ours_uniform_b2,Ours B2,1,10,141,157,16,0.44881481647491456
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,0,3,29,45,16,0.7609286975860595
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,2,3,29,45,16,0.7709155941009521
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,9,5,61,77,16,0.415230575799942
+a,imaging_quality,ours_uniform_b2,Ours B2,9,10,141,157,16,0.6391268229484558
+a,imaging_quality,bf16,BF16,2,3,29,45,16,0.7771349287033081
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,5,1,0,13,13,0.7387225341796875
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,5,2,13,29,16,0.7428962898254394
+a,imaging_quality,kivi_int2,KIVI INT2,6,1,0,13,13,0.7378726372352012
+a,imaging_quality,bf16,BF16,5,5,61,77,16,0.7667048263549805
+a,imaging_quality,bf16,BF16,7,10,141,157,16,0.7591045427322388
+a,imaging_quality,ours_uniform_b2,Ours B2,8,7,93,109,16,0.7915613555908203
+a,imaging_quality,bf16,BF16,7,7,93,109,16,0.7638809061050416
+a,imaging_quality,kivi_int2,KIVI INT2,9,7,93,109,16,0.7418027544021606
+a,imaging_quality,kivi_int2,KIVI INT2,7,4,45,61,16,0.790671820640564
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,9,5,61,77,16,0.3890112388134003
+a,imaging_quality,ours_uniform_b2,Ours B2,9,8,109,125,16,0.7360301828384399
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,0,10,141,157,16,0.7985206890106201
+a,imaging_quality,ours_uniform_b2,Ours B2,6,10,141,157,16,0.7199102640151978
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,8,7,93,109,16,0.795431022644043
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,3,10,141,157,16,0.6859430241584777
+a,imaging_quality,ours_uniform_b2,Ours B2,8,4,45,61,16,0.782688250541687
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,6,5,61,77,16,0.7450701570510865
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,0,7,93,109,16,0.7659432554244995
+a,imaging_quality,kivi_int2,KIVI INT2,2,10,141,157,16,0.7252452611923218
+a,imaging_quality,kivi_int2,KIVI INT2,4,1,0,13,13,0.8019455073429989
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,8,9,125,141,16,0.7622875928878784
+a,imaging_quality,ours_uniform_b2,Ours B2,5,6,77,93,16,0.7854250955581665
+a,imaging_quality,bf16,BF16,3,2,13,29,16,0.7773867559432983
+a,imaging_quality,ours_uniform_b2,Ours B2,6,9,125,141,16,0.7096132183074951
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,5,11,157,173,16,0.7816957569122315
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,9,1,0,13,13,0.6414543944138746
+a,imaging_quality,kivi_int2,KIVI INT2,2,11,157,173,16,0.7410662460327149
+a,imaging_quality,bf16,BF16,5,2,13,29,16,0.7588687992095947
+a,imaging_quality,bf16,BF16,3,5,61,77,16,0.7796799755096435
+a,imaging_quality,kivi_int2,KIVI INT2,4,7,93,109,16,0.8006248712539673
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,3,8,109,125,16,0.7780769634246826
+a,imaging_quality,ours_uniform_b2,Ours B2,8,10,141,157,16,0.795678186416626
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,3,4,45,61,16,0.7814743185043335
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,1,9,125,141,16,0.25176753401756286
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,7,9,125,141,16,0.7485219478607178
+a,imaging_quality,kivi_int2,KIVI INT2,3,1,0,13,13,0.775832501924955
+a,imaging_quality,kivi_int2,KIVI INT2,3,7,93,109,16,0.7678697061538696
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,5,3,29,45,16,0.7656568765640259
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,8,7,93,109,16,0.7396223735809326
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,6,8,109,125,16,0.7585092067718506
+a,imaging_quality,bf16,BF16,1,6,77,93,16,0.5369456267356872
+a,imaging_quality,ours_uniform_b2,Ours B2,6,5,61,77,16,0.7198421239852906
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,4,2,13,29,16,0.7942057991027832
+a,imaging_quality,bf16,BF16,0,11,157,173,16,0.799244589805603
+a,imaging_quality,kivi_int2,KIVI INT2,4,4,45,61,16,0.7866009998321534
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,6,7,93,109,16,0.6214259886741638
+a,imaging_quality,ours_uniform_b2,Ours B2,2,8,109,125,16,0.7345922803878784
+a,imaging_quality,kivi_int2,KIVI INT2,9,3,29,45,16,0.6809241127967834
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,1,9,125,141,16,0.4070734095573425
+a,imaging_quality,bf16,BF16,4,3,29,45,16,0.800193510055542
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,7,2,13,29,16,0.7804721117019653
+a,imaging_quality,bf16,BF16,9,6,77,93,16,0.7355276203155517
+a,imaging_quality,kivi_int2,KIVI INT2,2,5,61,77,16,0.7429472875595092
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,1,10,141,157,16,0.27221435189247134
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,3,9,125,141,16,0.6792764854431153
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,5,1,0,13,13,0.7390134429931641
+a,imaging_quality,ours_uniform_b2,Ours B2,4,2,13,29,16,0.8005525016784668
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,9,9,125,141,16,0.7115619468688965
+a,imaging_quality,kivi_int2,KIVI INT2,1,6,77,93,16,0.5242273879051208
+a,imaging_quality,ours_uniform_b2,Ours B2,3,9,125,141,16,0.7810455703735352
+a,imaging_quality,bf16,BF16,4,11,157,173,16,0.7627359342575073
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,9,6,77,93,16,0.3033804512023926
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,8,10,141,157,16,0.7972972154617309
+a,imaging_quality,ours_uniform_b2,Ours B2,5,5,61,77,16,0.7740687847137451
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,8,1,0,13,13,0.7598102041391226
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,1,8,109,125,16,0.3387115728855133
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,8,11,157,173,16,0.7991444396972657
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,6,9,125,141,16,0.7409165525436401
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,4,6,77,93,16,0.6566572642326355
+a,imaging_quality,bf16,BF16,5,8,109,125,16,0.7787188005447387
+a,imaging_quality,ours_uniform_b2,Ours B2,2,11,157,173,16,0.7557903099060058
+a,imaging_quality,kivi_int2,KIVI INT2,2,7,93,109,16,0.7356683588027955
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,1,4,45,61,16,0.47094359874725344
+a,imaging_quality,bf16,BF16,0,5,61,77,16,0.7630886697769165
+a,imaging_quality,ours_uniform_b2,Ours B2,2,3,29,45,16,0.7767736005783081
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,3,7,93,109,16,0.7800008296966553
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,9,10,141,157,16,0.40743485689163206
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,5,7,93,109,16,0.7561734533309936
+a,imaging_quality,kivi_int2,KIVI INT2,2,8,109,125,16,0.733406720161438
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,9,5,61,77,16,0.722806396484375
+a,imaging_quality,bf16,BF16,7,2,13,29,16,0.7796406841278076
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,3,8,109,125,16,0.7682899904251098
+a,imaging_quality,kivi_int2,KIVI INT2,9,10,141,157,16,0.4695407795906067
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,8,11,157,173,16,0.779618411064148
+a,imaging_quality,kivi_int2,KIVI INT2,7,11,157,173,16,0.7543161869049072
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,8,6,77,93,16,0.788074460029602
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,6,8,109,125,16,0.7475925827026367
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,3,4,45,61,16,0.780633897781372
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,4,10,141,157,16,0.7151709079742432
+a,imaging_quality,ours_uniform_b2,Ours B2,6,6,77,93,16,0.7210572290420533
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,3,11,157,173,16,0.5655053520202636
+a,imaging_quality,kivi_int2,KIVI INT2,6,6,77,93,16,0.7032818269729614
+a,imaging_quality,ours_uniform_b2,Ours B2,8,11,157,173,16,0.7926532602310181
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,6,5,61,77,16,0.7162670803070068
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,4,4,45,61,16,0.7450761890411377
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,5,5,61,77,16,0.768718638420105
+a,imaging_quality,ours_uniform_b2,Ours B2,7,3,29,45,16,0.7842425155639648
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,1,3,29,45,16,0.7501289892196655
+a,imaging_quality,ours_uniform_b2,Ours B2,2,6,77,93,16,0.7493187713623047
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,5,7,93,109,16,0.6902207660675049
+a,imaging_quality,kivi_int2,KIVI INT2,6,2,13,29,16,0.7390348052978516
+a,imaging_quality,bf16,BF16,9,8,109,125,16,0.7667941856384277
+a,imaging_quality,kivi_int2,KIVI INT2,1,4,45,61,16,0.7197882652282714
+a,imaging_quality,ours_uniform_b2,Ours B2,2,9,125,141,16,0.7446080160140991
+a,imaging_quality,ours_uniform_b2,Ours B2,8,8,109,125,16,0.791937747001648
+a,imaging_quality,ours_uniform_b2,Ours B2,3,3,29,45,16,0.7834658813476563
+a,imaging_quality,kivi_int2,KIVI INT2,0,8,109,125,16,0.7997125625610352
+a,imaging_quality,kivi_int2,KIVI INT2,6,8,109,125,16,0.6870865917205811
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,1,1,0,13,13,0.731384066068209
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,4,5,61,77,16,0.7938590002059936
+a,imaging_quality,ours_uniform_b2,Ours B2,5,8,109,125,16,0.7722772789001465
+a,imaging_quality,kivi_int2,KIVI INT2,5,8,109,125,16,0.7845004606246948
+a,imaging_quality,kivi_int2,KIVI INT2,4,10,141,157,16,0.7799877977371216
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,1,8,109,125,16,0.29598482728004455
+a,imaging_quality,bf16,BF16,1,10,141,157,16,0.4736382532119751
+a,imaging_quality,kivi_int2,KIVI INT2,5,9,125,141,16,0.775578784942627
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,9,7,93,109,16,0.3565291893482208
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,3,3,29,45,16,0.7835003519058228
+a,imaging_quality,bf16,BF16,6,6,77,93,16,0.7322459125518799
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,2,5,61,77,16,0.7767826557159424
+a,imaging_quality,bf16,BF16,1,5,61,77,16,0.6961183357238769
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,6,11,157,173,16,0.7561202764511108
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,8,8,109,125,16,0.7891696453094482
+a,imaging_quality,kivi_int2,KIVI INT2,0,7,93,109,16,0.7997703218460083
+a,imaging_quality,bf16,BF16,3,3,29,45,16,0.781958999633789
+a,imaging_quality,kivi_int2,KIVI INT2,9,6,77,93,16,0.7255240535736084
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,3,10,141,157,16,0.672153537273407
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,7,5,61,77,16,0.6700556182861328
+a,imaging_quality,bf16,BF16,4,10,141,157,16,0.7187813234329223
+a,imaging_quality,ours_uniform_b2,Ours B2,3,5,61,77,16,0.7784225940704346
+a,imaging_quality,ours_uniform_b2,Ours B2,8,2,13,29,16,0.7806743335723877
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,0,4,45,61,16,0.7037713575363159
+a,imaging_quality,bf16,BF16,3,11,157,173,16,0.78000319480896
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,9,2,13,29,16,0.7220896768569947
+a,imaging_quality,ours_uniform_b2,Ours B2,9,3,29,45,16,0.7173703813552856
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,3,9,125,141,16,0.782248158454895
+a,imaging_quality,ours_uniform_b2,Ours B2,3,11,157,173,16,0.777230224609375
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,2,11,157,173,16,0.7432683801651001
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,5,4,45,61,16,0.7083784508705139
+a,imaging_quality,bf16,BF16,4,8,109,125,16,0.7668237257003784
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,4,7,93,109,16,0.7162054967880249
+a,imaging_quality,bf16,BF16,2,11,157,173,16,0.7477152633666992
+a,imaging_quality,kivi_int2,KIVI INT2,7,1,0,13,13,0.7834317427415114
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,5,2,13,29,16,0.7578176259994507
+a,imaging_quality,bf16,BF16,0,7,93,109,16,0.7960410070419311
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,1,7,93,109,16,0.4222255408763885
+a,imaging_quality,kivi_int2,KIVI INT2,8,1,0,13,13,0.7598487443190355
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,0,10,141,157,16,0.6476210713386535
+a,imaging_quality,bf16,BF16,9,9,125,141,16,0.7069059658050537
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,4,10,141,157,16,0.5379570984840393
+a,imaging_quality,bf16,BF16,3,8,109,125,16,0.7803888988494873
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,1,4,45,61,16,0.6686345863342286
+a,imaging_quality,ours_uniform_b2,Ours B2,0,8,109,125,16,0.7996773481369018
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,1,1,0,13,13,0.7306146064171425
+a,imaging_quality,bf16,BF16,2,2,13,29,16,0.7789778137207031
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,1,5,61,77,16,0.6924950981140137
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,7,2,13,29,16,0.769647126197815
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,9,8,109,125,16,0.7636992740631103
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,2,5,61,77,16,0.7665490579605102
+a,imaging_quality,ours_uniform_b2,Ours B2,4,4,45,61,16,0.7902832794189453
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,7,6,77,93,16,0.6183825826644898
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,5,5,61,77,16,0.771450891494751
+a,imaging_quality,kivi_int2,KIVI INT2,6,7,93,109,16,0.7010378885269165
+a,imaging_quality,ours_uniform_b2,Ours B2,1,6,77,93,16,0.5239596438407897
+a,imaging_quality,bf16,BF16,5,6,77,93,16,0.7839544248580933
+a,imaging_quality,ours_uniform_b2,Ours B2,4,3,29,45,16,0.8009749746322632
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,0,8,109,125,16,0.8004865646362305
+a,imaging_quality,kivi_int2,KIVI INT2,4,8,109,125,16,0.7835673427581787
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,2,6,77,93,16,0.7566482591629028
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,3,1,0,13,13,0.7758746103140024
+a,imaging_quality,kivi_int2,KIVI INT2,0,4,45,61,16,0.7112344121932983
+a,imaging_quality,bf16,BF16,6,8,109,125,16,0.7533611583709717
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,4,3,29,45,16,0.7999289131164551
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,2,1,0,13,13,0.7830636185866137
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,5,4,45,61,16,0.7576244974136352
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,5,10,141,157,16,0.5381443738937378
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,4,1,0,13,13,0.802213363647461
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,4,9,125,141,16,0.7191028070449829
+a,imaging_quality,ours_uniform_b2,Ours B2,4,1,0,13,13,0.8015995671198918
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,7,7,93,109,16,0.5303195333480835
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,0,8,109,125,16,0.7873220491409302
+a,imaging_quality,bf16,BF16,2,9,125,141,16,0.7294303464889527
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,4,11,157,173,16,0.592272334098816
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,4,5,61,77,16,0.7313336229324341
+a,imaging_quality,kivi_int2,KIVI INT2,8,7,93,109,16,0.7940428495407105
+a,imaging_quality,kivi_int2,KIVI INT2,8,8,109,125,16,0.7897989654541016
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,9,3,29,45,16,0.7156281661987305
+a,imaging_quality,bf16,BF16,9,5,61,77,16,0.720463228225708
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,7,4,45,61,16,0.7671415042877198
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,8,5,61,77,16,0.7898727512359619
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,7,8,109,125,16,0.45273494958877564
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,5,10,141,157,16,0.7307502651214599
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,0,9,125,141,16,0.8003690767288208
+a,imaging_quality,kivi_int2,KIVI INT2,6,5,61,77,16,0.700059461593628
+a,imaging_quality,bf16,BF16,8,8,109,125,16,0.7830816173553466
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,3,9,125,141,16,0.7631638240814209
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,8,3,29,45,16,0.780895824432373
+a,imaging_quality,kivi_int2,KIVI INT2,9,2,13,29,16,0.7217490243911743
+a,imaging_quality,ours_uniform_b2,Ours B2,7,4,45,61,16,0.7896495723724365
+a,imaging_quality,kivi_int2,KIVI INT2,7,8,109,125,16,0.7402812767028809
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,9,6,77,93,16,0.7323789072036743
+a,imaging_quality,ours_uniform_b2,Ours B2,4,6,77,93,16,0.7913320875167846
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,0,11,157,173,16,0.7857964515686036
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,0,2,13,29,16,0.7775253438949585
+a,imaging_quality,kivi_int2,KIVI INT2,7,6,77,93,16,0.757103328704834
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,3,5,61,77,16,0.7692854070663452
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,2,11,157,173,16,0.7762166404724121
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,2,4,45,61,16,0.7775606727600097
+a,imaging_quality,ours_uniform_b2,Ours B2,5,4,45,61,16,0.7809753942489625
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,5,6,77,93,16,0.7892849445343018
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,9,6,77,93,16,0.609751763343811
+a,imaging_quality,kivi_int2,KIVI INT2,1,9,125,141,16,0.4507536792755127
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,6,4,45,61,16,0.7622438478469848
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,1,2,13,29,16,0.7108832073211669
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,6,4,45,61,16,0.7211597394943238
+a,imaging_quality,bf16,BF16,7,9,125,141,16,0.7470065689086914
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,0,8,109,125,16,0.7502578401565552
+a,imaging_quality,kivi_int2,KIVI INT2,0,3,29,45,16,0.7741861343383789
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,2,8,109,125,16,0.7266739940643311
+a,imaging_quality,bf16,BF16,8,6,77,93,16,0.7857032871246338
+a,imaging_quality,bf16,BF16,1,7,93,109,16,0.4266842865943909
+a,imaging_quality,bf16,BF16,9,10,141,157,16,0.6106631255149841
+a,imaging_quality,ours_uniform_b2,Ours B2,0,4,45,61,16,0.7252832746505737
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,6,6,77,93,16,0.735075650215149
+a,imaging_quality,kivi_int2,KIVI INT2,5,1,0,13,13,0.7377108295147236
+a,imaging_quality,bf16,BF16,7,8,109,125,16,0.7552507972717285
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,0,7,93,109,16,0.7852052783966065
+a,imaging_quality,ours_uniform_b2,Ours B2,9,9,125,141,16,0.7091084337234497
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,4,6,77,93,16,0.6528713726997375
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,1,5,61,77,16,0.5306745290756225
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,7,11,157,173,16,0.7752629375457764
+a,imaging_quality,kivi_int2,KIVI INT2,5,3,29,45,16,0.7582184076309204
+a,imaging_quality,kivi_int2,KIVI INT2,8,9,125,141,16,0.7980226659774781
+a,imaging_quality,bf16,BF16,4,4,45,61,16,0.7905046892166138
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,3,11,157,173,16,0.6526119303703308
+a,imaging_quality,ours_uniform_b2,Ours B2,1,7,93,109,16,0.4655676555633545
+a,imaging_quality,kivi_int2,KIVI INT2,5,5,61,77,16,0.7785496997833252
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,4,4,45,61,16,0.7920618915557861
+a,imaging_quality,bf16,BF16,8,5,61,77,16,0.7897532272338867
+a,imaging_quality,ours_uniform_b2,Ours B2,9,4,45,61,16,0.6701947379112244
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,3,2,13,29,16,0.782406210899353
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,4,4,45,61,16,0.7876455402374267
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,0,11,157,173,16,0.8003844594955445
+a,imaging_quality,bf16,BF16,1,3,29,45,16,0.7514909505844116
+a,imaging_quality,ours_uniform_b2,Ours B2,9,11,157,173,16,0.6575800442695617
+a,imaging_quality,ours_uniform_b2,Ours B2,0,6,77,93,16,0.7906835412979126
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,9,8,109,125,16,0.39117873907089235
+a,imaging_quality,ours_uniform_b2,Ours B2,9,7,93,109,16,0.7555296182632446
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,6,3,29,45,16,0.7566719150543213
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,8,7,93,109,16,0.7841645574569702
+a,imaging_quality,kivi_int2,KIVI INT2,6,10,141,157,16,0.7364856100082398
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,1,11,157,173,16,0.4829399847984314
+a,imaging_quality,kivi_int2,KIVI INT2,1,7,93,109,16,0.43172367095947267
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,0,6,77,93,16,0.7836054468154907
+a,imaging_quality,ours_uniform_b2,Ours B2,6,1,0,13,13,0.73663818359375
+a,imaging_quality,ours_uniform_b2,Ours B2,5,11,157,173,16,0.7862541770935059
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,3,4,45,61,16,0.7844062709808349
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,7,3,29,45,16,0.7835308980941772
+a,imaging_quality,ours_uniform_b2,Ours B2,7,1,0,13,13,0.7847697096604567
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,2,1,0,13,13,0.7833107992318961
+a,imaging_quality,bf16,BF16,6,4,45,61,16,0.7246145296096802
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,5,11,157,173,16,0.7070699548721313
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,8,3,29,45,16,0.7388996934890747
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,7,1,0,13,13,0.7825674497164212
+a,imaging_quality,bf16,BF16,1,1,0,13,13,0.7323220942570613
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,4,8,109,125,16,0.7294044399261475
+a,imaging_quality,bf16,BF16,4,2,13,29,16,0.7998151683807373
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,2,8,109,125,16,0.7782904243469239
+a,imaging_quality,kivi_int2,KIVI INT2,7,7,93,109,16,0.7399259328842163
+a,imaging_quality,kivi_int2,KIVI INT2,0,5,61,77,16,0.7628243684768676
+a,imaging_quality,bf16,BF16,0,1,0,13,13,0.7852035287710336
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,3,3,29,45,16,0.788390622138977
+a,imaging_quality,bf16,BF16,9,4,45,61,16,0.6809038376808166
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,0,9,125,141,16,0.7880532217025756
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,7,8,109,125,16,0.7567106771469116
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,8,2,13,29,16,0.7731048250198365
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,3,1,0,13,13,0.7756043536846454
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,2,10,141,157,16,0.7682139921188355
+a,imaging_quality,kivi_int2,KIVI INT2,9,4,45,61,16,0.641215808391571
+a,imaging_quality,ours_temporal_b2,Ours B2 + Time-adaptive,2,9,125,141,16,0.7299703502655029
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,9,3,29,45,16,0.573085162639618
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,7,6,77,93,16,0.7497002267837525
+a,imaging_quality,kivi_int2,KIVI INT2,2,6,77,93,16,0.7377712535858154
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,6,3,29,45,16,0.7591068029403687
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,4,10,141,157,16,0.7342369413375854
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,6,4,45,61,16,0.7406209468841553
+a,imaging_quality,bf16,BF16,3,10,141,157,16,0.7808855295181274
+a,imaging_quality,bf16,BF16,2,6,77,93,16,0.7558295869827271
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,3,7,93,109,16,0.7553829431533814
+a,imaging_quality,quantvideo_int2,QuantVideo INT2,8,3,29,45,16,0.7731690120697021
+a,imaging_quality,kivi_int2,KIVI INT2,5,10,141,157,16,0.7714870071411133
+a,imaging_quality,ours_uniform_b2,Ours B2,8,5,61,77,16,0.7852713918685913
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,8,8,109,125,16,0.7168674564361572
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,0,1,0,13,13,0.784633806668795
+a,imaging_quality,kivi_int2,KIVI INT2,1,2,13,29,16,0.7361029148101806
+a,imaging_quality,ours_uniform_b2,Ours B2,3,8,109,125,16,0.7857211256027221
+a,imaging_quality,ours_uniform_b2,Ours B2,6,2,13,29,16,0.7328355789184571
+a,imaging_quality,ours_uniform_b2,Ours B2,3,4,45,61,16,0.7791377782821656
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,2,11,157,173,16,0.7652603626251221
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,7,9,125,141,16,0.3756284081935883
+a,imaging_quality,ours_uniform_b2,Ours B2,5,10,141,157,16,0.7898374700546265
+a,imaging_quality,turboquant_k2_v2,TurboQuant K2/V2,1,7,93,109,16,0.26130749106407164
+a,imaging_quality,ours_uniform_b2,Ours B2,6,8,109,125,16,0.7048766613006592
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,0,1,0,13,12,0.05116238879660765
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,0,2,13,29,16,0.07015959359705448
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,0,3,29,45,16,0.09153490187600255
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,0,4,45,61,16,0.1300188284367323
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,0,5,61,77,16,0.18287691660225391
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,0,6,77,93,16,0.23123658634722233
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,0,7,93,109,16,0.31717974692583084
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,0,8,109,125,16,0.3676670789718628
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,0,9,125,141,16,0.4226275272667408
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,0,10,141,157,16,0.4602865092456341
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,0,11,157,173,16,0.47601054050028324
+b,lpips,ours_uniform_b4,Ours B4,0,1,0,13,12,0.06093459203839302
+b,lpips,ours_uniform_b4,Ours B4,0,2,13,29,16,0.08332626149058342
+b,lpips,ours_uniform_b4,Ours B4,0,3,29,45,16,0.11178451729938388
+b,lpips,ours_uniform_b4,Ours B4,0,4,45,61,16,0.15137908142060041
+b,lpips,ours_uniform_b4,Ours B4,0,5,61,77,16,0.19304524641484022
+b,lpips,ours_uniform_b4,Ours B4,0,6,77,93,16,0.2362676402553916
+b,lpips,ours_uniform_b4,Ours B4,0,7,93,109,16,0.29900654405355453
+b,lpips,ours_uniform_b4,Ours B4,0,8,109,125,16,0.35365396179258823
+b,lpips,ours_uniform_b4,Ours B4,0,9,125,141,16,0.41011535190045834
+b,lpips,ours_uniform_b4,Ours B4,0,10,141,157,16,0.44890216924250126
+b,lpips,ours_uniform_b4,Ours B4,0,11,157,173,16,0.46729662641882896
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,0,1,0,13,12,0.0
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,0,2,13,29,16,0.057535691070370376
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,0,3,29,45,16,0.08413401246070862
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,0,4,45,61,16,0.09421446640044451
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,0,5,61,77,16,0.10420491173863411
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,0,6,77,93,16,0.1072059846483171
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,0,7,93,109,16,0.13815015042200685
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,0,8,109,125,16,0.18092127330601215
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,0,9,125,141,16,0.23365062288939953
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,0,10,141,157,16,0.2700727339833975
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,0,11,157,173,16,0.2919179853051901
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,0,1,0,13,12,0.05600984332462152
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,0,2,13,29,16,0.0784711167216301
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,0,3,29,45,16,0.10794775513932109
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,0,4,45,61,16,0.1573572549968958
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,0,5,61,77,16,0.2147807888686657
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,0,6,77,93,16,0.25364685244858265
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,0,7,93,109,16,0.300049914047122
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,0,8,109,125,16,0.35229194164276123
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,0,9,125,141,16,0.4197291899472475
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,0,10,141,157,16,0.4641111232340336
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,0,11,157,173,16,0.4932386055588722
+b,lpips,quantvideo_int4,QuantVideo INT4,0,1,0,13,12,0.06085527905573448
+b,lpips,quantvideo_int4,QuantVideo INT4,0,2,13,29,16,0.0880643199197948
+b,lpips,quantvideo_int4,QuantVideo INT4,0,3,29,45,16,0.12071814434602857
+b,lpips,quantvideo_int4,QuantVideo INT4,0,4,45,61,16,0.16321266535669565
+b,lpips,quantvideo_int4,QuantVideo INT4,0,5,61,77,16,0.21412184368818998
+b,lpips,quantvideo_int4,QuantVideo INT4,0,6,77,93,16,0.2568818796426058
+b,lpips,quantvideo_int4,QuantVideo INT4,0,7,93,109,16,0.3233402259647846
+b,lpips,quantvideo_int4,QuantVideo INT4,0,8,109,125,16,0.3857566639780998
+b,lpips,quantvideo_int4,QuantVideo INT4,0,9,125,141,16,0.43974910117685795
+b,lpips,quantvideo_int4,QuantVideo INT4,0,10,141,157,16,0.44868957065045834
+b,lpips,quantvideo_int4,QuantVideo INT4,0,11,157,173,16,0.4665152933448553
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,0,1,0,13,12,0.06457633059471846
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,0,2,13,29,16,0.13998602237552404
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,0,3,29,45,16,0.23432817216962576
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,0,4,45,61,16,0.30426882579922676
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,0,5,61,77,16,0.35811954736709595
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,0,6,77,93,16,0.40151878260076046
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,0,7,93,109,16,0.46046920865774155
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,0,8,109,125,16,0.4866033289581537
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,0,9,125,141,16,0.5168370455503464
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,0,10,141,157,16,0.5505784042179585
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,0,11,157,173,16,0.5675970949232578
+b,lpips,kivi_int4,KIVI INT4,0,1,0,13,12,0.06280467969675858
+b,lpips,kivi_int4,KIVI INT4,0,2,13,29,16,0.08951685996726155
+b,lpips,kivi_int4,KIVI INT4,0,3,29,45,16,0.1316393855959177
+b,lpips,kivi_int4,KIVI INT4,0,4,45,61,16,0.19617483764886856
+b,lpips,kivi_int4,KIVI INT4,0,5,61,77,16,0.24059606529772282
+b,lpips,kivi_int4,KIVI INT4,0,6,77,93,16,0.26046209782361984
+b,lpips,kivi_int4,KIVI INT4,0,7,93,109,16,0.3120913188904524
+b,lpips,kivi_int4,KIVI INT4,0,8,109,125,16,0.3666394893079996
+b,lpips,kivi_int4,KIVI INT4,0,9,125,141,16,0.415356894955039
+b,lpips,kivi_int4,KIVI INT4,0,10,141,157,16,0.4284257423132658
+b,lpips,kivi_int4,KIVI INT4,0,11,157,173,16,0.4484910126775503
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,1,1,0,13,12,0.046154229901731014
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,1,2,13,29,16,0.08174227178096771
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,1,3,29,45,16,0.09182011941447854
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,1,4,45,61,16,0.11979399435222149
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,1,5,61,77,16,0.23760652355849743
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,1,6,77,93,16,0.3584301210939884
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,1,7,93,109,16,0.44147039391100407
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,1,8,109,125,16,0.480512211099267
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,1,9,125,141,16,0.4838229063898325
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,1,10,141,157,16,0.4982738997787237
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,1,11,157,173,16,0.49838390201330185
+b,lpips,ours_uniform_b4,Ours B4,1,1,0,13,12,0.06263156048953533
+b,lpips,ours_uniform_b4,Ours B4,1,2,13,29,16,0.10010397480800748
+b,lpips,ours_uniform_b4,Ours B4,1,3,29,45,16,0.10853260895237327
+b,lpips,ours_uniform_b4,Ours B4,1,4,45,61,16,0.1373632256872952
+b,lpips,ours_uniform_b4,Ours B4,1,5,61,77,16,0.2825053306296468
+b,lpips,ours_uniform_b4,Ours B4,1,6,77,93,16,0.4202516097575426
+b,lpips,ours_uniform_b4,Ours B4,1,7,93,109,16,0.4657915588468313
+b,lpips,ours_uniform_b4,Ours B4,1,8,109,125,16,0.48806606605648994
+b,lpips,ours_uniform_b4,Ours B4,1,9,125,141,16,0.5002431776374578
+b,lpips,ours_uniform_b4,Ours B4,1,10,141,157,16,0.4964572284370661
+b,lpips,ours_uniform_b4,Ours B4,1,11,157,173,16,0.4985429495573044
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,1,1,0,13,12,0.0
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,1,2,13,29,16,0.02407308513067896
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,1,3,29,45,16,0.08038566494360566
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,1,4,45,61,16,0.0891859563998878
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,1,5,61,77,16,0.12559903971850872
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,1,6,77,93,16,0.25870444532483816
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,1,7,93,109,16,0.40122736245393753
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,1,8,109,125,16,0.45428756438195705
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,1,9,125,141,16,0.46885503269732
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,1,10,141,157,16,0.49417126178741455
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,1,11,157,173,16,0.49535500817000866
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,1,1,0,13,12,0.07184249100585778
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,1,2,13,29,16,0.09766177134588361
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,1,3,29,45,16,0.10286405589431524
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,1,4,45,61,16,0.15906164841726422
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,1,5,61,77,16,0.2468119142577052
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,1,6,77,93,16,0.3167810011655092
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,1,7,93,109,16,0.391700629144907
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,1,8,109,125,16,0.4596506506204605
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,1,9,125,141,16,0.47892375476658344
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,1,10,141,157,16,0.48971498757600784
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,1,11,157,173,16,0.4962730146944523
+b,lpips,quantvideo_int4,QuantVideo INT4,1,1,0,13,12,0.07032673185070355
+b,lpips,quantvideo_int4,QuantVideo INT4,1,2,13,29,16,0.1044467855244875
+b,lpips,quantvideo_int4,QuantVideo INT4,1,3,29,45,16,0.18347594747319818
+b,lpips,quantvideo_int4,QuantVideo INT4,1,4,45,61,16,0.29758380725979805
+b,lpips,quantvideo_int4,QuantVideo INT4,1,5,61,77,16,0.3600580673664808
+b,lpips,quantvideo_int4,QuantVideo INT4,1,6,77,93,16,0.4148401916027069
+b,lpips,quantvideo_int4,QuantVideo INT4,1,7,93,109,16,0.4410991407930851
+b,lpips,quantvideo_int4,QuantVideo INT4,1,8,109,125,16,0.4698248840868473
+b,lpips,quantvideo_int4,QuantVideo INT4,1,9,125,141,16,0.48458595387637615
+b,lpips,quantvideo_int4,QuantVideo INT4,1,10,141,157,16,0.5004488527774811
+b,lpips,quantvideo_int4,QuantVideo INT4,1,11,157,173,16,0.5045982580631971
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,1,1,0,13,12,0.07238538097590208
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,1,2,13,29,16,0.1510488297790289
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,1,3,29,45,16,0.19374907948076725
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,1,4,45,61,16,0.2775170309469104
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,1,5,61,77,16,0.33401028253138065
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,1,6,77,93,16,0.3822206184267998
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,1,7,93,109,16,0.43242465145885944
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,1,8,109,125,16,0.4707026816904545
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,1,9,125,141,16,0.48436488956213
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,1,10,141,157,16,0.49785495921969414
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,1,11,157,173,16,0.49424237944185734
+b,lpips,kivi_int4,KIVI INT4,1,1,0,13,12,0.0755330187578996
+b,lpips,kivi_int4,KIVI INT4,1,2,13,29,16,0.10326096089556813
+b,lpips,kivi_int4,KIVI INT4,1,3,29,45,16,0.14820110565051436
+b,lpips,kivi_int4,KIVI INT4,1,4,45,61,16,0.21769524551928043
+b,lpips,kivi_int4,KIVI INT4,1,5,61,77,16,0.320485632866621
+b,lpips,kivi_int4,KIVI INT4,1,6,77,93,16,0.4264975655823946
+b,lpips,kivi_int4,KIVI INT4,1,7,93,109,16,0.4546495918184519
+b,lpips,kivi_int4,KIVI INT4,1,8,109,125,16,0.48041351325809956
+b,lpips,kivi_int4,KIVI INT4,1,9,125,141,16,0.4877015557140112
+b,lpips,kivi_int4,KIVI INT4,1,10,141,157,16,0.49847716838121414
+b,lpips,kivi_int4,KIVI INT4,1,11,157,173,16,0.493917528539896
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,2,1,0,13,12,0.05282636700818936
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,2,2,13,29,16,0.06426498899236321
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,2,3,29,45,16,0.06842092704027891
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,2,4,45,61,16,0.08152833161875606
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,2,5,61,77,16,0.09484816854819655
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,2,6,77,93,16,0.12197319185361266
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,2,7,93,109,16,0.1327316341921687
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,2,8,109,125,16,0.1715277498587966
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,2,9,125,141,16,0.22145433072000742
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,2,10,141,157,16,0.25413679517805576
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,2,11,157,173,16,0.28157113678753376
+b,lpips,ours_uniform_b4,Ours B4,2,1,0,13,12,0.06523506964246432
+b,lpips,ours_uniform_b4,Ours B4,2,2,13,29,16,0.07361257029697299
+b,lpips,ours_uniform_b4,Ours B4,2,3,29,45,16,0.08085613558068871
+b,lpips,ours_uniform_b4,Ours B4,2,4,45,61,16,0.10128535563126206
+b,lpips,ours_uniform_b4,Ours B4,2,5,61,77,16,0.13369810255244374
+b,lpips,ours_uniform_b4,Ours B4,2,6,77,93,16,0.1895940126851201
+b,lpips,ours_uniform_b4,Ours B4,2,7,93,109,16,0.21374047361314297
+b,lpips,ours_uniform_b4,Ours B4,2,8,109,125,16,0.24162226915359497
+b,lpips,ours_uniform_b4,Ours B4,2,9,125,141,16,0.2836070545017719
+b,lpips,ours_uniform_b4,Ours B4,2,10,141,157,16,0.32598545774817467
+b,lpips,ours_uniform_b4,Ours B4,2,11,157,173,16,0.3693732675164938
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,2,1,0,13,12,0.0
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,2,2,13,29,16,0.04494768858421594
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,2,3,29,45,16,0.06239543063566089
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,2,4,45,61,16,0.06595859583467245
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,2,5,61,77,16,0.06856504734605551
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,2,6,77,93,16,0.07664101291447878
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,2,7,93,109,16,0.09087846102192998
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,2,8,109,125,16,0.13614390138536692
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,2,9,125,141,16,0.177806387655437
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,2,10,141,157,16,0.22269180975854397
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,2,11,157,173,16,0.24916758760809898
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,2,1,0,13,12,0.06458828691393137
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,2,2,13,29,16,0.07013348303735256
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,2,3,29,45,16,0.07555012125521898
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,2,4,45,61,16,0.09024339262396097
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,2,5,61,77,16,0.11993614444509149
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,2,6,77,93,16,0.16945244278758764
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,2,7,93,109,16,0.19993432145565748
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,2,8,109,125,16,0.23826226219534874
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,2,9,125,141,16,0.2767673134803772
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,2,10,141,157,16,0.323781818151474
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,2,11,157,173,16,0.36403416842222214
+b,lpips,quantvideo_int4,QuantVideo INT4,2,1,0,13,12,0.06574547539154689
+b,lpips,quantvideo_int4,QuantVideo INT4,2,2,13,29,16,0.07755342032760382
+b,lpips,quantvideo_int4,QuantVideo INT4,2,3,29,45,16,0.09861348755657673
+b,lpips,quantvideo_int4,QuantVideo INT4,2,4,45,61,16,0.16060909628868103
+b,lpips,quantvideo_int4,QuantVideo INT4,2,5,61,77,16,0.20573924109339714
+b,lpips,quantvideo_int4,QuantVideo INT4,2,6,77,93,16,0.268414119258523
+b,lpips,quantvideo_int4,QuantVideo INT4,2,7,93,109,16,0.2841613497585058
+b,lpips,quantvideo_int4,QuantVideo INT4,2,8,109,125,16,0.29273245111107826
+b,lpips,quantvideo_int4,QuantVideo INT4,2,9,125,141,16,0.3075608108192682
+b,lpips,quantvideo_int4,QuantVideo INT4,2,10,141,157,16,0.33936713449656963
+b,lpips,quantvideo_int4,QuantVideo INT4,2,11,157,173,16,0.37049178779125214
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,2,1,0,13,12,0.06645428730795781
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,2,2,13,29,16,0.10606226371601224
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,2,3,29,45,16,0.14892467577010393
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,2,4,45,61,16,0.2218446722254157
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,2,5,61,77,16,0.2885481845587492
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,2,6,77,93,16,0.3395706694573164
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,2,7,93,109,16,0.35563054867088795
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,2,8,109,125,16,0.3811543397605419
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,2,9,125,141,16,0.40322993882000446
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,2,10,141,157,16,0.42838595248758793
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,2,11,157,173,16,0.4615261945873499
+b,lpips,kivi_int4,KIVI INT4,2,1,0,13,12,0.06560129641244809
+b,lpips,kivi_int4,KIVI INT4,2,2,13,29,16,0.0758157572709024
+b,lpips,kivi_int4,KIVI INT4,2,3,29,45,16,0.08544769557192922
+b,lpips,kivi_int4,KIVI INT4,2,4,45,61,16,0.10257062269374728
+b,lpips,kivi_int4,KIVI INT4,2,5,61,77,16,0.12265270901843905
+b,lpips,kivi_int4,KIVI INT4,2,6,77,93,16,0.1723358714953065
+b,lpips,kivi_int4,KIVI INT4,2,7,93,109,16,0.207950197160244
+b,lpips,kivi_int4,KIVI INT4,2,8,109,125,16,0.23721825052052736
+b,lpips,kivi_int4,KIVI INT4,2,9,125,141,16,0.27562352642416954
+b,lpips,kivi_int4,KIVI INT4,2,10,141,157,16,0.31130598299205303
+b,lpips,kivi_int4,KIVI INT4,2,11,157,173,16,0.3643905855715275
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,3,1,0,13,12,0.05718693416565657
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,3,2,13,29,16,0.06372720981016755
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,3,3,29,45,16,0.07038911385461688
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,3,4,45,61,16,0.07683717412874103
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,3,5,61,77,16,0.08818728756159544
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,3,6,77,93,16,0.09971228521317244
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,3,7,93,109,16,0.1190600236877799
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,3,8,109,125,16,0.14687839522957802
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,3,9,125,141,16,0.17116231750696898
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,3,10,141,157,16,0.18631437327712774
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,3,11,157,173,16,0.20330742187798023
+b,lpips,ours_uniform_b4,Ours B4,3,1,0,13,12,0.05727240722626448
+b,lpips,ours_uniform_b4,Ours B4,3,2,13,29,16,0.06925312778912485
+b,lpips,ours_uniform_b4,Ours B4,3,3,29,45,16,0.08386074844747782
+b,lpips,ours_uniform_b4,Ours B4,3,4,45,61,16,0.10247212322428823
+b,lpips,ours_uniform_b4,Ours B4,3,5,61,77,16,0.1246535824611783
+b,lpips,ours_uniform_b4,Ours B4,3,6,77,93,16,0.14770289324223995
+b,lpips,ours_uniform_b4,Ours B4,3,7,93,109,16,0.18137668166309595
+b,lpips,ours_uniform_b4,Ours B4,3,8,109,125,16,0.1976897045969963
+b,lpips,ours_uniform_b4,Ours B4,3,9,125,141,16,0.22204858344048262
+b,lpips,ours_uniform_b4,Ours B4,3,10,141,157,16,0.2521272609010339
+b,lpips,ours_uniform_b4,Ours B4,3,11,157,173,16,0.26873584277927876
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,3,1,0,13,12,0.00830148175979654
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,3,2,13,29,16,0.056524381157942116
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,3,3,29,45,16,0.06688577774912119
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,3,4,45,61,16,0.07313837995752692
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,3,5,61,77,16,0.08361840341240168
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,3,6,77,93,16,0.09937098436057568
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,3,7,93,109,16,0.11985427420586348
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,3,8,109,125,16,0.12958619557321072
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,3,9,125,141,16,0.1440032534301281
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,3,10,141,157,16,0.15978275425732136
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,3,11,157,173,16,0.16990433353930712
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,3,1,0,13,12,0.05765107894937197
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,3,2,13,29,16,0.066140859387815
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,3,3,29,45,16,0.07439580745995045
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,3,4,45,61,16,0.08743975078687072
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,3,5,61,77,16,0.11272644018754363
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,3,6,77,93,16,0.14424856193363667
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,3,7,93,109,16,0.17353166732937098
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,3,8,109,125,16,0.1887219538912177
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,3,9,125,141,16,0.21228939667344093
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,3,10,141,157,16,0.24440028425306082
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,3,11,157,173,16,0.27739979326725006
+b,lpips,quantvideo_int4,QuantVideo INT4,3,1,0,13,12,0.05847568127016226
+b,lpips,quantvideo_int4,QuantVideo INT4,3,2,13,29,16,0.07104827230796218
+b,lpips,quantvideo_int4,QuantVideo INT4,3,3,29,45,16,0.08431467413902283
+b,lpips,quantvideo_int4,QuantVideo INT4,3,4,45,61,16,0.09690190386027098
+b,lpips,quantvideo_int4,QuantVideo INT4,3,5,61,77,16,0.12567435670644045
+b,lpips,quantvideo_int4,QuantVideo INT4,3,6,77,93,16,0.1674673818051815
+b,lpips,quantvideo_int4,QuantVideo INT4,3,7,93,109,16,0.18782990518957376
+b,lpips,quantvideo_int4,QuantVideo INT4,3,8,109,125,16,0.1956437397748232
+b,lpips,quantvideo_int4,QuantVideo INT4,3,9,125,141,16,0.2171516576781869
+b,lpips,quantvideo_int4,QuantVideo INT4,3,10,141,157,16,0.2739058192819357
+b,lpips,quantvideo_int4,QuantVideo INT4,3,11,157,173,16,0.29976576566696167
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,3,1,0,13,12,0.05890775844454765
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,3,2,13,29,16,0.09975823853164911
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,3,3,29,45,16,0.14359126146882772
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,3,4,45,61,16,0.219151115976274
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,3,5,61,77,16,0.31659209728240967
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,3,6,77,93,16,0.3583906926214695
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,3,7,93,109,16,0.3674385044723749
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,3,8,109,125,16,0.3695402853190899
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,3,9,125,141,16,0.38745542243123055
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,3,10,141,157,16,0.3998868428170681
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,3,11,157,173,16,0.41420612670481205
+b,lpips,kivi_int4,KIVI INT4,3,1,0,13,12,0.05802134114007155
+b,lpips,kivi_int4,KIVI INT4,3,2,13,29,16,0.07099068840034306
+b,lpips,kivi_int4,KIVI INT4,3,3,29,45,16,0.0835937331430614
+b,lpips,kivi_int4,KIVI INT4,3,4,45,61,16,0.09926273627206683
+b,lpips,kivi_int4,KIVI INT4,3,5,61,77,16,0.12008815119042993
+b,lpips,kivi_int4,KIVI INT4,3,6,77,93,16,0.1435137875378132
+b,lpips,kivi_int4,KIVI INT4,3,7,93,109,16,0.18366705253720284
+b,lpips,kivi_int4,KIVI INT4,3,8,109,125,16,0.1985006146132946
+b,lpips,kivi_int4,KIVI INT4,3,9,125,141,16,0.2218818049877882
+b,lpips,kivi_int4,KIVI INT4,3,10,141,157,16,0.2581522511318326
+b,lpips,kivi_int4,KIVI INT4,3,11,157,173,16,0.28495769388973713
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,4,1,0,13,12,0.019348810737331707
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,4,2,13,29,16,0.05856722919270396
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,4,3,29,45,16,0.08091721078380942
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,4,4,45,61,16,0.13165025133639574
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,4,5,61,77,16,0.26720173843204975
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,4,6,77,93,16,0.45759692788124084
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,4,7,93,109,16,0.5520771518349648
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,4,8,109,125,16,0.5801464058458805
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,4,9,125,141,16,0.5653224065899849
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,4,10,141,157,16,0.5688528157770634
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,4,11,157,173,16,0.5875930935144424
+b,lpips,ours_uniform_b4,Ours B4,4,1,0,13,12,0.05581057413170735
+b,lpips,ours_uniform_b4,Ours B4,4,2,13,29,16,0.0746512059122324
+b,lpips,ours_uniform_b4,Ours B4,4,3,29,45,16,0.11382622690871358
+b,lpips,ours_uniform_b4,Ours B4,4,4,45,61,16,0.22737665101885796
+b,lpips,ours_uniform_b4,Ours B4,4,5,61,77,16,0.4057707693427801
+b,lpips,ours_uniform_b4,Ours B4,4,6,77,93,16,0.5329553484916687
+b,lpips,ours_uniform_b4,Ours B4,4,7,93,109,16,0.5713724121451378
+b,lpips,ours_uniform_b4,Ours B4,4,8,109,125,16,0.5819423608481884
+b,lpips,ours_uniform_b4,Ours B4,4,9,125,141,16,0.5781806446611881
+b,lpips,ours_uniform_b4,Ours B4,4,10,141,157,16,0.5793231949210167
+b,lpips,ours_uniform_b4,Ours B4,4,11,157,173,16,0.5925330072641373
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,4,1,0,13,12,0.0
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,4,2,13,29,16,0.0284155101981014
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,4,3,29,45,16,0.06464077858254313
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,4,4,45,61,16,0.08254369115456939
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,4,5,61,77,16,0.16436093160882592
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,4,6,77,93,16,0.41598471999168396
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,4,7,93,109,16,0.5133498106151819
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,4,8,109,125,16,0.571950901299715
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,4,9,125,141,16,0.5654102079570293
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,4,10,141,157,16,0.5636850036680698
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,4,11,157,173,16,0.575829416513443
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,4,1,0,13,12,0.0535916347677509
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,4,2,13,29,16,0.07069306448101997
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,4,3,29,45,16,0.09358803601935506
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,4,4,45,61,16,0.13888321537524462
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,4,5,61,77,16,0.2743199039250612
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,4,6,77,93,16,0.42790902592241764
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,4,7,93,109,16,0.4724245071411133
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,4,8,109,125,16,0.5243280958384275
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,4,9,125,141,16,0.5589618943631649
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,4,10,141,157,16,0.5757857523858547
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,4,11,157,173,16,0.6122994720935822
+b,lpips,quantvideo_int4,QuantVideo INT4,4,1,0,13,12,0.055418165090183415
+b,lpips,quantvideo_int4,QuantVideo INT4,4,2,13,29,16,0.09137775097042322
+b,lpips,quantvideo_int4,QuantVideo INT4,4,3,29,45,16,0.13325392920523882
+b,lpips,quantvideo_int4,QuantVideo INT4,4,4,45,61,16,0.217688063159585
+b,lpips,quantvideo_int4,QuantVideo INT4,4,5,61,77,16,0.4045688360929489
+b,lpips,quantvideo_int4,QuantVideo INT4,4,6,77,93,16,0.49495281651616096
+b,lpips,quantvideo_int4,QuantVideo INT4,4,7,93,109,16,0.5551011078059673
+b,lpips,quantvideo_int4,QuantVideo INT4,4,8,109,125,16,0.5912631675601006
+b,lpips,quantvideo_int4,QuantVideo INT4,4,9,125,141,16,0.5775476954877377
+b,lpips,quantvideo_int4,QuantVideo INT4,4,10,141,157,16,0.5838550888001919
+b,lpips,quantvideo_int4,QuantVideo INT4,4,11,157,173,16,0.6039307825267315
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,4,1,0,13,12,0.05676649697124958
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,4,2,13,29,16,0.1565008140169084
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,4,3,29,45,16,0.30894237011671066
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,4,4,45,61,16,0.4785297494381666
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,4,5,61,77,16,0.6057543121278286
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,4,6,77,93,16,0.7289593294262886
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,4,7,93,109,16,0.6982555761933327
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,4,8,109,125,16,0.7005714513361454
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,4,9,125,141,16,0.7076927050948143
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,4,10,141,157,16,0.7090765982866287
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,4,11,157,173,16,0.6951614804565907
+b,lpips,kivi_int4,KIVI INT4,4,1,0,13,12,0.05530061883231004
+b,lpips,kivi_int4,KIVI INT4,4,2,13,29,16,0.08278096280992031
+b,lpips,kivi_int4,KIVI INT4,4,3,29,45,16,0.1215811581350863
+b,lpips,kivi_int4,KIVI INT4,4,4,45,61,16,0.18008752446621656
+b,lpips,kivi_int4,KIVI INT4,4,5,61,77,16,0.33398694545030594
+b,lpips,kivi_int4,KIVI INT4,4,6,77,93,16,0.48921523801982403
+b,lpips,kivi_int4,KIVI INT4,4,7,93,109,16,0.5561452247202396
+b,lpips,kivi_int4,KIVI INT4,4,8,109,125,16,0.5859929285943508
+b,lpips,kivi_int4,KIVI INT4,4,9,125,141,16,0.5737251527607441
+b,lpips,kivi_int4,KIVI INT4,4,10,141,157,16,0.5741664879024029
+b,lpips,kivi_int4,KIVI INT4,4,11,157,173,16,0.6015311889350414
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,5,1,0,13,12,0.030097431658456724
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,5,2,13,29,16,0.062308890046551824
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,5,3,29,45,16,0.08033412136137486
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,5,4,45,61,16,0.10821845242753625
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,5,5,61,77,16,0.15729205217212439
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,5,6,77,93,16,0.22496757190674543
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,5,7,93,109,16,0.33416394516825676
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,5,8,109,125,16,0.3422779366374016
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,5,9,125,141,16,0.34805343486368656
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,5,10,141,157,16,0.36886114813387394
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,5,11,157,173,16,0.38117516040802
+b,lpips,ours_uniform_b4,Ours B4,5,1,0,13,12,0.055271560015777745
+b,lpips,ours_uniform_b4,Ours B4,5,2,13,29,16,0.07380615500733256
+b,lpips,ours_uniform_b4,Ours B4,5,3,29,45,16,0.10310621745884418
+b,lpips,ours_uniform_b4,Ours B4,5,4,45,61,16,0.14192618429660797
+b,lpips,ours_uniform_b4,Ours B4,5,5,61,77,16,0.18923606164753437
+b,lpips,ours_uniform_b4,Ours B4,5,6,77,93,16,0.2593123223632574
+b,lpips,ours_uniform_b4,Ours B4,5,7,93,109,16,0.3197463545948267
+b,lpips,ours_uniform_b4,Ours B4,5,8,109,125,16,0.3161092232912779
+b,lpips,ours_uniform_b4,Ours B4,5,9,125,141,16,0.35245767422020435
+b,lpips,ours_uniform_b4,Ours B4,5,10,141,157,16,0.37919544242322445
+b,lpips,ours_uniform_b4,Ours B4,5,11,157,173,16,0.381882144138217
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,5,1,0,13,12,0.0
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,5,2,13,29,16,0.027776560455095023
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,5,3,29,45,16,0.07048791623674333
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,5,4,45,61,16,0.08532251371070743
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,5,5,61,77,16,0.11837404640391469
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,5,6,77,93,16,0.1784700956195593
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,5,7,93,109,16,0.28569273836910725
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,5,8,109,125,16,0.28796612843871117
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,5,9,125,141,16,0.3191812951117754
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,5,10,141,157,16,0.3389473408460617
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,5,11,157,173,16,0.34845116175711155
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,5,1,0,13,12,0.05343456442157427
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,5,2,13,29,16,0.06986045790836215
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,5,3,29,45,16,0.09742366150021553
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,5,4,45,61,16,0.12979423999786377
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,5,5,61,77,16,0.19280350301414728
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,5,6,77,93,16,0.22790806740522385
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,5,7,93,109,16,0.28366006165742874
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,5,8,109,125,16,0.28997483290731907
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,5,9,125,141,16,0.33436924405395985
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,5,10,141,157,16,0.40226723439991474
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,5,11,157,173,16,0.42426751367747784
+b,lpips,quantvideo_int4,QuantVideo INT4,5,1,0,13,12,0.05642891333748897
+b,lpips,quantvideo_int4,QuantVideo INT4,5,2,13,29,16,0.0763053740374744
+b,lpips,quantvideo_int4,QuantVideo INT4,5,3,29,45,16,0.1122928005643189
+b,lpips,quantvideo_int4,QuantVideo INT4,5,4,45,61,16,0.16186261549592018
+b,lpips,quantvideo_int4,QuantVideo INT4,5,5,61,77,16,0.23119934741407633
+b,lpips,quantvideo_int4,QuantVideo INT4,5,6,77,93,16,0.27472982089966536
+b,lpips,quantvideo_int4,QuantVideo INT4,5,7,93,109,16,0.326762642711401
+b,lpips,quantvideo_int4,QuantVideo INT4,5,8,109,125,16,0.36702166497707367
+b,lpips,quantvideo_int4,QuantVideo INT4,5,9,125,141,16,0.4022701866924763
+b,lpips,quantvideo_int4,QuantVideo INT4,5,10,141,157,16,0.4404232557862997
+b,lpips,quantvideo_int4,QuantVideo INT4,5,11,157,173,16,0.44791144877672195
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,5,1,0,13,12,0.05699819792062044
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,5,2,13,29,16,0.10879839165136218
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,5,3,29,45,16,0.22541529405862093
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,5,4,45,61,16,0.3527490645647049
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,5,5,61,77,16,0.445782158523798
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,5,6,77,93,16,0.43412498012185097
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,5,7,93,109,16,0.47242592088878155
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,5,8,109,125,16,0.4922272879630327
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,5,9,125,141,16,0.5136358812451363
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,5,10,141,157,16,0.5261185988783836
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,5,11,157,173,16,0.524966899305582
+b,lpips,kivi_int4,KIVI INT4,5,1,0,13,12,0.05568678273508946
+b,lpips,kivi_int4,KIVI INT4,5,2,13,29,16,0.07611605944111943
+b,lpips,kivi_int4,KIVI INT4,5,3,29,45,16,0.11029193829745054
+b,lpips,kivi_int4,KIVI INT4,5,4,45,61,16,0.21340811345726252
+b,lpips,kivi_int4,KIVI INT4,5,5,61,77,16,0.27760800160467625
+b,lpips,kivi_int4,KIVI INT4,5,6,77,93,16,0.3138026427477598
+b,lpips,kivi_int4,KIVI INT4,5,7,93,109,16,0.40683713555336
+b,lpips,kivi_int4,KIVI INT4,5,8,109,125,16,0.3793233446776867
+b,lpips,kivi_int4,KIVI INT4,5,9,125,141,16,0.38978089950978756
+b,lpips,kivi_int4,KIVI INT4,5,10,141,157,16,0.42975911870598793
+b,lpips,kivi_int4,KIVI INT4,5,11,157,173,16,0.4566177502274513
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,6,1,0,13,12,0.021142723659674328
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,6,2,13,29,16,0.07499070698395371
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,6,3,29,45,16,0.09720053244382143
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,6,4,45,61,16,0.1098934137262404
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,6,5,61,77,16,0.12413865700364113
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,6,6,77,93,16,0.14154827687889338
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,6,7,93,109,16,0.17391890566796064
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,6,8,109,125,16,0.2359926737844944
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,6,9,125,141,16,0.2822191286832094
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,6,10,141,157,16,0.3143605049699545
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,6,11,157,173,16,0.33781894110143185
+b,lpips,ours_uniform_b4,Ours B4,6,1,0,13,12,0.0782553522537152
+b,lpips,ours_uniform_b4,Ours B4,6,2,13,29,16,0.10114469053223729
+b,lpips,ours_uniform_b4,Ours B4,6,3,29,45,16,0.12585758417844772
+b,lpips,ours_uniform_b4,Ours B4,6,4,45,61,16,0.15736099146306515
+b,lpips,ours_uniform_b4,Ours B4,6,5,61,77,16,0.18209603149443865
+b,lpips,ours_uniform_b4,Ours B4,6,6,77,93,16,0.21613379660993814
+b,lpips,ours_uniform_b4,Ours B4,6,7,93,109,16,0.2339294906705618
+b,lpips,ours_uniform_b4,Ours B4,6,8,109,125,16,0.2729257298633456
+b,lpips,ours_uniform_b4,Ours B4,6,9,125,141,16,0.3176757376641035
+b,lpips,ours_uniform_b4,Ours B4,6,10,141,157,16,0.3594969753175974
+b,lpips,ours_uniform_b4,Ours B4,6,11,157,173,16,0.3935316391289234
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,6,1,0,13,12,0.0
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,6,2,13,29,16,0.017011457588523626
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,6,3,29,45,16,0.07397704664617777
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,6,4,45,61,16,0.08726293966174126
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,6,5,61,77,16,0.0945544047281146
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,6,6,77,93,16,0.10724641382694244
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,6,7,93,109,16,0.13043516129255295
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,6,8,109,125,16,0.17769379168748856
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,6,9,125,141,16,0.20862367749214172
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,6,10,141,157,16,0.2541948165744543
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,6,11,157,173,16,0.314574783667922
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,6,1,0,13,12,0.08121357361475627
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,6,2,13,29,16,0.09581716218963265
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,6,3,29,45,16,0.11619100486859679
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,6,4,45,61,16,0.13632125360891223
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,6,5,61,77,16,0.173502242192626
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,6,6,77,93,16,0.21736283786594868
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,6,7,93,109,16,0.2783079296350479
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,6,8,109,125,16,0.3240880258381367
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,6,9,125,141,16,0.3657361827790737
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,6,10,141,157,16,0.3910456132143736
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,6,11,157,173,16,0.4142587911337614
+b,lpips,quantvideo_int4,QuantVideo INT4,6,1,0,13,12,0.08245176697770755
+b,lpips,quantvideo_int4,QuantVideo INT4,6,2,13,29,16,0.10134300775825977
+b,lpips,quantvideo_int4,QuantVideo INT4,6,3,29,45,16,0.12574046291410923
+b,lpips,quantvideo_int4,QuantVideo INT4,6,4,45,61,16,0.1630177367478609
+b,lpips,quantvideo_int4,QuantVideo INT4,6,5,61,77,16,0.1950630508363247
+b,lpips,quantvideo_int4,QuantVideo INT4,6,6,77,93,16,0.25130145251750946
+b,lpips,quantvideo_int4,QuantVideo INT4,6,7,93,109,16,0.30158938094973564
+b,lpips,quantvideo_int4,QuantVideo INT4,6,8,109,125,16,0.3200687114149332
+b,lpips,quantvideo_int4,QuantVideo INT4,6,9,125,141,16,0.3575080092996359
+b,lpips,quantvideo_int4,QuantVideo INT4,6,10,141,157,16,0.3770399186760187
+b,lpips,quantvideo_int4,QuantVideo INT4,6,11,157,173,16,0.39315731823444366
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,6,1,0,13,12,0.0843947163472573
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,6,2,13,29,16,0.15401507215574384
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,6,3,29,45,16,0.2371339164674282
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,6,4,45,61,16,0.2943541258573532
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,6,5,61,77,16,0.33764541149139404
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,6,6,77,93,16,0.3905294109135866
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,6,7,93,109,16,0.4406709522008896
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,6,8,109,125,16,0.47458831779658794
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,6,9,125,141,16,0.5140718575567007
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,6,10,141,157,16,0.5331936404109001
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,6,11,157,173,16,0.5423740185797215
+b,lpips,kivi_int4,KIVI INT4,6,1,0,13,12,0.08237893444796403
+b,lpips,kivi_int4,KIVI INT4,6,2,13,29,16,0.10790788847953081
+b,lpips,kivi_int4,KIVI INT4,6,3,29,45,16,0.15539341699332
+b,lpips,kivi_int4,KIVI INT4,6,4,45,61,16,0.20711682178080082
+b,lpips,kivi_int4,KIVI INT4,6,5,61,77,16,0.24643093347549438
+b,lpips,kivi_int4,KIVI INT4,6,6,77,93,16,0.26255114283412695
+b,lpips,kivi_int4,KIVI INT4,6,7,93,109,16,0.2873952854424715
+b,lpips,kivi_int4,KIVI INT4,6,8,109,125,16,0.3584164809435606
+b,lpips,kivi_int4,KIVI INT4,6,9,125,141,16,0.39757661521434784
+b,lpips,kivi_int4,KIVI INT4,6,10,141,157,16,0.4246281497180462
+b,lpips,kivi_int4,KIVI INT4,6,11,157,173,16,0.44726761616766453
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,7,1,0,13,12,0.038445560882488884
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,7,2,13,29,16,0.05060406727716327
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,7,3,29,45,16,0.056835169903934
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,7,4,45,61,16,0.06518583558499813
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,7,5,61,77,16,0.08060088381171227
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,7,6,77,93,16,0.08820718387141824
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,7,7,93,109,16,0.10275728860870004
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,7,8,109,125,16,0.14546376280486584
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,7,9,125,141,16,0.1753586707636714
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,7,10,141,157,16,0.21499314438551664
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,7,11,157,173,16,0.2628445830196142
+b,lpips,ours_uniform_b4,Ours B4,7,1,0,13,12,0.041967373030881085
+b,lpips,ours_uniform_b4,Ours B4,7,2,13,29,16,0.05357765359804034
+b,lpips,ours_uniform_b4,Ours B4,7,3,29,45,16,0.06305655580945313
+b,lpips,ours_uniform_b4,Ours B4,7,4,45,61,16,0.08618988934904337
+b,lpips,ours_uniform_b4,Ours B4,7,5,61,77,16,0.11569938296452165
+b,lpips,ours_uniform_b4,Ours B4,7,6,77,93,16,0.11755168670788407
+b,lpips,ours_uniform_b4,Ours B4,7,7,93,109,16,0.13357401033863425
+b,lpips,ours_uniform_b4,Ours B4,7,8,109,125,16,0.19569274690002203
+b,lpips,ours_uniform_b4,Ours B4,7,9,125,141,16,0.24600324779748917
+b,lpips,ours_uniform_b4,Ours B4,7,10,141,157,16,0.33446547389030457
+b,lpips,ours_uniform_b4,Ours B4,7,11,157,173,16,0.41436916030943394
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,7,1,0,13,12,0.011217725812457502
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,7,2,13,29,16,0.040316726779565215
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,7,3,29,45,16,0.05409696535207331
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,7,4,45,61,16,0.0606284043751657
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,7,5,61,77,16,0.06711704842746258
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,7,6,77,93,16,0.07360726036131382
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,7,7,93,109,16,0.07852973230183125
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,7,8,109,125,16,0.089864666108042
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,7,9,125,141,16,0.11155774910002947
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,7,10,141,157,16,0.13100752513855696
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,7,11,157,173,16,0.14389206748455763
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,7,1,0,13,12,0.04364986096819242
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,7,2,13,29,16,0.053161935647949576
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,7,3,29,45,16,0.06196831236593425
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,7,4,45,61,16,0.07507557049393654
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,7,5,61,77,16,0.09552320465445518
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,7,6,77,93,16,0.10276842722669244
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,7,7,93,109,16,0.11203623935580254
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,7,8,109,125,16,0.14231243450194597
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,7,9,125,141,16,0.2041751528158784
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,7,10,141,157,16,0.27232177183032036
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,7,11,157,173,16,0.31418513134121895
+b,lpips,quantvideo_int4,QuantVideo INT4,7,1,0,13,12,0.04519707150757313
+b,lpips,quantvideo_int4,QuantVideo INT4,7,2,13,29,16,0.05548349884338677
+b,lpips,quantvideo_int4,QuantVideo INT4,7,3,29,45,16,0.07226217840798199
+b,lpips,quantvideo_int4,QuantVideo INT4,7,4,45,61,16,0.10376556171104312
+b,lpips,quantvideo_int4,QuantVideo INT4,7,5,61,77,16,0.14293880108743906
+b,lpips,quantvideo_int4,QuantVideo INT4,7,6,77,93,16,0.16513030603528023
+b,lpips,quantvideo_int4,QuantVideo INT4,7,7,93,109,16,0.16005071718245745
+b,lpips,quantvideo_int4,QuantVideo INT4,7,8,109,125,16,0.2073349254205823
+b,lpips,quantvideo_int4,QuantVideo INT4,7,9,125,141,16,0.24783225916326046
+b,lpips,quantvideo_int4,QuantVideo INT4,7,10,141,157,16,0.3390058036893606
+b,lpips,quantvideo_int4,QuantVideo INT4,7,11,157,173,16,0.4085864797234535
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,7,1,0,13,12,0.04452750893930594
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,7,2,13,29,16,0.08136408892460167
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,7,3,29,45,16,0.17304192949086428
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,7,4,45,61,16,0.2611766532063484
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,7,5,61,77,16,0.2623432781547308
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,7,6,77,93,16,0.26302950643002987
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,7,7,93,109,16,0.28073454834520817
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,7,8,109,125,16,0.34677633084356785
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,7,9,125,141,16,0.3960253372788429
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,7,10,141,157,16,0.45166838727891445
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,7,11,157,173,16,0.4827213156968355
+b,lpips,kivi_int4,KIVI INT4,7,1,0,13,12,0.04343061645825704
+b,lpips,kivi_int4,KIVI INT4,7,2,13,29,16,0.05484652589075267
+b,lpips,kivi_int4,KIVI INT4,7,3,29,45,16,0.06676633819006383
+b,lpips,kivi_int4,KIVI INT4,7,4,45,61,16,0.09122153744101524
+b,lpips,kivi_int4,KIVI INT4,7,5,61,77,16,0.1361703951843083
+b,lpips,kivi_int4,KIVI INT4,7,6,77,93,16,0.16966679599136114
+b,lpips,kivi_int4,KIVI INT4,7,7,93,109,16,0.16042379289865494
+b,lpips,kivi_int4,KIVI INT4,7,8,109,125,16,0.16308070812374353
+b,lpips,kivi_int4,KIVI INT4,7,9,125,141,16,0.18526547122746706
+b,lpips,kivi_int4,KIVI INT4,7,10,141,157,16,0.2222286108881235
+b,lpips,kivi_int4,KIVI INT4,7,11,157,173,16,0.26990643329918385
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,8,1,0,13,12,0.06895198052128156
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,8,2,13,29,16,0.07720315828919411
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,8,3,29,45,16,0.08357453905045986
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,8,4,45,61,16,0.09007013263180852
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,8,5,61,77,16,0.10983582306653261
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,8,6,77,93,16,0.15157626988366246
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,8,7,93,109,16,0.191405083052814
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,8,8,109,125,16,0.23742625955492258
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,8,9,125,141,16,0.2800756301730871
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,8,10,141,157,16,0.2879963554441929
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,8,11,157,173,16,0.31851322762668133
+b,lpips,ours_uniform_b4,Ours B4,8,1,0,13,12,0.07799965826173623
+b,lpips,ours_uniform_b4,Ours B4,8,2,13,29,16,0.09547107666730881
+b,lpips,ours_uniform_b4,Ours B4,8,3,29,45,16,0.10828400123864412
+b,lpips,ours_uniform_b4,Ours B4,8,4,45,61,16,0.11653575534000993
+b,lpips,ours_uniform_b4,Ours B4,8,5,61,77,16,0.15659089013934135
+b,lpips,ours_uniform_b4,Ours B4,8,6,77,93,16,0.19960751105099916
+b,lpips,ours_uniform_b4,Ours B4,8,7,93,109,16,0.25962244626134634
+b,lpips,ours_uniform_b4,Ours B4,8,8,109,125,16,0.3017010875046253
+b,lpips,ours_uniform_b4,Ours B4,8,9,125,141,16,0.3342602252960205
+b,lpips,ours_uniform_b4,Ours B4,8,10,141,157,16,0.34305393137037754
+b,lpips,ours_uniform_b4,Ours B4,8,11,157,173,16,0.37869264371693134
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,8,1,0,13,12,0.0
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,8,2,13,29,16,0.04412394040690515
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,8,3,29,45,16,0.07297619571909308
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,8,4,45,61,16,0.08050148608162999
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,8,5,61,77,16,0.08170894021168351
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,8,6,77,93,16,0.10109256533905864
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,8,7,93,109,16,0.12092560902237892
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,8,8,109,125,16,0.15029580425471067
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,8,9,125,141,16,0.1919621517881751
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,8,10,141,157,16,0.23750710114836693
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,8,11,157,173,16,0.2762203514575958
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,8,1,0,13,12,0.07852081147332986
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,8,2,13,29,16,0.0900072562508285
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,8,3,29,45,16,0.09982845699414611
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,8,4,45,61,16,0.1378703098744154
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,8,5,61,77,16,0.15920042991638184
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,8,6,77,93,16,0.21594717539846897
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,8,7,93,109,16,0.2767453622072935
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,8,8,109,125,16,0.323161656036973
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,8,9,125,141,16,0.34980619326233864
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,8,10,141,157,16,0.3623351249843836
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,8,11,157,173,16,0.38870958983898163
+b,lpips,quantvideo_int4,QuantVideo INT4,8,1,0,13,12,0.07866457911829154
+b,lpips,quantvideo_int4,QuantVideo INT4,8,2,13,29,16,0.11094139330089092
+b,lpips,quantvideo_int4,QuantVideo INT4,8,3,29,45,16,0.12889475747942924
+b,lpips,quantvideo_int4,QuantVideo INT4,8,4,45,61,16,0.16044721752405167
+b,lpips,quantvideo_int4,QuantVideo INT4,8,5,61,77,16,0.1924341768026352
+b,lpips,quantvideo_int4,QuantVideo INT4,8,6,77,93,16,0.23825402837246656
+b,lpips,quantvideo_int4,QuantVideo INT4,8,7,93,109,16,0.28126862831413746
+b,lpips,quantvideo_int4,QuantVideo INT4,8,8,109,125,16,0.3290399182587862
+b,lpips,quantvideo_int4,QuantVideo INT4,8,9,125,141,16,0.3413312342017889
+b,lpips,quantvideo_int4,QuantVideo INT4,8,10,141,157,16,0.3413317818194628
+b,lpips,quantvideo_int4,QuantVideo INT4,8,11,157,173,16,0.3481362946331501
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,8,1,0,13,12,0.07877126149833202
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,8,2,13,29,16,0.17010343354195356
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,8,3,29,45,16,0.21902810502797365
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,8,4,45,61,16,0.24363059923052788
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,8,5,61,77,16,0.28524905256927013
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,8,6,77,93,16,0.32758110016584396
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,8,7,93,109,16,0.3711984697729349
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,8,8,109,125,16,0.39312008023262024
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,8,9,125,141,16,0.3939174674451351
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,8,10,141,157,16,0.4126950930804014
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,8,11,157,173,16,0.42680308036506176
+b,lpips,kivi_int4,KIVI INT4,8,1,0,13,12,0.07896583216885726
+b,lpips,kivi_int4,KIVI INT4,8,2,13,29,16,0.11309383623301983
+b,lpips,kivi_int4,KIVI INT4,8,3,29,45,16,0.12434470281004906
+b,lpips,kivi_int4,KIVI INT4,8,4,45,61,16,0.14245117641985416
+b,lpips,kivi_int4,KIVI INT4,8,5,61,77,16,0.16467017401009798
+b,lpips,kivi_int4,KIVI INT4,8,6,77,93,16,0.2161368364468217
+b,lpips,kivi_int4,KIVI INT4,8,7,93,109,16,0.29566857032477856
+b,lpips,kivi_int4,KIVI INT4,8,8,109,125,16,0.3361529912799597
+b,lpips,kivi_int4,KIVI INT4,8,9,125,141,16,0.34062409959733486
+b,lpips,kivi_int4,KIVI INT4,8,10,141,157,16,0.3493172228336334
+b,lpips,kivi_int4,KIVI INT4,8,11,157,173,16,0.35699854977428913
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,9,1,0,13,12,0.04441504584004482
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,9,2,13,29,16,0.07935984618961811
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,9,3,29,45,16,0.0885709272697568
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,9,4,45,61,16,0.10260033095255494
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,9,5,61,77,16,0.11562485853210092
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,9,6,77,93,16,0.15203118696808815
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,9,7,93,109,16,0.22760196961462498
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,9,8,109,125,16,0.31848789006471634
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,9,9,125,141,16,0.3659285120666027
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,9,10,141,157,16,0.3768958766013384
+b,lpips,ours_temporal_b2,Ours B2 + Time-adaptive,9,11,157,173,16,0.388648584485054
+b,lpips,ours_uniform_b4,Ours B4,9,1,0,13,12,0.07180638114611308
+b,lpips,ours_uniform_b4,Ours B4,9,2,13,29,16,0.0990741872228682
+b,lpips,ours_uniform_b4,Ours B4,9,3,29,45,16,0.10800040466710925
+b,lpips,ours_uniform_b4,Ours B4,9,4,45,61,16,0.12343625398352742
+b,lpips,ours_uniform_b4,Ours B4,9,5,61,77,16,0.16071771923452616
+b,lpips,ours_uniform_b4,Ours B4,9,6,77,93,16,0.20484665967524052
+b,lpips,ours_uniform_b4,Ours B4,9,7,93,109,16,0.33712388575077057
+b,lpips,ours_uniform_b4,Ours B4,9,8,109,125,16,0.44076106511056423
+b,lpips,ours_uniform_b4,Ours B4,9,9,125,141,16,0.43460224382579327
+b,lpips,ours_uniform_b4,Ours B4,9,10,141,157,16,0.4384787008166313
+b,lpips,ours_uniform_b4,Ours B4,9,11,157,173,16,0.4425412304699421
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,9,1,0,13,12,0.015087666610876719
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,9,2,13,29,16,0.0653076684102416
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,9,3,29,45,16,0.08362571150064468
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,9,4,45,61,16,0.09909653151407838
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,9,5,61,77,16,0.1109802178107202
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,9,6,77,93,16,0.13181123044341803
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,9,7,93,109,16,0.16268276516348124
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,9,8,109,125,16,0.24442716874182224
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,9,9,125,141,16,0.29887882620096207
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,9,10,141,157,16,0.32987446524202824
+b,lpips,ours_temporal_b4,Ours B4 + Time-adaptive,9,11,157,173,16,0.3908889014273882
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,9,1,0,13,12,0.07045820448547602
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,9,2,13,29,16,0.08532731654122472
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,9,3,29,45,16,0.09415065636858344
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,9,4,45,61,16,0.11001160042360425
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,9,5,61,77,16,0.13237657770514488
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,9,6,77,93,16,0.20637796632945538
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,9,7,93,109,16,0.26082796789705753
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,9,8,109,125,16,0.30283198691904545
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,9,9,125,141,16,0.306249612942338
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,9,10,141,157,16,0.3394402712583542
+b,lpips,ours_temporal_b1,Ours B1 + Time-adaptive,9,11,157,173,16,0.38265833631157875
+b,lpips,quantvideo_int4,QuantVideo INT4,9,1,0,13,12,0.07032948142538469
+b,lpips,quantvideo_int4,QuantVideo INT4,9,2,13,29,16,0.0901566562242806
+b,lpips,quantvideo_int4,QuantVideo INT4,9,3,29,45,16,0.11222032969817519
+b,lpips,quantvideo_int4,QuantVideo INT4,9,4,45,61,16,0.13792413845658302
+b,lpips,quantvideo_int4,QuantVideo INT4,9,5,61,77,16,0.22776477131992579
+b,lpips,quantvideo_int4,QuantVideo INT4,9,6,77,93,16,0.31021098233759403
+b,lpips,quantvideo_int4,QuantVideo INT4,9,7,93,109,16,0.3950556665658951
+b,lpips,quantvideo_int4,QuantVideo INT4,9,8,109,125,16,0.4326348192989826
+b,lpips,quantvideo_int4,QuantVideo INT4,9,9,125,141,16,0.4180419594049454
+b,lpips,quantvideo_int4,QuantVideo INT4,9,10,141,157,16,0.4171061683446169
+b,lpips,quantvideo_int4,QuantVideo INT4,9,11,157,173,16,0.44547571428120136
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,9,1,0,13,12,0.07130238879472017
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,9,2,13,29,16,0.12473753467202187
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,9,3,29,45,16,0.18681717105209827
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,9,4,45,61,16,0.2823412511497736
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,9,5,61,77,16,0.43604459054768085
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,9,6,77,93,16,0.5169235244393349
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,9,7,93,109,16,0.5538991391658783
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,9,8,109,125,16,0.5364287793636322
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,9,9,125,141,16,0.4910604953765869
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,9,10,141,157,16,0.5058578755706549
+b,lpips,turboquant_k4_v4,TurboQuant K4/V4,9,11,157,173,16,0.519750565290451
+b,lpips,kivi_int4,KIVI INT4,9,1,0,13,12,0.07063905615359545
+b,lpips,kivi_int4,KIVI INT4,9,2,13,29,16,0.08882757602259517
+b,lpips,kivi_int4,KIVI INT4,9,3,29,45,16,0.10379398381337523
+b,lpips,kivi_int4,KIVI INT4,9,4,45,61,16,0.13658884121105075
+b,lpips,kivi_int4,KIVI INT4,9,5,61,77,16,0.18273659236729145
+b,lpips,kivi_int4,KIVI INT4,9,6,77,93,16,0.2453903928399086
+b,lpips,kivi_int4,KIVI INT4,9,7,93,109,16,0.2767701502889395
+b,lpips,kivi_int4,KIVI INT4,9,8,109,125,16,0.31680887937545776
+b,lpips,kivi_int4,KIVI INT4,9,9,125,141,16,0.3111441023647785
+b,lpips,kivi_int4,KIVI INT4,9,10,141,157,16,0.327742762863636
+b,lpips,kivi_int4,KIVI INT4,9,11,157,173,16,0.36982771568000317

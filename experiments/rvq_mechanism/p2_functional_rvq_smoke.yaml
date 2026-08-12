@@ -1,0 +1,36 @@
+study_id: wan5b_historical_kv_functional_rvq_smoke
+data_root: /data/bowen/t2v_kv_bench_moviegen_20train_10test
+p0_result_dir: results/analysis/wan5b_rvq_mechanisms_p0_full
+source_exact_root: results/analysis/wan5b_rvq_mechanisms_p1_all_layer_map_exact
+output_dir: results/analysis/wan5b_rvq_mechanisms_p2_functional_smoke
+python: /home/bowen/anaconda3/envs/hw8/bin/python
+model_id: Wan-AI/Wan2.2-TI2V-5B-Diffusers
+hypothesis_registry: artifacts/p2_functional_rvq_hypotheses.csv
+seed: 42
+initialization_seeds: [11]
+layers: [0]
+heads: all
+sample_cache:
+  train_samples_per_prompt_head: 32
+  eval_samples_per_prompt_head: 16
+methods:
+  uniform_l5_c64: [64, 64, 64, 64, 64]
+  compact30: [64, 32, 16, 8, 8, 8, 8, 8]
+training:
+  epochs: 1
+  batch_size: 128
+  q_samples: 32
+  v_key_samples: 128
+  learning_rate: 0.0005
+  reconstruction_weight: 0.25
+  drift_weight: 0.001
+  v_coherence_weight: 0.25
+  gradient_clip: 1.0
+  int4_qat: true
+policies:
+  fullmap_uniform_K: [0, 1, 23, 25, 29]
+  fullmap_uniform_V: [0, 1, 23, 25, 29]
+  independent_uniform_K: [0, 1, 2, 18, 23, 26, 29]
+  independent_uniform_V: [0, 1, 29]
+gpus: [1, 2, 3, 4]
+

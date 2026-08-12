@@ -1,0 +1,74 @@
+{
+  "schema": "fig7_time_quality.run_info.v1",
+  "git_commit": "11ff61a4f744d125a1d27fa13e2b9ecb89e94e07",
+  "config_path": "/home/bowen/Quant-VideoGen/results/analysis/fig7_time_quality_wan5b_smoke_20260812/experiment_config.json",
+  "config_hash": "ce8deab1385e4fc102a8f4455b58170dafe4c722d66e522a57ce6d3dfde85006",
+  "codebook_path": null,
+  "codebook_hash": null,
+  "input_manifest_path": "/home/bowen/Quant-VideoGen/results/analysis/fig7_time_quality_wan5b_smoke_20260812/input_manifest.csv",
+  "input_manifest_hash": "8fa9ac0b4f608f10786bdd7f68bc081991ec6b163163639db81cf791931ac6cf",
+  "hostname": "lambda-scalar",
+  "gpu_type": "NVIDIA RTX 6000 Ada Generation",
+  "seed": 42,
+  "prompt_list": [
+    {
+      "prompt_id": 0,
+      "prompt": "The person's whole face glowed with joy as he hugged a dear friend."
+    },
+    {
+      "prompt_id": 1,
+      "prompt": "The person's lips curved up in a sly smile as she pulled off a clever trick."
+    },
+    {
+      "prompt_id": 2,
+      "prompt": "A serene lakeside cabin with a wooden dock and a rowboat."
+    },
+    {
+      "prompt_id": 3,
+      "prompt": "A person ice skating on a frozen river of lava."
+    },
+    {
+      "prompt_id": 4,
+      "prompt": "A stop motion animation of a flower growing out of the windowsill of a suburban house."
+    },
+    {
+      "prompt_id": 5,
+      "prompt": "A frog wearing a detective's trench coat and hat, examining clues with a magnifying glass."
+    },
+    {
+      "prompt_id": 6,
+      "prompt": "A cyclist powering up a steep hill in a road race."
+    },
+    {
+      "prompt_id": 7,
+      "prompt": "A steaming cup of tea in a cold room, with tendrils of steam rising and dissipating in the air above it."
+    },
+    {
+      "prompt_id": 8,
+      "prompt": "A dog accelerating after being let off the leash, running towards a ball."
+    },
+    {
+      "prompt_id": 9,
+      "prompt": "A glass of water placed on a windowsill, with sunlight passing through it and casting dancing, refracted light patterns onto the surface below."
+    }
+  ],
+  "timestamp": "2026-08-12T17:25:27.396988+00:00",
+  "metric_accounting": {
+    "time_window": "independent generation chunks",
+    "prompt_aggregation": "equal-weight arithmetic mean over prompts",
+    "lpips": "VGG, normalize=True; global frame 0 excluded",
+    "imaging_quality": "VBench imaging_quality divided by 100"
+  },
+  "outputs": [
+    "/home/bowen/Quant-VideoGen/figures/fig7_time_quality_wan5b_smoke.pdf",
+    "/home/bowen/Quant-VideoGen/figures/fig7_time_quality_wan5b_smoke.png",
+    "/home/bowen/Quant-VideoGen/figures/fig7_time_quality_wan5b_smoke_per_prompt.csv",
+    "/home/bowen/Quant-VideoGen/figures/fig7_time_quality_wan5b_smoke_aggregate.csv"
+  ],
+  "output_hashes": {
+    "/home/bowen/Quant-VideoGen/figures/fig7_time_quality_wan5b_smoke.pdf": "da64bb21082ecdf8083453417747dc223858c716fed6e02f6822b61b752eb276",
+    "/home/bowen/Quant-VideoGen/figures/fig7_time_quality_wan5b_smoke.png": "2dbfe02bfefa253f33e17a40363d4964436facdda270ae317280608b97e176a9",
+    "/home/bowen/Quant-VideoGen/figures/fig7_time_quality_wan5b_smoke_per_prompt.csv": "615180f356166e2d1019aec3fc6cb8b00b6cae191806095c596291bcc88c9f3b",
+    "/home/bowen/Quant-VideoGen/figures/fig7_time_quality_wan5b_smoke_aggregate.csv": "5b4e9b04615192e0be22e661e322a39ce818034180e03c0d6e978110da4674d0"
+  }
+}

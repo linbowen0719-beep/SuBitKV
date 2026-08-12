@@ -1,0 +1,57 @@
+study_id: wan5b_historical_kv_rvq_p1_layer_hybrid_holdout_exact
+data_root: /data/bowen/t2v_kv_bench_moviegen_20train_10test
+p0_result_dir: results/analysis/wan5b_rvq_mechanisms_p0_full
+compact_result_dir: results/analysis/wan5b_rvq_mechanisms_p1_compact_full
+output_dir: results/analysis/wan5b_rvq_mechanisms_p1_layer_hybrid_holdout_exact
+python: /home/bowen/anaconda3/envs/hw8/bin/python
+model_id: Wan-AI/Wan2.2-TI2V-5B-Diffusers
+seed: 42
+initialization_seeds: [11, 29, 47]
+calibration_prompt_ids: all
+tensors: [K, V]
+layers: [0, 10, 20, 29]
+heads: all
+expected_prompts: 4
+statistical_unit: prompt; four previously unused prompt-aligned exact generations
+hypothesis_registry: artifacts/p1_layer_hybrid_hypotheses.csv
+sample_cache:
+  train_samples_per_prompt_head: 96
+  eval_samples_per_prompt_head: 64
+rvq:
+  kmeans_iterations: 6
+  assignment_batch_size: 4096
+  input_norm_mode: none
+  runtime_codebook_storage: int4
+  amortization_vectors_per_group: 35200
+methods:
+  uniform_l5_c64: [64, 64, 64, 64, 64]
+  compact30: [64, 32, 16, 8, 8, 8, 8, 8]
+h6:
+  capture_files:
+    - results/analysis/wan5b_rvq_mechanisms_p1_layer_hybrid_holdout_captures/prompt_04/paired_rope/rank_000/layer_00/call_00000.pt
+    - results/analysis/wan5b_rvq_mechanisms_p1_layer_hybrid_holdout_captures/prompt_04/paired_rope/rank_000/layer_10/call_00000.pt
+    - results/analysis/wan5b_rvq_mechanisms_p1_layer_hybrid_holdout_captures/prompt_04/paired_rope/rank_000/layer_20/call_00000.pt
+    - results/analysis/wan5b_rvq_mechanisms_p1_layer_hybrid_holdout_captures/prompt_04/paired_rope/rank_000/layer_29/call_00000.pt
+    - results/analysis/wan5b_rvq_mechanisms_p1_layer_hybrid_holdout_captures/prompt_05/paired_rope/rank_000/layer_00/call_00000.pt
+    - results/analysis/wan5b_rvq_mechanisms_p1_layer_hybrid_holdout_captures/prompt_05/paired_rope/rank_000/layer_10/call_00000.pt
+    - results/analysis/wan5b_rvq_mechanisms_p1_layer_hybrid_holdout_captures/prompt_05/paired_rope/rank_000/layer_20/call_00000.pt
+    - results/analysis/wan5b_rvq_mechanisms_p1_layer_hybrid_holdout_captures/prompt_05/paired_rope/rank_000/layer_29/call_00000.pt
+    - results/analysis/wan5b_rvq_mechanisms_p1_layer_hybrid_holdout_captures/prompt_06/paired_rope/rank_000/layer_00/call_00000.pt
+    - results/analysis/wan5b_rvq_mechanisms_p1_layer_hybrid_holdout_captures/prompt_06/paired_rope/rank_000/layer_10/call_00000.pt
+    - results/analysis/wan5b_rvq_mechanisms_p1_layer_hybrid_holdout_captures/prompt_06/paired_rope/rank_000/layer_20/call_00000.pt
+    - results/analysis/wan5b_rvq_mechanisms_p1_layer_hybrid_holdout_captures/prompt_06/paired_rope/rank_000/layer_29/call_00000.pt
+    - results/analysis/wan5b_rvq_mechanisms_p1_layer_hybrid_holdout_captures/prompt_07/paired_rope/rank_000/layer_00/call_00000.pt
+    - results/analysis/wan5b_rvq_mechanisms_p1_layer_hybrid_holdout_captures/prompt_07/paired_rope/rank_000/layer_10/call_00000.pt
+    - results/analysis/wan5b_rvq_mechanisms_p1_layer_hybrid_holdout_captures/prompt_07/paired_rope/rank_000/layer_20/call_00000.pt
+    - results/analysis/wan5b_rvq_mechanisms_p1_layer_hybrid_holdout_captures/prompt_07/paired_rope/rank_000/layer_29/call_00000.pt
+  query_batch_size: 16
+  topk: 32
+bootstrap:
+  samples: 10000
+  seed: 20260720
+layer_policy:
+  0: uniform_l5_c64
+  10: compact30
+  20: compact30
+  29: uniform_l5_c64
+gpus: [2, 3, 4, 5]

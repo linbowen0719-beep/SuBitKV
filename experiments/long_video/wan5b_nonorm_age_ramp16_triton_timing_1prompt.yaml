@@ -1,0 +1,50 @@
+runner:
+  python: /home/bowen/anaconda3/envs/hw8/bin/python
+  vbench_bin: /home/bowen/anaconda3/bin/vbench
+
+benchmark:
+  prompt_file: /data/bowen/t2v_kv_bench_moviegen_20train_10test/prompts_test.txt
+  prompt_start: 0
+  num_prompts: 1
+  seed: 42
+  num_chunks: 11
+  chunk_size: 4
+  pred_latent_size: 4
+  num_frames: 173
+  num_inference_steps: 50
+  image_path: none
+  pose: w-96
+  memory_frames: 80
+  temporal_context_size: 76
+  offload_text_encoder: true
+  kv_logical_head_dim: 128
+  kv_reference_frames: 80
+
+rvq_diagnostics:
+  enabled: false
+  query_sample: 96
+
+rvq_age_ramp16:
+  variant: NONORM_AGE_RAMP16_MIDDLE4_RECENT6_8_12_16_INT4_TRITON_TIMING
+  k_codebook_dir: /data/bowen/t2v_kv_bench_moviegen_20train_10test/nonorm_k_l16c64_codebooks
+  v_codebook_dir: /data/bowen/t2v_kv_bench_moviegen_20train_10test/nonorm_v_l16c64_codebooks
+  codebook_storage_dtype: int4
+  scale_storage_dtype: uint4
+  input_norm_mode: none
+  per_token_rms_scale_stored: false
+  policy: age_ramp16_middle4_recent6_8_12_16
+  schedule_rule:
+    anchor_depth: 16
+    middle_depth: 4
+    recent_depths_old_to_new: [6, 8, 12, 16]
+  terminal_cache_chunks: 10
+  terminal_schedule: [16, 4, 4, 4, 4, 4, 6, 8, 12, 16]
+  terminal_average_depth: 7.8
+
+vbench:
+  bin: /home/bowen/anaconda3/bin/vbench
+  dimensions:
+    - subject_consistency
+    - background_consistency
+    - imaging_quality
+    - aesthetic_quality

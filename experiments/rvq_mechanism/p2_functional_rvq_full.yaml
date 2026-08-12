@@ -1,0 +1,52 @@
+study_id: wan5b_historical_kv_functional_rvq_full
+data_root: /data/bowen/t2v_kv_bench_moviegen_20train_10test
+p0_result_dir: results/analysis/wan5b_rvq_mechanisms_p0_full
+source_exact_root: results/analysis/wan5b_rvq_mechanisms_p1_all_layer_map_exact
+output_dir: /data/bowen/wan5b_functional_rvq_p2_20260720
+python: /home/bowen/anaconda3/envs/hw8/bin/python
+model_id: Wan-AI/Wan2.2-TI2V-5B-Diffusers
+hypothesis_registry: artifacts/p2_functional_rvq_hypotheses.csv
+seed: 42
+initialization_seeds: [11, 29, 47]
+layers: all
+heads: all
+sample_cache:
+  train_samples_per_prompt_head: 96
+  eval_samples_per_prompt_head: 64
+methods:
+  uniform_l5_c64: [64, 64, 64, 64, 64]
+  compact30: [64, 32, 16, 8, 8, 8, 8, 8]
+training:
+  epochs: 3
+  batch_size: 320
+  q_samples: 64
+  v_key_samples: 320
+  learning_rate: 0.0005
+  reconstruction_weight: 0.25
+  drift_weight: 0.001
+  v_coherence_weight: 0.25
+  gradient_clip: 1.0
+  int4_qat: true
+policies:
+  fullmap_uniform_K: [0, 1, 23, 25, 29]
+  fullmap_uniform_V: [0, 1, 23, 25, 29]
+  independent_uniform_K: [0, 1, 2, 18, 23, 26, 29]
+  independent_uniform_V: [0, 1, 29]
+  fixed_budget_note: both maps contain ten uniform tensor-layer assignments across K+V
+exact_evaluation:
+  capture_config: experiments/rvq_mechanism/p1_all_layer_map_exact.yaml
+  query_batch_size: 16
+  topk: 32
+video_evaluation:
+  prompt_file: /data/bowen/t2v_kv_bench_moviegen_20train_10test/prompts_test.txt
+  reference_dir: /data/bowen/t2v_kv_bench_moviegen_20train_10test/videos/bf16
+  prompts: 10
+  primary_independent_prompt_ids: [0, 1, 2, 3, 4, 5, 6, 7]
+  discovery_overlap_prompt_ids: [8, 9]
+  codebook_seed: 11
+  generation_seed: 42
+  frames: 173
+  chunks: 11
+  inference_steps: 50
+  vbench_dimensions: [subject_consistency, background_consistency, imaging_quality, aesthetic_quality]
+gpus: [1, 3, 4, 5]

@@ -1,0 +1,7 @@
+Tencent HY-WorldPlay is licensed under the Tencent HY-WorldPlay Community
+License Agreement, Copyright © 2025 Tencent. All Rights Reserved. The
+trademark rights of “Tencent Hunyuan” are owned by Tencent or its affiliate.
+
+This vendored integration contains modifications by the QuantVideoGen
+contributors, including KV-cache quantization, storage, offload, diagnostics,
+and launch-path changes.

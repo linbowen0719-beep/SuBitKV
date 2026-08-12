@@ -1,0 +1,5 @@
+study_id: wan5b_historical_kv_rvq_p1_all_layer_map_summary
+exact_config: experiments/rvq_mechanism/p1_all_layer_map_exact.yaml
+output_dir: results/analysis/wan5b_rvq_mechanisms_p1_all_layer_map_summary
+hypothesis_registry: artifacts/p1_all_layer_map_hypotheses.csv
+seed: 42

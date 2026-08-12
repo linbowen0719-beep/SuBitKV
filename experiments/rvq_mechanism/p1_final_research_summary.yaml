@@ -1,0 +1,29 @@
+study_id: wan5b_historical_kv_rvq_p1_final_research_summary
+output_dir: results/analysis/wan5b_rvq_mechanisms_p1_final
+seed: 42
+model_id: Wan-AI/Wan2.2-TI2V-5B-Diffusers
+inputs:
+  p0_summary: results/analysis/wan5b_rvq_mechanisms_p0_full/summary.json
+  compact_summary: results/analysis/wan5b_rvq_mechanisms_p1_compact_full/summary.json
+  canonical_summary: results/analysis/wan5b_rvq_mechanisms_p1_canonical_full/summary.json
+  canonical_table: results/analysis/wan5b_rvq_mechanisms_p1_canonical_full/tables/canonical_summary.csv
+  exact_four_prompt_summary: results/analysis/wan5b_rvq_mechanisms_p1_exact_replay_4prompt/summary.json
+  schedule_search_summary: results/analysis/wan5b_rvq_mechanisms_p1_schedule_search/selection_summary.json
+  schedule_exact_summary: results/analysis/wan5b_rvq_mechanisms_p1_exact_replay_schedule_4prompt/summary.json
+  proxy_gap_summary: results/analysis/wan5b_rvq_mechanisms_p1_attention_proxy_gap_v2/summary.json
+  proxy_gap_table: results/analysis/wan5b_rvq_mechanisms_p1_attention_proxy_gap_v2/tables/proxy_gap_summary.csv
+  codec_benchmark: results/analysis/wan5b_rvq_mechanisms_p1_variable_bit_codec/benchmark.json
+  hybrid_holdout_summary: results/analysis/wan5b_rvq_mechanisms_p1_layer_hybrid_holdout_summary_v2/summary.json
+  hybrid_layer_table: results/analysis/wan5b_rvq_mechanisms_p1_layer_hybrid_holdout_summary_v2/tables/holdout_layer_effects.csv
+  compact_codebook_manifest: results/analysis/wan5b_rvq_mechanisms_p1_compact_full/compact/codebook_manifest.json
+  exact_codebook_manifest: results/analysis/wan5b_rvq_mechanisms_p1_exact_replay_4prompt/exact_replay/codebook_manifest.json
+  hybrid_exact_codebook_manifest: results/analysis/wan5b_rvq_mechanisms_p1_layer_hybrid_holdout_exact/exact_replay/codebook_manifest.json
+known_failed_artifacts:
+  - results/analysis/wan5b_rvq_mechanisms_p1_schedule_search_failed_attempt_prepare_20260719
+  - results/analysis/wan5b_rvq_mechanisms_p1_attention_proxy_gap
+  - results/analysis/wan5b_rvq_mechanisms_p1_layer_hybrid_holdout_exact/KNOWN_ISSUE.md
+hypothesis_registries:
+  - artifacts/p1_compact_hypotheses.csv
+  - artifacts/p1_schedule_exact_hypotheses.csv
+  - artifacts/p1_proxy_gap_hypotheses.csv
+  - artifacts/p1_layer_hybrid_hypotheses.csv

@@ -1,0 +1,47 @@
+{
+  "attention_scope": "10 prompts x 30 layers; standard RoPE + camera PRoPE; joint K_and_V intervention",
+  "codebook_hash": {
+    "K": "2aa5748ceb4594291c3ebbeb878bd6d98eb446c8994c97e46940383bb1069b1e",
+    "V": "4667236477996d2bfa873517f696dddb1d000ceaae94218da575f9cb69dd25ae"
+  },
+  "codebook_path": {
+    "K": "/data/bowen/t2v_kv_bench_moviegen_20train_10test/nonorm_k_l16c64_codebooks",
+    "V": "/data/bowen/t2v_kv_bench_moviegen_20train_10test/nonorm_v_l16c64_codebooks"
+  },
+  "compression_accounting": "joint BF16 K+V bytes / per-prompt cache payload; C64 RVQ indices are bit-packed at 6 bits/index; RVQ codebooks and specialized decoder tables are shared model parameters and excluded from the per-prompt KV-cache payload",
+  "config_hash": "d5e02e0e732b16d451dc8598bb8aa2c89fbee9f1f3e5bfef59f613588a01a0bf",
+  "config_path": "/home/bowen/Quant-VideoGen/scripts/plot_fig6_representation_ablation.py",
+  "data_hash": "41b4f5ad01ee6d44bc355da1a67728c88f6709780bf7aef1882e2d5d206c3d35",
+  "data_path": "/home/bowen/Quant-VideoGen/results/analysis/fig6_representation_ablation_corrected_formal10x30_20260812/attention_aggregate.csv",
+  "git_commit": "11ff61a4f744d125a1d27fa13e2b9ecb89e94e07",
+  "gpu_type": "not applicable (plotting only)",
+  "hostname": "lambda-scalar",
+  "method_semantics": {
+    "+ RVQ": "adaptive RVQ plus the same uniform specialized encoder on the residual",
+    "Adaptive routing": "adaptive RVQ plus specialized encoder and frozen layer-head adaptive routing",
+    "Direct": "uniform RVQ-specialized K/V encoder applied directly to raw KV"
+  },
+  "model": "Wan2.2 5B",
+  "outputs": [
+    "/home/bowen/Quant-VideoGen/figures/fig6_representation_ablation_corrected_v8.pdf",
+    "/home/bowen/Quant-VideoGen/figures/fig6_representation_ablation_corrected_v8.png",
+    "/home/bowen/Quant-VideoGen/figures/fig6_representation_ablation_corrected_v8_data.csv"
+  ],
+  "prompt_list": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "reconstruction_data_hash": "580a25eccfc93dc0d5042b634b90acf3f02eff8d01298ac4820245ad476de8e4",
+  "reconstruction_data_path": "/home/bowen/Quant-VideoGen/results/analysis/fig6_int2_specialized_reconstruction_formal10x30_v2_20260812/kv_reconstruction_per_chunk.csv",
+  "reconstruction_scope": "10 prompts x 30 layers x 10 independent 3520-token chunks; pre-RoPE/pre-PRoPE D128 BF16; element-weighted K/V MSE",
+  "seed": 20260803,
+  "timestamp": "2026-08-12T17:32:47.861385+00:00"
+}

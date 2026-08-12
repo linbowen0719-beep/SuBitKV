@@ -1,0 +1,19 @@
+panel,model,bit,variant,quantity,raw_value,normalized_value,raw_unit
+a,Wan2.2 5B,2,w/o RVQ,K Error,0.0948151290950675,1.0,MSE
+a,Wan2.2 5B,2,w/o RVQ,V Error,0.2016470577803751,1.0,MSE
+a,Wan2.2 5B,2,w/o RVQ,KV Memory,2320.34912109375,1.0,MiB
+a,Wan2.2 5B,2,w/ RVQ,K Error,0.0329516756240045,0.34753605187801956,MSE
+a,Wan2.2 5B,2,w/ RVQ,V Error,0.0804871046148861,0.3991484205167478,MSE
+a,Wan2.2 5B,2,w/ RVQ,KV Memory,2831.31795501709,1.2202120488155175,MiB
+b,Wan2.2 5B,1,Direct,attention_kl,1.129723052839994,1.0,KL divergence
+b,Wan2.2 5B,2,Direct,attention_kl,0.0688362348907317,1.0,KL divergence
+b,Wan2.2 5B,3,Direct,attention_kl,0.0120902824379061,1.0,KL divergence
+b,Wan2.2 5B,4,Direct,attention_kl,0.0026324549005296,1.0,KL divergence
+b,Wan2.2 5B,1,+ RVQ,attention_kl,0.3369308785527941,0.29824201401023775,KL divergence
+b,Wan2.2 5B,2,+ RVQ,attention_kl,0.0234581440284422,0.34078191617654363,KL divergence
+b,Wan2.2 5B,3,+ RVQ,attention_kl,0.0042351148139862,0.3502908088158505,KL divergence
+b,Wan2.2 5B,4,+ RVQ,attention_kl,0.0009423282883283,0.35796559634838243,KL divergence
+b,Wan2.2 5B,1,Full,attention_kl,0.068806202147129,0.0609053714307751,KL divergence
+b,Wan2.2 5B,2,Full,attention_kl,0.0171841117573428,0.2496375896302329,KL divergence
+b,Wan2.2 5B,3,Full,attention_kl,0.005152436884081,0.4261634838179466,KL divergence
+b,Wan2.2 5B,4,Full,attention_kl,0.0014750677788422,0.560339240207095,KL divergence

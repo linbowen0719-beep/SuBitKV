@@ -1,0 +1,15 @@
+study_id: wan5b_historical_kv_rvq_p1_variable_bit_codec
+output_dir: results/analysis/wan5b_rvq_mechanisms_p1_variable_bit_codec
+python: /home/bowen/anaconda3/envs/hw8/bin/python
+seed: 42
+gpu: 4
+cardinalities: [64, 32, 16, 8, 8, 8, 8, 8]
+heads: 24
+vectors_per_group: 35200
+layers: 30
+tensors: 2
+warmup_iterations: 20
+benchmark_iterations: 200
+prompt_list_source: /data/bowen/t2v_kv_bench_moviegen_20train_10test/prompt_split.json
+runtime_codebook_storage: int4
+codebook_scale_storage: bf16
