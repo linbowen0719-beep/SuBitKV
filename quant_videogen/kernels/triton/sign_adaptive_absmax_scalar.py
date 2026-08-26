@@ -472,7 +472,15 @@ def _plane_bit(plane_ptr, index):
     return (byte >> (index % 8)) & 1
 
 
-@triton.jit
+@triton.jit(
+    do_not_specialize=(
+        "BASE_TOKENS",
+        "BASE_TOKEN_OFFSET",
+        "BASE_STRIDE_B",
+        "BASE_STRIDE_H",
+        "BASE_STRIDE_S",
+    )
+)
 def _decode_progressive_kernel(
     plane_0_ptr,
     plane_1_ptr,
@@ -512,6 +520,9 @@ def _decode_progressive_kernel(
     # cache length/offset combination.
     BASE_TOKENS,
     BASE_TOKEN_OFFSET,
+    BASE_STRIDE_B,
+    BASE_STRIDE_H,
+    BASE_STRIDE_S,
 ):
     group = tl.program_id(0)
     channel = tl.arange(0, GROUP_SIZE)
@@ -597,13 +608,13 @@ def _decode_progressive_kernel(
         batch_head = group // (LOCAL_TOKENS * GROUPS_PER_TOKEN)
         token = local_token_group // GROUPS_PER_TOKEN
         channel_group = local_token_group % GROUPS_PER_TOKEN
+        batch = batch_head // HEADS
+        head = batch_head - batch * HEADS
         base_index = (
-            (
-                (batch_head * BASE_TOKENS + BASE_TOKEN_OFFSET + token)
-                * GROUPS_PER_TOKEN
-                + channel_group
-            )
-            * GROUP_SIZE
+            batch * BASE_STRIDE_B
+            + head * BASE_STRIDE_H
+            + (BASE_TOKEN_OFFSET + token) * BASE_STRIDE_S
+            + channel_group * GROUP_SIZE
             + channel
         )
         if ADD_BASE:
@@ -611,8 +622,6 @@ def _decode_progressive_kernel(
                 base_ptr + base_index, mask=valid, other=0.0
             ).to(tl.float32)
         else:
-            batch = batch_head // HEADS
-            head = batch_head - batch * HEADS
             rvq = tl.zeros([GROUP_SIZE], dtype=tl.float32)
             for level in range(0, RVQ_LEVELS):
                 rvq_id = tl.load(
@@ -1049,14 +1058,16 @@ def decode_progressive_sign_adaptive_absmax_scalar(
             or int(base.shape[0]) != int(shape[0])
             or int(base.shape[1]) != int(shape[1])
             or int(base.shape[3]) != int(shape[3])
-            or not base.is_contiguous()
+            or base.stride(-1) != 1
             or base_token_offset < 0
             or base_token_offset + int(shape[2]) > int(base.shape[2])
         ):
             raise ValueError(
                 "base must be contiguous, match shape/device, and use output dtype"
             )
-        output = base.reshape(-1)
+        # Keep the original storage pointer for a strided BHSD view over a
+        # contiguous BSHD destination; reshape() would silently allocate.
+        output = base
     else:
         base = (
             torch.empty(shape, device=device, dtype=output_dtype)
@@ -1065,7 +1076,7 @@ def decode_progressive_sign_adaptive_absmax_scalar(
         )
         base_token_offset = 0
         output = (
-            base.reshape(-1)
+            base
             if add_rvq
             else torch.empty(count, device=device, dtype=output_dtype)
         )
@@ -1103,6 +1114,9 @@ def decode_progressive_sign_adaptive_absmax_scalar(
             int(base.shape[2]) if (add_base or add_rvq) else int(shape[2])
         ),
         BASE_TOKEN_OFFSET=base_token_offset,
+        BASE_STRIDE_B=(int(base.stride(0)) if (add_base or add_rvq) else int(shape[1]) * int(shape[2]) * int(shape[3])),
+        BASE_STRIDE_H=(int(base.stride(1)) if (add_base or add_rvq) else int(shape[2]) * int(shape[3])),
+        BASE_STRIDE_S=(int(base.stride(2)) if (add_base or add_rvq) else int(shape[3])),
         num_warps=8 if add_rvq else 4,
         num_stages=1,
     )

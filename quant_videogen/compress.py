@@ -1,4 +1,6 @@
 from functools import lru_cache
+from collections.abc import Mapping
+import os
 import torch
 from enum import Enum
 import re
@@ -58,6 +60,55 @@ from .static_prefix_allocation import (
 )
 from .kivi import encode_kivi_tensor
 from .turboquant import encode_turboquant_mse, encode_turboquant_prod
+
+
+_ENCODE_BREAKDOWN_EVENTS: dict[str, list[tuple[torch.cuda.Event, torch.cuda.Event]]] = {}
+_ENCODE_BREAKDOWN_CALLS: dict[str, int] = {}
+
+
+def reset_encode_breakdown_stats() -> None:
+    _ENCODE_BREAKDOWN_EVENTS.clear()
+    _ENCODE_BREAKDOWN_CALLS.clear()
+
+
+def get_encode_breakdown_stats(*, reset: bool = False) -> dict[str, object]:
+    seconds: dict[str, float] = {}
+    for phase, pairs in _ENCODE_BREAKDOWN_EVENTS.items():
+        total_ms = 0.0
+        for start, end in pairs:
+            end.synchronize()
+            total_ms += start.elapsed_time(end)
+        seconds[phase] = total_ms / 1000.0
+    result: dict[str, object] = {
+        "seconds": seconds,
+        "calls": dict(_ENCODE_BREAKDOWN_CALLS),
+        "instrumentation": "per-call CUDA events",
+    }
+    if reset:
+        reset_encode_breakdown_stats()
+    return result
+
+
+def _start_encode_phase(phase: str, device: torch.device):
+    if (
+        os.getenv("QVG_CODEC_BREAKDOWN", "0").lower()
+        in {"", "0", "false", "no"}
+        or device.type != "cuda"
+    ):
+        return None
+    start = torch.cuda.Event(enable_timing=True)
+    end = torch.cuda.Event(enable_timing=True)
+    start.record()
+    return phase, start, end
+
+
+def _stop_encode_phase(timer) -> None:
+    if timer is None:
+        return
+    phase, start, end = timer
+    end.record()
+    _ENCODE_BREAKDOWN_EVENTS.setdefault(phase, []).append((start, end))
+    _ENCODE_BREAKDOWN_CALLS[phase] = _ENCODE_BREAKDOWN_CALLS.get(phase, 0) + 1
 
 
 @lru_cache(maxsize=16)
@@ -861,13 +912,33 @@ def _quantize_rvq_residual(
             f"temporal_adaptive_{str(tensor_name).lower()}_admission_target_bits",
             None,
         )
+        layer_tensor_targets = getattr(
+            quant_config,
+            "temporal_adaptive_admission_target_bits_by_layer_tensor",
+            None,
+        )
+        mapped_admission_bits = None
+        if layer_tensor_targets is not None:
+            if not isinstance(layer_tensor_targets, Mapping):
+                raise TypeError(
+                    "temporal_adaptive_admission_target_bits_by_layer_tensor "
+                    "must be a mapping"
+                )
+            key = f"{str(tensor_name).strip().upper()}:{int(layer_idx)}"
+            if key not in layer_tensor_targets:
+                raise ValueError(f"missing layer/tensor admission target {key}")
+            mapped_admission_bits = int(layer_tensor_targets[key])
         admission_bits = int(
-            tensor_admission_bits
-            if tensor_admission_bits is not None
-            else getattr(
-                quant_config,
-                "temporal_adaptive_admission_target_bits",
-                16,
+            mapped_admission_bits
+            if mapped_admission_bits is not None
+            else (
+                tensor_admission_bits
+                if tensor_admission_bits is not None
+                else getattr(
+                    quant_config,
+                    "temporal_adaptive_admission_target_bits",
+                    16,
+                )
             )
         )
         if admission_bits not in {16, 8, 4, 3, 2, 1}:
@@ -1816,6 +1887,21 @@ def compress_kv_cache(
             False,
         )
     )
+    rvq_relative_stop_monolithic_exact = bool(
+        getattr(quant_config, "rvq_relative_stop_monolithic_exact", False)
+    )
+    rvq_relative_stop_exact_staged_k_layers = tuple(
+        int(value)
+        for value in getattr(
+            quant_config, "rvq_relative_stop_exact_staged_k_layers", ()
+        )
+    )
+    rvq_relative_stop_exact_staged_v_layers = tuple(
+        int(value)
+        for value in getattr(
+            quant_config, "rvq_relative_stop_exact_staged_v_layers", ()
+        )
+    )
     rvq_k_calibration = _rvq_calibration_mode(quant_config, "k")
     rvq_v_calibration = _rvq_calibration_mode(quant_config, "v")
     rvq_diagnostics = bool(getattr(quant_config, "rvq_diagnostics", False))
@@ -1887,8 +1973,10 @@ def compress_kv_cache(
                 k_feedback_state,
                 k.shape[2],
             )
+        encode_timer = _start_encode_phase("rvq_base_k", k.device)
         k_quant = rvq_encode_tensor_cache(
             k,
+            tensor_name="K",
             layer_idx=int(layer_idx),
             codebook_dir=getattr(quant_config, "k_rvq_codebook_dir"),
             batch_size=getattr(quant_config, "k_rvq_batch_size", 2048),
@@ -1914,7 +2002,14 @@ def compress_kv_cache(
             relative_stop_fast_approximate=(
                 rvq_relative_stop_fast_approximate
             ),
+            relative_stop_monolithic_exact=(
+                rvq_relative_stop_monolithic_exact
+            ),
+            relative_stop_exact_staged_layers=(
+                rvq_relative_stop_exact_staged_k_layers
+            ),
         )
+        _stop_encode_phase(encode_timer)
         if rvq_k_calibration != "none":
             k_recon = rvq_dequantize_tensor_cache(k_quant, k.dtype)
             k_quant = _attach_rvq_calibration(
@@ -1939,6 +2034,7 @@ def compress_kv_cache(
         if use_attn_feedback and feedback_enabled_for("k"):
             _rvq_update_attn_k_error(feedback_query, k, k_feedback_state)
     elif quantize_k:
+        encode_timer = _start_encode_phase("direct_quantvideo_k", k.device)
         k_quant = compress_tensor_cache(
             k,
             quant_type,
@@ -1946,6 +2042,7 @@ def compress_kv_cache(
             quantize_fn,
             quant_config.cache_num_k_centroids,
         )
+        _stop_encode_phase(encode_timer)
     else:
         k_quant = k
 
@@ -1982,8 +2079,10 @@ def compress_kv_cache(
                 k,
                 v_feedback_state,
             )
+        encode_timer = _start_encode_phase("rvq_base_v", v.device)
         v_quant = rvq_encode_tensor_cache(
             v,
+            tensor_name="V",
             layer_idx=int(layer_idx),
             codebook_dir=getattr(quant_config, "v_rvq_codebook_dir"),
             batch_size=getattr(quant_config, "v_rvq_batch_size", 2048),
@@ -2009,7 +2108,14 @@ def compress_kv_cache(
             relative_stop_fast_approximate=(
                 rvq_relative_stop_fast_approximate
             ),
+            relative_stop_monolithic_exact=(
+                rvq_relative_stop_monolithic_exact
+            ),
+            relative_stop_exact_staged_layers=(
+                rvq_relative_stop_exact_staged_v_layers
+            ),
         )
+        _stop_encode_phase(encode_timer)
         if rvq_v_calibration != "none":
             v_recon = rvq_dequantize_tensor_cache(v_quant, v.dtype)
             v_quant = _attach_rvq_calibration(
@@ -2039,6 +2145,7 @@ def compress_kv_cache(
         if use_attn_feedback and feedback_enabled_for("v"):
             _rvq_update_attn_v_error(v_attn, v, v_feedback_state)
     elif quantize_v:
+        encode_timer = _start_encode_phase("direct_quantvideo_v", v.device)
         v_quant = compress_tensor_cache(
             v,
             quant_type,
@@ -2046,11 +2153,13 @@ def compress_kv_cache(
             quantize_fn,
             quant_config.cache_num_v_centroids,
         )
+        _stop_encode_phase(encode_timer)
     else:
         v_quant = v
 
     if rvq_residual_quantize:
         if quantize_k and k_rvq:
+            encode_timer = _start_encode_phase("residual_materialize_k", k.device)
             k_quant = _quantize_rvq_residual(
                 k,
                 k_quant,
@@ -2062,7 +2171,9 @@ def compress_kv_cache(
                 layer_idx=layer_idx,
                 span_idx=span_idx,
             )
+            _stop_encode_phase(encode_timer)
         if quantize_v and v_rvq:
+            encode_timer = _start_encode_phase("residual_materialize_v", v.device)
             v_quant = _quantize_rvq_residual(
                 v,
                 v_quant,
@@ -2074,5 +2185,6 @@ def compress_kv_cache(
                 layer_idx=layer_idx,
                 span_idx=span_idx,
             )
+            _stop_encode_phase(encode_timer)
 
     return k_quant, v_quant

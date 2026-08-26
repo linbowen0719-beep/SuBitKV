@@ -39,8 +39,8 @@ from .rvq import prepare_fused_dense_rvq_decode, rvq_dequantize_tensor_cache
 STATE_SCHEMA = "rvq_temporal_adaptive_residual.state.v1"
 PROFILE_SCHEMA = "rvq_temporal_adaptive_residual.profile.v1"
 QUANT_METHOD = "rvq_temporal_adaptive_residual"
-ALLOWED_BITS = (16, 8, 4, 3, 2, 1)
-COMPRESSED_BITS = (8, 4, 3, 2, 1)
+ALLOWED_BITS = (16, 8, 4, 3, 2, 1, 0)
+COMPRESSED_BITS = (8, 4, 3, 2, 1, 0)
 ALLOCATION_MODES = (
     "optimal",
     "force_recent_b16",
@@ -270,10 +270,31 @@ def _materialize_compressed(
         raise ValueError("compressed materialization requires a B16 state")
     target = int(target_bits)
     if target not in COMPRESSED_BITS:
-        raise ValueError("compressed target must be one of B8/B4/B3/B2/B1")
+        raise ValueError("compressed target must be one of B8/B4/B3/B2/B1/B0")
     if not trusted and not rvq_identity_is_valid(state):
         raise RuntimeError("adaptive RVQ base mutated before B16->B8")
     source = state["bf16_bypass"]
+    if target == 0:
+        result = dict(state)
+        result.update(
+            {
+                "bits": 0,
+                "bf16_bypass": None,
+                "residual": None,
+                "residual_codec": "rvq_base_only",
+                "local_payload_bytes": 0,
+            }
+        )
+        result["diagnostics"] = {
+            **dict(state.get("diagnostics", {})),
+            "bf16_bypass_bit_exact": False,
+            "materialized_from_b16": True,
+            "materialized_direct_target_bits": 0,
+            "residual_payload_empty": True,
+        }
+        if not trusted:
+            validate_state(result)
+        return result
     # Decode directly to ``source - BF16(base)``.  This preserves the old
     # rounding order while removing one full BHSD base allocation and the
     # standalone elementwise subtraction kernel from every B16->B8 downgrade.
@@ -386,7 +407,20 @@ def transition_state(
         if current == 16
         else dict(state)
     )
-    if current != 16 and target < current:
+    if current != 16 and target == 0:
+        result.update(
+            {
+                "bits": 0,
+                "residual": None,
+                "residual_codec": "rvq_base_only",
+                "local_payload_bytes": 0,
+            }
+        )
+        result["diagnostics"] = {
+            **dict(result.get("diagnostics", {})),
+            "residual_payload_empty": True,
+        }
+    elif current != 16 and target < current:
         if result["tensor_name"] == "K":
             residual = truncate_frame_mean_gaussian_state(
                 result["residual"], target, trusted=not verify_identity
@@ -418,7 +452,10 @@ def decode_state(
 ) -> torch.Tensor:
     validate_state(state)
     if int(state["bits"]) == 16:
+        _DECODE_BACKEND_STATS["bf16_bypass_calls"] += 1
         return state["bf16_bypass"].to(output_dtype).contiguous()
+    if int(state["bits"]) == 0:
+        return rvq_dequantize_tensor_cache(state["base"], output_dtype)
     # B8's deep routed K tree raises live-register pressure enough that the
     # original two-kernel restore is faster; B1--B4 use the fused path.
     fused_rvq = (
@@ -427,6 +464,7 @@ def decode_state(
         else None
     )
     if fused_rvq is not None:
+        _DECODE_BACKEND_STATS["fused_b1_b4_calls"] += 1
         if state["tensor_name"] == "K":
             return decode_frame_mean_gaussian_residual(
                 state["residual"], output_dtype, _fused_rvq=fused_rvq
@@ -434,6 +472,10 @@ def decode_state(
         return decode_progressive_sign_adaptive_absmax_scalar_residual(
             state["residual"], output_dtype, _fused_rvq=fused_rvq
         )
+    if int(state["bits"]) <= 4:
+        _DECODE_BACKEND_STATS["fallback_b1_b4_calls"] += 1
+    else:
+        _DECODE_BACKEND_STATS["two_kernel_b8_calls"] += 1
     base = rvq_dequantize_tensor_cache(state["base"], output_dtype)
     if state["tensor_name"] == "K":
         return decode_frame_mean_gaussian_residual(
@@ -449,15 +491,18 @@ def decode_state_into(
     state: Mapping[str, Any],
     output: torch.Tensor,
     token_offset: int,
+    *,
+    _state_validated: bool = False,
 ) -> torch.Tensor:
     """Restore one state directly into a contiguous larger BHSD buffer."""
 
-    validate_state(state)
+    if not _state_validated:
+        validate_state(state)
     shape = tuple(int(item) for item in state["shape"])
     token_offset = int(token_offset)
     if (
         output.ndim != 4
-        or not output.is_contiguous()
+        or output.stride(-1) != 1
         or output.dtype not in (torch.float16, torch.bfloat16, torch.float32)
         or int(output.shape[0]) != shape[0]
         or int(output.shape[1]) != shape[1]
@@ -468,7 +513,16 @@ def decode_state_into(
         raise ValueError("invalid batched temporal decode output/offset")
     target = output[:, :, token_offset : token_offset + shape[2], :]
     if int(state["bits"]) == 16:
+        _DECODE_BACKEND_STATS["bf16_bypass_calls"] += 1
         target.copy_(state["bf16_bypass"].to(output.dtype))
+        return target
+    if int(state["bits"]) == 0:
+        rvq_dequantize_tensor_cache(
+            state["base"],
+            output.dtype,
+            _out=output,
+            _out_token_offset=token_offset,
+        )
         return target
     fused_rvq = (
         prepare_fused_dense_rvq_decode(state["base"])
@@ -476,6 +530,7 @@ def decode_state_into(
         else None
     )
     if fused_rvq is not None:
+        _DECODE_BACKEND_STATS["fused_b1_b4_calls"] += 1
         if state["tensor_name"] == "K":
             decode_frame_mean_gaussian_residual(
                 state["residual"],
@@ -493,6 +548,10 @@ def decode_state_into(
                 _fused_rvq=fused_rvq,
             )
         return target
+    if int(state["bits"]) <= 4:
+        _DECODE_BACKEND_STATS["fallback_b1_b4_calls"] += 1
+    else:
+        _DECODE_BACKEND_STATS["two_kernel_b8_calls"] += 1
     rvq_dequantize_tensor_cache(
         state["base"],
         output.dtype,
@@ -520,13 +579,24 @@ def decode_state_into(
 def decode_states(
     states: Sequence[Mapping[str, Any]],
     output_dtype: torch.dtype = torch.bfloat16,
+    *,
+    leading_tokens: int = 0,
+    trailing_tokens: int = 0,
+    output_layout: str = "BHSD",
+    validate_states: bool = True,
 ) -> torch.Tensor:
-    """Restore consecutive temporal states without a final ``torch.cat``."""
+    """Restore consecutive temporal states into one extensible BHSD buffer.
+
+    ``leading_tokens`` and ``trailing_tokens`` reserve space in the same
+    allocation so attention can insert text K/V and the live BF16 chunk
+    without materializing either history-sized ``torch.cat``.
+    """
 
     if not states:
         raise ValueError("decode_states requires at least one state")
-    for state in states:
-        validate_state(state)
+    if validate_states:
+        for state in states:
+            validate_state(state)
     shapes = [tuple(int(item) for item in state["shape"]) for state in states]
     batch, heads, _tokens, dim = shapes[0]
     if any(
@@ -553,16 +623,34 @@ def decode_states(
     first = first_tensor(states[0])
     if first is None:
         raise ValueError("temporal state contains no tensor payload")
-    output = torch.empty(
-        (batch, heads, sum(shape[2] for shape in shapes), dim),
-        device=first.device,
-        dtype=output_dtype,
+    leading_tokens = int(leading_tokens)
+    trailing_tokens = int(trailing_tokens)
+    if leading_tokens < 0 or trailing_tokens < 0:
+        raise ValueError("leading_tokens and trailing_tokens must be non-negative")
+    total_tokens = (
+        leading_tokens + sum(shape[2] for shape in shapes) + trailing_tokens
     )
-    token_offset = 0
+    if output_layout == "BHSD":
+        storage = torch.empty(
+            (batch, heads, total_tokens, dim), device=first.device, dtype=output_dtype
+        )
+        output = storage
+    elif output_layout == "BSHD":
+        storage = torch.empty(
+            (batch, total_tokens, heads, dim), device=first.device, dtype=output_dtype
+        )
+        output = storage.permute(0, 2, 1, 3)
+    else:
+        raise ValueError("output_layout must be BHSD or BSHD")
+    token_offset = leading_tokens
     for state, shape in zip(states, shapes):
-        decode_state_into(state, output, token_offset)
+        # ``decode_states`` validated the complete list above.  Avoid walking
+        # every nested RVQ/residual mapping a second time on this hot path.
+        decode_state_into(
+            state, output, token_offset, _state_validated=True
+        )
         token_offset += shape[2]
-    return output
+    return storage
 
 
 def validate_state(state: Mapping[str, Any]) -> None:
@@ -590,6 +678,11 @@ def validate_state(state: Mapping[str, Any]) -> None:
             or state.get("residual") is not None
         ):
             raise ValueError("invalid B16 bypass state")
+    elif bits == 0:
+        if state.get("bf16_bypass") is not None or state.get("residual") is not None:
+            raise ValueError("B0 state must contain only the RVQ base")
+        if int(state.get("local_payload_bytes", -1)) != 0:
+            raise ValueError("B0 residual payload must be zero bytes")
     else:
         if state.get("bf16_bypass") is not None:
             raise ValueError("compressed state retained its BF16 bypass")
@@ -640,7 +733,13 @@ class DistortionProfile:
     joint_schedule_capacity_bit_chunks: int = 40
 
     def distortion(self, bits: int) -> float:
-        return float(self.distortions[int(bits)])
+        selected = int(bits)
+        if selected == 0 and selected not in self.distortions:
+            # Backward compatibility for frozen pre-B0 profiles.  Formal B0
+            # runs fit D(0) explicitly; older callers get a conservative
+            # monotone extrapolation without becoming schedulable by accident.
+            return max(float(self.distortions[1]), 4.0 * float(self.distortions[1]))
+        return float(self.distortions[selected])
 
     def weight(self, *, chunk_index: int, current_chunks: int) -> float:
         if int(chunk_index) == 0 and self.first_anchor_weight is not None:
@@ -649,6 +748,28 @@ class DistortionProfile:
         if not self.age_weights:
             return 1.0
         return float(self.age_weights[min(age, len(self.age_weights) - 1)])
+
+
+_DECODE_BACKEND_STATS = {
+    "fused_b1_b4_calls": 0,
+    "fallback_b1_b4_calls": 0,
+    "two_kernel_b8_calls": 0,
+    "bf16_bypass_calls": 0,
+}
+
+
+def reset_decode_backend_stats() -> None:
+    for name in _DECODE_BACKEND_STATS:
+        _DECODE_BACKEND_STATS[name] = 0
+
+
+def get_decode_backend_stats(*, reset: bool = False) -> dict[str, int | str]:
+    stats: dict[str, int | str] = dict(_DECODE_BACKEND_STATS)
+    stats["fused_backend"] = "triton_fused_rvq_residual"
+    stats["b8_backend"] = "rvq_plus_residual_two_kernel"
+    if reset:
+        reset_decode_backend_stats()
+    return stats
 
 
 def load_profile(path: str | Path | Mapping[str, Any]) -> DistortionProfile:
@@ -662,14 +783,17 @@ def load_profile(path: str | Path | Mapping[str, Any]) -> DistortionProfile:
     distortions = {
         int(key): float(value) for key, value in raw["distortions"].items()
     }
+    legacy_bits = set(ALLOWED_BITS) - {0}
+    if set(distortions) == legacy_bits:
+        distortions[0] = max(distortions[1], 4.0 * distortions[1])
     if set(distortions) != set(ALLOWED_BITS):
         raise ValueError(
-            "profile must contain D(16),D(8),D(4),D(3),D(2),D(1)"
+            "profile must contain D(16),D(8),D(4),D(3),D(2),D(1),D(0)"
         )
     ordered = [distortions[bits] for bits in ALLOWED_BITS]
     if any(a > b + 1e-15 for a, b in zip(ordered, ordered[1:])):
         raise ValueError(
-            "distortions must satisfy D16<=D8<=D4<=D3<=D2<=D1"
+            "distortions must satisfy D16<=D8<=D4<=D3<=D2<=D1<=D0"
         )
     joint_schedule_raw = raw.get("joint_schedule")
     joint_capacity = int(raw.get("joint_schedule_capacity_bit_chunks", 40))
@@ -819,7 +943,7 @@ def schedule_precisions(
             tuple(-value for value in assignment_key(item[1][1])),
         ),
     )
-    if count == 10 and best_sum != int(capacity_bit_chunks):
+    if best_sum != int(capacity_bit_chunks):
         feasible_exact = states.get(int(capacity_bit_chunks))
         if feasible_exact is not None:
             best = feasible_exact[1]
@@ -850,10 +974,12 @@ __all__ = [
     "decode_state",
     "decode_state_into",
     "decode_states",
+    "get_decode_backend_stats",
     "load_profile",
     "payload_nbytes",
     "rvq_identity_hash",
     "rvq_identity_is_valid",
+    "reset_decode_backend_stats",
     "schedule_precisions",
     "transition_state",
     "transition_steps",

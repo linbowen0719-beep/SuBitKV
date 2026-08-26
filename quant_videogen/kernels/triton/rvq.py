@@ -290,7 +290,15 @@ def _rvq_encode_bhsd_stage_kernel(
     )
 
 
-@triton.jit
+@triton.jit(
+    do_not_specialize=(
+        "OUT_S",
+        "OUT_TOKEN_OFFSET",
+        "OUT_STRIDE_B",
+        "OUT_STRIDE_H",
+        "OUT_STRIDE_S",
+    )
+)
 def _rvq_decode_bhsd_kernel(
     indices_ptr,
     codebooks_ptr,
@@ -316,6 +324,9 @@ def _rvq_decode_bhsd_kernel(
     # exact address calculation below.
     OUT_S,
     OUT_TOKEN_OFFSET,
+    OUT_STRIDE_B,
+    OUT_STRIDE_H,
+    OUT_STRIDE_S,
 ):
     pid_h = tl.program_id(0)
     pid_t = tl.program_id(1)
@@ -383,10 +394,11 @@ def _rvq_decode_bhsd_kernel(
             - out.to(tl.bfloat16).to(tl.float32)
         ).to(tl.bfloat16)
     out_offsets = (
-        ((b[:, None] * H + pid_h) * OUT_S)
-        + OUT_TOKEN_OFFSET
-        + s[:, None]
-    ) * D + offs_d[None, :]
+        b[:, None] * OUT_STRIDE_B
+        + pid_h * OUT_STRIDE_H
+        + (OUT_TOKEN_OFFSET + s[:, None]) * OUT_STRIDE_S
+        + offs_d[None, :]
+    )
     tl.store(out_ptr + out_offsets, out, mask=mask_s[:, None] & mask_d[None, :])
 
 
@@ -406,6 +418,8 @@ def rvq_encode_bhsd_staged_triton(
     normalize: bool = True,
     relative_stop_threshold: float | None = None,
     relative_stop_min_depth: int = 4,
+    defer_stop_checks_after_min: bool = False,
+    stop_check_stride: int = 2,
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """Encode L stages with native PyTorch norms and fused assignments.
 
@@ -425,6 +439,9 @@ def rvq_encode_bhsd_staged_triton(
     bsz, heads, seq_len, dim = tensor.shape
     levels, cb_heads, centroids, cb_dim = codebooks.shape
     num_levels = int(num_levels)
+    stop_check_stride = int(stop_check_stride)
+    if stop_check_stride <= 0:
+        raise ValueError("stop_check_stride must be positive")
     if num_levels > levels or heads != cb_heads or dim != cb_dim:
         raise ValueError(
             f"RVQ staged Triton shape mismatch: tensor={tuple(tensor.shape)} "
@@ -513,15 +530,22 @@ def rvq_encode_bhsd_staged_triton(
             residual, next_residual = next_residual, residual
         stage_mse.append(residual.float().square().mean())
         computed_levels = level + 1
-        # Check once at the minimum depth and then in two-stage groups.  This
-        # preserves the exact first eligible stopping point while replacing
-        # per-stage device synchronizations with one small grouped transfer.
+        # Check once at the minimum depth.  The optional deferred mode then
+        # runs the remaining exact stages asynchronously and transfers the
+        # small MSE vector only once more at max depth.  Scanning that vector
+        # still selects the same earliest eligible stopping point.
         should_check = (
             relative_stop_threshold is not None
             and computed_levels >= int(relative_stop_min_depth)
             and (
                 computed_levels == int(relative_stop_min_depth)
-                or (computed_levels - int(relative_stop_min_depth)) % 2 == 0
+                or computed_levels == int(num_levels)
+                or (
+                    not bool(defer_stop_checks_after_min)
+                    and (
+                        computed_levels - int(relative_stop_min_depth)
+                    ) % stop_check_stride == 0
+                )
             )
         )
         if should_check:
@@ -753,7 +777,7 @@ def rvq_decode_bhsd_triton(
         out.device != indices.device
         or out.dtype != output_dtype
         or out.ndim != 4
-        or not out.is_contiguous()
+        or out.stride(-1) != 1
         or int(out.shape[0]) != bsz
         or int(out.shape[1]) != heads
         or int(out.shape[3]) != dim
@@ -788,6 +812,9 @@ def rvq_decode_bhsd_triton(
         SOURCE_MINUS_DECODED=bool(residual_source is not out),
         OUT_S=out_seq_len,
         OUT_TOKEN_OFFSET=out_token_offset,
+        OUT_STRIDE_B=int(out.stride(0)),
+        OUT_STRIDE_H=int(out.stride(1)),
+        OUT_STRIDE_S=int(out.stride(2)),
         num_warps=4,
         num_stages=3,
     )

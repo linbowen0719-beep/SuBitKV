@@ -26,14 +26,17 @@ import einops
 import imageio
 import json
 import numpy as np
+import time
 from scipy.spatial.transform import Rotation as R
 from PIL import Image, ImageDraw, ImageFont
 from moviepy.editor import VideoFileClip, VideoClip
 
 from hyvideo.pipelines.worldplay_video_pipeline import HunyuanVideo_1_5_Pipeline
 from hyvideo.commons.parallel_states import initialize_parallel_state
-from hyvideo.commons.infer_state import initialize_infer_state
+from hyvideo.commons.infer_state import get_infer_state, initialize_infer_state
 from hyvideo.generate_custom_trajectory import generate_camera_trajectory_local
+from quant_videogen.compress import get_encode_breakdown_stats, reset_encode_breakdown_stats
+from quant_videogen.uncompress import get_dequant_stats, reset_dequant_stats
 
 parallel_dims = initialize_parallel_state(sp=int(os.environ.get("WORLD_SIZE", "1")))
 torch.cuda.set_device(int(os.environ.get("LOCAL_RANK", "0")))
@@ -698,9 +701,26 @@ def add_keyboard_overlay_to_video(video_path, output_path, actions_timeline):
 
 
 def generate_video(args):
+    metrics_started = time.perf_counter()
+    reset_encode_breakdown_stats()
+    reset_dequant_stats()
+    if int(os.environ.get("RANK", "0")) == 0 and args.metrics_path:
+        if os.path.exists(args.metrics_path):
+            raise FileExistsError(
+                f"Refusing to overwrite metrics file: {args.metrics_path}"
+            )
+        torch.cuda.reset_peak_memory_stats()
+
     assert (
         (args.video_length - 1) // 4 + 1
     ) % 4 == 0, "number of latents must be divisible by 4"
+    if args.kv_cache_gpu_resident_compressed and (
+        not args.kv_cache_offload or args.kv_cache_codec == "none"
+    ):
+        raise ValueError(
+            "GPU-resident compressed KV requires --kv_cache_offload and a "
+            "non-none --kv_cache_codec"
+        )
     initialize_infer_state(args)
 
     task = "i2v" if args.image_path else "t2v"
@@ -718,6 +738,7 @@ def generate_video(args):
     else:
         raise ValueError(f"Unsupported dtype: {args.dtype}. Must be 'bf16' or 'fp32'")
 
+    model_load_started = time.perf_counter()
     pipe = HunyuanVideo_1_5_Pipeline.create_pipeline(
         pretrained_model_name_or_path=args.model_path,
         transformer_version=transformer_version,
@@ -728,6 +749,8 @@ def generate_video(args):
         transformer_dtype=transformer_dtype,
         action_ckpt=args.action_ckpt,
     )
+    torch.cuda.synchronize()
+    model_load_seconds = time.perf_counter() - model_load_started
 
     extra_kwargs = {}
     if task == "i2v":
@@ -745,6 +768,7 @@ def generate_video(args):
     if task == "i2v":
         extra_kwargs["reference_image"] = args.image_path
 
+    pipeline_started = time.perf_counter()
     out = pipe(
         enable_sr=enable_sr,
         prompt=args.prompt,
@@ -768,6 +792,11 @@ def generate_video(args):
         transformer_resident_ar_rollout=args.transformer_resident_ar_rollout,
         **extra_kwargs,
     )
+    torch.cuda.synchronize()
+    get_infer_state().finalize_codec_cuda_timings()
+    pipeline_call_seconds = time.perf_counter() - pipeline_started
+
+    capture_metrics = None
 
     # save video
     if int(os.environ.get("RANK", "0")) == 0:
@@ -781,6 +810,7 @@ def generate_video(args):
         video_to_process = None
         final_video_path = None
 
+        mp4_started = time.perf_counter()
         if enable_sr and hasattr(out, "sr_videos"):
             save_video(out.sr_videos, save_video_sr_path)
             print(f"Saved SR video to: {save_video_sr_path}")
@@ -795,6 +825,30 @@ def generate_video(args):
             print(f"Saved video to: {save_video_path}")
             video_to_process = save_video_path
             final_video_path = save_video_path
+        mp4_encode_seconds = time.perf_counter() - mp4_started
+        mp4_complete_elapsed_seconds = time.perf_counter() - metrics_started
+        generation_peak_allocated_mib = torch.cuda.max_memory_allocated() / (1024**2)
+        generation_peak_reserved_mib = torch.cuda.max_memory_reserved() / (1024**2)
+
+        terminal_cache_audit = None
+        if get_infer_state().terminal_cache_audit:
+            torch.cuda.reset_peak_memory_stats()
+            terminal_cache_audit = pipe.run_terminal_cache_audit()
+            terminal_cache_audit["peak_allocated_mib"] = (
+                torch.cuda.max_memory_allocated() / (1024**2)
+            )
+            terminal_cache_audit["peak_reserved_mib"] = (
+                torch.cuda.max_memory_reserved() / (1024**2)
+            )
+
+        # Append-only training capture needs the tenth and final span produced
+        # by the terminal audit.  Finalize only after that audit has run.
+        if args.kv_capture_dir:
+            from hyvideo.models.transformers.worldplay_1_5_transformer import (
+                finalize_kv_capture,
+            )
+
+            capture_metrics = finalize_kv_capture()
 
         # Add keyboard overlay if --with-ui is enabled and pose is a string
         if (
@@ -824,6 +878,95 @@ def generate_video(args):
                 import traceback
 
                 traceback.print_exc()
+
+        if args.metrics_path:
+            torch.cuda.synchronize()
+            videos = (
+                out.sr_videos
+                if enable_sr and hasattr(out, "sr_videos")
+                else out.videos
+            )
+            total_generate_seconds = time.perf_counter() - metrics_started
+            infer_state = get_infer_state()
+            # Terminal cache audit may enqueue one additional admission after
+            # the pipeline boundary resolved the generation events.
+            infer_state.finalize_codec_cuda_timings()
+            infer_state.add_part_seconds("model_load", model_load_seconds)
+            infer_state.add_part_seconds("pipeline_call", pipeline_call_seconds)
+            infer_state.add_part_seconds("mp4_encode", mp4_encode_seconds)
+            top_level_accounted = model_load_seconds + pipeline_call_seconds + mp4_encode_seconds
+            if terminal_cache_audit is not None:
+                top_level_accounted += float(terminal_cache_audit.get("seconds", 0.0))
+            metrics = {
+                "schema_version": "hyworldplay8b_generation_metrics.v1",
+                "status": "completed",
+                "requested_frames": args.video_length,
+                "actual_frames": int(videos.shape[-3]),
+                "peak_allocated_mib": generation_peak_allocated_mib,
+                "peak_reserved_mib": generation_peak_reserved_mib,
+                "generate_video_elapsed_seconds": total_generate_seconds,
+                "mp4_complete_elapsed_seconds": mp4_complete_elapsed_seconds,
+                "terminal_cache_audit": terminal_cache_audit,
+                "video_path": os.path.abspath(final_video_path),
+                "part_timing_seconds": dict(infer_state.part_seconds),
+                "chunk_timing_events": list(infer_state.chunk_timing_events),
+                "top_level_unattributed_seconds": max(0.0, total_generate_seconds - top_level_accounted),
+                "codec_encode_cuda_breakdown": get_encode_breakdown_stats(),
+                "codec_decode_cuda_breakdown": get_dequant_stats(),
+            }
+            kv_gpu_layer_mib = infer_state.kv_cache_gpu_layer_bytes_peak / (1024**2)
+            metrics.update(
+                {
+                    "kv_cache_offload": infer_state.kv_cache_offload,
+                    "kv_cache_gpu_resident_compressed": infer_state.kv_cache_gpu_resident_compressed,
+                    "kv_cache_cpu_peak_mib": infer_state.kv_cache_cpu_bytes_peak
+                    / (1024**2),
+                    "kv_cache_gpu_layer_peak_mib": kv_gpu_layer_mib,
+                    "kv_cache_gpu_compressed_peak_mib": infer_state.kv_cache_gpu_compressed_bytes_peak
+                    / (1024**2),
+                    "kv_cache_gpu_resident_hits": infer_state.kv_cache_gpu_resident_hits,
+                    "kv_cache_gpu_resident_promotions": infer_state.kv_cache_gpu_resident_promotions,
+                    "kv_cache_onload_count": infer_state.kv_cache_onload_count,
+                    "kv_cache_offload_count": infer_state.kv_cache_offload_count,
+                    "full_history_attention": infer_state.full_history_attention,
+                    "append_only_vision_cache": infer_state.append_only_vision_cache,
+                    "kv_cache_codec": infer_state.kv_cache_codec,
+                    "kv_codec_encode_seconds": infer_state.kv_codec_encode_seconds,
+                    "kv_codec_decode_seconds": infer_state.kv_codec_decode_seconds,
+                    "kv_codec_encode_count": infer_state.kv_codec_encode_count,
+                    "kv_codec_decode_count": infer_state.kv_codec_decode_count,
+                    "kv_codec_timing_mode": infer_state.kv_codec_timing_mode,
+                    "kv_cache_bf16_vision_peak_mib": infer_state.kv_cache_bf16_vision_bytes_peak
+                    / (1024**2),
+                    "kv_cache_compressed_vision_peak_mib": infer_state.kv_cache_compressed_vision_bytes_peak
+                    / (1024**2),
+                    "kv_cache_vision_compression_ratio": (
+                        infer_state.kv_cache_bf16_vision_bytes_peak
+                        / infer_state.kv_cache_compressed_vision_bytes_peak
+                        if infer_state.kv_cache_compressed_vision_bytes_peak
+                        else None
+                    ),
+                    "kv_codec_int2_budget_peak_mib": infer_state.kv_codec_int2_budget_bytes_peak / (1024**2),
+                    "kv_codec_post_truncation_peak_mib": infer_state.kv_codec_post_truncation_bytes_peak / (1024**2),
+                    "kv_codec_nominal_k_bit_sum_peak": infer_state.kv_codec_nominal_k_bit_sum_peak,
+                    "kv_codec_nominal_v_bit_sum_peak": infer_state.kv_codec_nominal_v_bit_sum_peak,
+                    "kv_codec_avg2_physical_peak_mib": infer_state.kv_codec_avg2_physical_bytes_peak / (1024**2),
+                    "kv_codec_encode_events": infer_state.kv_codec_encode_events,
+                    "kv_codec_decode_events": infer_state.kv_codec_decode_events,
+                    "kv_capture": capture_metrics,
+                    "kv_residual_stats_events": infer_state.kv_residual_stats_events,
+                    "kv_avg2_calibration_events": infer_state.kv_avg2_calibration_events,
+                    "peak_allocated_excluding_resident_kv_estimate_mib": max(
+                        0.0, infer_state.peak_allocated_excluding_kv_estimate_bytes
+                        / (1024**2),
+                    ),
+                }
+            )
+            metrics_parent = os.path.dirname(os.path.abspath(args.metrics_path))
+            os.makedirs(metrics_parent, exist_ok=True)
+            with open(args.metrics_path, "x", encoding="utf-8") as handle:
+                json.dump(metrics, handle, indent=2, sort_keys=True)
+                handle.write("\n")
 
 
 def main():
@@ -913,6 +1056,106 @@ def main():
         "--offloading false/0 to disable",
     )
     parser.add_argument(
+        "--kv_cache_offload",
+        type=str_to_bool,
+        nargs="?",
+        const=True,
+        default=False,
+        help="Keep AR KV caches on CPU and onload only the current transformer layer.",
+    )
+    parser.add_argument(
+        "--kv_cache_gpu_resident_compressed",
+        type=str_to_bool,
+        nargs="?",
+        const=True,
+        default=False,
+        help=(
+            "Keep compressed vision KV on CUDA while freeing decoded BF16 "
+            "layers after attention. Requires KV cache offload and a codec."
+        ),
+    )
+    parser.add_argument(
+        "--full_history_attention",
+        type=str_to_bool,
+        nargs="?",
+        const=True,
+        default=False,
+        help="Use every previous latent frame instead of retrieval-selected history.",
+    )
+    parser.add_argument(
+        "--append_only_vision_cache",
+        type=str_to_bool,
+        nargs="?",
+        const=True,
+        default=False,
+        help=(
+            "Experimental: freeze old vision K/V and encode only the newest "
+            "completed AR span. This causalizes the bidirectional history encoder."
+        ),
+    )
+    parser.add_argument(
+        "--kv_cache_codec",
+        choices=[
+            "none",
+            "rvq_full",
+            "rvq_ours_int2",
+            "rvq_ours_avg1",
+            "rvq_ours_avg2",
+            "rvq_ours_avg3",
+            "rvq_ours_avg4",
+            "kivi",
+            "kivi_int2",
+            "kivi_int4",
+            "turboquant",
+            "turboquant_int2",
+            "turboquant_int4",
+            "quantvideo",
+            "quantvideo_int2",
+            "quantvideo_int4",
+        ],
+        default="none",
+        help="Compress vision history KV before CPU residency.",
+    )
+    parser.add_argument("--kv_codec_k_codebook_dir", default="")
+    parser.add_argument("--kv_codec_v_codebook_dir", default="")
+    parser.add_argument("--kv_codec_routing_path", default="")
+    parser.add_argument("--kv_codec_tree_path", default="")
+    parser.add_argument("--kv_codec_v_params_path", default="")
+    parser.add_argument("--kv_codec_temporal_profile_path", default="")
+    parser.add_argument("--kv_codec_frame_spatial_tokens", type=int, default=1537)
+    parser.add_argument("--kv_capture_dir", default="")
+    parser.add_argument("--kv_capture_prompt_index", type=int, default=-1)
+    parser.add_argument(
+        "--kv_capture_sample_tokens",
+        type=int,
+        default=1250,
+        help="Sequence positions per layer; B=2 yields 2500 vectors/head/prompt and 50k over train20.",
+    )
+    parser.add_argument("--kv_capture_seed", type=int, default=42)
+    parser.add_argument("--kv_capture_history_calls", type=int, default=9)
+    parser.add_argument("--kv_residual_stats_dir", default="")
+    parser.add_argument("--kv_residual_stats_prompt_index", type=int, default=-1)
+    parser.add_argument("--kv_residual_stats_samples_per_head", type=int, default=128)
+    parser.add_argument("--kv_residual_stats_seed", type=int, default=42)
+    parser.add_argument("--kv_avg2_calibration_dir", default="")
+    parser.add_argument("--kv_avg2_calibration_prompt_index", type=int, default=-1)
+    parser.add_argument("--kv_avg2_calibration_queries_per_stream", type=int, default=4)
+    parser.add_argument("--kv_avg2_calibration_seed", type=int, default=42)
+    parser.add_argument(
+        "--record_latent_hashes",
+        type=str_to_bool,
+        nargs="?",
+        const=True,
+        default=False,
+    )
+    parser.add_argument(
+        "--terminal_cache_audit",
+        type=str_to_bool,
+        nargs="?",
+        const=True,
+        default=False,
+    )
+    parser.add_argument(
         "--group_offloading",
         type=str_to_bool,
         nargs="?",
@@ -944,6 +1187,12 @@ def main():
         type=str,
         default=None,
         help="Output file path for generated video (if not provided, saves to ./outputs/output.mp4)",
+    )
+    parser.add_argument(
+        "--metrics_path",
+        type=str,
+        default=None,
+        help="Optional create-only JSON path for generation and peak-memory metrics.",
     )
     parser.add_argument(
         "--enable_torch_compile",

@@ -6,6 +6,37 @@ RVQ，并运行完整 MovieGenVideoBench 1003-prompt KV-cache 压缩主实验。
 > 这是给实验协作者使用的入口。请优先使用 `scripts/main/`，不要从
 > `scripts/` 中随机选择历史研究脚本。
 
+## HY-WorldPlay 8B I2V：20 train / 10 dev / 973 test
+
+HY-WorldPlay 的独立 MovieGen I2V 主协议已经冻结在
+[`configs/main/hyworldplay-moviegen-i2v-20-973.yaml`](configs/main/hyworldplay-moviegen-i2v-20-973.yaml)。
+它按 `dataset_row`（不是 prompt 文本）划分数据，运行 BF16、Ours
+avg1/2/3/4，以及 KIVI、TurboQuant、QuantVideo 的 INT2/INT4，共 11 种方法。
+
+配置好 `.env` 后先检查完整 dry-run：
+
+```bash
+python scripts/main/hyworldplay_i2v.py \
+  --run-id hy-main-r1 \
+  --gpus 0,1,2,3,4,5,6,7 \
+  all
+```
+
+确认计划后，以下命令会依次准备 conditioning images、训练、运行 dev10
+gate，并仅在 gate 通过后启动 973×11 个正式视频及评测：
+
+```bash
+python scripts/main/hyworldplay_i2v.py \
+  --run-id hy-main-r1 \
+  --gpus 0,1,2,3,4,5,6,7 \
+  --resume \
+  --execute \
+  all
+```
+
+完整的逐阶段命令、跨机器分片、恢复方式、指标定义和输出布局见
+[`docs/hyworldplay_i2v_20_973.md`](docs/hyworldplay_i2v_20_973.md)。
+
 ## 实验矩阵
 
 两个模型使用相同的 1003 个测试 prompt。每个模型运行以下 11 个配置：

@@ -16,9 +16,11 @@
 
 
 import inspect
+import hashlib
 import os
 import random
 import re
+import time
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Union
 
@@ -61,6 +63,7 @@ from hyvideo.models.text_encoders.byT5.format_prompt import MultilingualPromptFo
 
 from hyvideo.models.transformers.worldplay_1_5_transformer import (
     HunyuanVideo_1_5_DiffusionTransformer,
+    record_cpu_cache_peak,
 )
 from hyvideo.models.transformers.modules.upsample import (
     SRTo720pUpsampler,
@@ -82,6 +85,7 @@ from hyvideo.utils.retrieval_context import (
     generate_points_in_sphere,
     select_aligned_memory_frames,
 )
+from quant_videogen.hyworldplay_append_only import append_only_history_plan
 
 
 from .pipeline_utils import retrieve_timesteps, rescale_noise_cfg
@@ -1055,9 +1059,11 @@ class HunyuanVideo_1_5_Pipeline(DiffusionPipeline):
         device,
     ):
         self.init_kv_cache()
+        infer_state = get_infer_state()
         positive_idx = 1 if self.do_classifier_free_guidance else 0
         stabilization_level = 15
         # text, siglip, byt5 embedding cache
+        text_kv_started = time.perf_counter()
         with (
             torch.autocast(
                 device_type="cuda",
@@ -1109,38 +1115,80 @@ class HunyuanVideo_1_5_Pipeline(DiffusionPipeline):
                     kv_cache=self._kv_cache_neg,
                     cache_txt=True,
                 )
+            record_cpu_cache_peak(self._kv_cache, self._kv_cache_neg)
+        torch.cuda.synchronize(device)
+        infer_state.add_part_seconds("text_kv_build", time.perf_counter() - text_kv_started)
 
         selected_frame_indices = []
+        cached_history_latent_frames = 0
+
+        if infer_state.append_only_vision_cache:
+            if not infer_state.full_history_attention:
+                raise ValueError(
+                    "append_only_vision_cache requires full_history_attention"
+                )
+            if infer_state.kv_cache_codec not in {
+                "none",
+                "rvq_ours_avg1",
+                "rvq_ours_avg2",
+                "kivi",
+                "turboquant",
+                "quantvideo",
+            }:
+                raise ValueError(
+                    "append_only_vision_cache supports BF16, rvq_ours_avg1/avg2, "
+                    "kivi, turboquant, and quantvideo"
+                )
 
         for chunk_i in range(self.chunk_num):
+            chunk_started = time.perf_counter()
+            history_cache_seconds = 0.0
             if chunk_i > 0:
+                history_started = time.perf_counter()
                 current_frame_idx = (
                     chunk_i * self.chunk_latent_frames
                 )  # the current frame index to generate
 
-                selected_frame_indices = []
-                for chunk_start_idx in range(
-                    current_frame_idx, current_frame_idx + self.chunk_latent_frames, 4
-                ):
-                    selected_history_frame_id = select_aligned_memory_frames(
-                        viewmats[0].cpu().detach().numpy(),
-                        chunk_start_idx,
-                        memory_frames=20,
-                        temporal_context_size=12,
-                        pred_latent_size=4,
-                        points_local=self.points_local,
-                        device=device,
+                history_rope_temporal_size = current_frame_idx
+                history_rope_start_idx = 0
+                if infer_state.append_only_vision_cache:
+                    append_plan = append_only_history_plan(
+                        chunk_i, self.chunk_latent_frames
                     )
-                    selected_frame_indices += selected_history_frame_id
-                selected_frame_indices = sorted(list(set(selected_frame_indices)))
-                to_remove = list(
-                    range(
-                        current_frame_idx, current_frame_idx + self.chunk_latent_frames
+                    selected_frame_indices = list(
+                        append_plan.selected_frame_indices
                     )
-                )
-                selected_frame_indices = [
-                    x for x in selected_frame_indices if x not in to_remove
-                ]
+                    history_rope_temporal_size = append_plan.rope_temporal_size
+                    history_rope_start_idx = append_plan.start_rope_index
+                    cached_history_latent_frames = append_plan.cached_history_frames
+                elif infer_state.full_history_attention:
+                    selected_frame_indices = list(range(current_frame_idx))
+                    cached_history_latent_frames = len(selected_frame_indices)
+                else:
+                    selected_frame_indices = []
+                    for chunk_start_idx in range(
+                        current_frame_idx, current_frame_idx + self.chunk_latent_frames, 4
+                    ):
+                        selected_history_frame_id = select_aligned_memory_frames(
+                            viewmats[0].cpu().detach().numpy(),
+                            chunk_start_idx,
+                            memory_frames=20,
+                            temporal_context_size=12,
+                            pred_latent_size=4,
+                            points_local=self.points_local,
+                            device=device,
+                        )
+                        selected_frame_indices += selected_history_frame_id
+                    selected_frame_indices = sorted(list(set(selected_frame_indices)))
+                    to_remove = list(
+                        range(
+                            current_frame_idx, current_frame_idx + self.chunk_latent_frames
+                        )
+                    )
+                    selected_frame_indices = [
+                        x for x in selected_frame_indices if x not in to_remove
+                    ]
+                    cached_history_latent_frames = len(selected_frame_indices)
 
                 context_latents = latents[:, :, selected_frame_indices]
                 context_cond_latents_input = cond_latents[:, :, selected_frame_indices]
@@ -1185,8 +1233,8 @@ class HunyuanVideo_1_5_Pipeline(DiffusionPipeline):
                         action=context_action.to(self.target_dtype),
                         kv_cache=self._kv_cache,
                         cache_vision=True,
-                        rope_temporal_size=context_latents_input.shape[2],
-                        start_rope_start_idx=0,
+                        rope_temporal_size=history_rope_temporal_size,
+                        start_rope_start_idx=history_rope_start_idx,
                     )
                     if self.do_classifier_free_guidance:
                         self._kv_cache_neg = self.transformer(
@@ -1203,15 +1251,20 @@ class HunyuanVideo_1_5_Pipeline(DiffusionPipeline):
                             action=context_action.to(self.target_dtype),
                             kv_cache=self._kv_cache_neg,
                             cache_vision=True,
-                            rope_temporal_size=context_latents_input.shape[2],
-                            start_rope_start_idx=0,
+                            rope_temporal_size=history_rope_temporal_size,
+                            start_rope_start_idx=history_rope_start_idx,
                         )
+                    record_cpu_cache_peak(self._kv_cache, self._kv_cache_neg)
 
                 self.scheduler.set_timesteps(self.num_inference_steps, device=device)
+                torch.cuda.synchronize(device)
+                history_cache_seconds = time.perf_counter() - history_started
+                infer_state.add_part_seconds("history_cache_build", history_cache_seconds)
 
             start_idx = chunk_i * self.chunk_latent_frames
             end_idx = chunk_i * self.chunk_latent_frames + self.chunk_latent_frames
 
+            denoise_started = time.perf_counter()
             with (
                 self.progress_bar(total=self.num_inference_steps) as progress_bar,
                 auto_offload_model(
@@ -1259,8 +1312,8 @@ class HunyuanVideo_1_5_Pipeline(DiffusionPipeline):
                             kv_cache=self._kv_cache,
                             cache_vision=False,
                             rope_temporal_size=latents_concat.shape[2]
-                            + len(selected_frame_indices),
-                            start_rope_start_idx=len(selected_frame_indices),
+                            + cached_history_latent_frames,
+                            start_rope_start_idx=cached_history_latent_frames,
                         )[0]
                         if self.do_classifier_free_guidance:
                             noise_pred_uncond = self.transformer(
@@ -1278,8 +1331,8 @@ class HunyuanVideo_1_5_Pipeline(DiffusionPipeline):
                                 kv_cache=self._kv_cache_neg,
                                 cache_vision=False,
                                 rope_temporal_size=latents_concat.shape[2]
-                                + len(selected_frame_indices),
-                                start_rope_start_idx=len(selected_frame_indices),
+                                + cached_history_latent_frames,
+                                start_rope_start_idx=cached_history_latent_frames,
                             )[0]
 
                     if self.do_classifier_free_guidance:
@@ -1300,7 +1353,211 @@ class HunyuanVideo_1_5_Pipeline(DiffusionPipeline):
                     ):
                         if progress_bar is not None:
                             progress_bar.update()
+            torch.cuda.synchronize(device)
+            denoise_seconds = time.perf_counter() - denoise_started
+            infer_state.add_part_seconds("denoise", denoise_seconds)
+            chunk_event = {
+                    "chunk": int(chunk_i + 1),
+                    "history_latent_frames": int(len(selected_frame_indices)),
+                    "cached_history_latent_frames": int(cached_history_latent_frames),
+                    "append_only_vision_cache": bool(
+                        infer_state.append_only_vision_cache
+                    ),
+                    "history_cache_build_seconds": float(history_cache_seconds),
+                    "denoise_seconds": float(denoise_seconds),
+                    "total_seconds": float(time.perf_counter() - chunk_started),
+                }
+            if infer_state.record_latent_hashes:
+                hash_started = time.perf_counter()
+                canonical = (
+                    latents[:, :, start_idx:end_idx]
+                    .detach()
+                    .to(device="cpu", dtype=torch.bfloat16)
+                    .contiguous()
+                )
+                chunk_event["latent_bf16_sha256"] = hashlib.sha256(
+                    canonical.view(torch.uint8).numpy().tobytes()
+                ).hexdigest()
+                infer_state.add_part_seconds(
+                    "latent_hash", time.perf_counter() - hash_started
+                )
+            infer_state.chunk_timing_events.append(chunk_event)
         return latents
+
+    @torch.no_grad()
+    def run_terminal_cache_audit(self) -> dict[str, Any]:
+        """Build and encode the completed ten-span history after MP4 saving."""
+
+        infer_state = get_infer_state()
+        payload = getattr(self, "_qvg_terminal_cache_audit_payload", None)
+        if infer_state is None or not infer_state.terminal_cache_audit:
+            raise RuntimeError("terminal cache audit was not enabled")
+        capture_only = bool(
+            infer_state.kv_cache_codec == "none" and infer_state.kv_capture_dir
+        )
+        if infer_state.kv_cache_codec == "none" and not capture_only:
+            raise ValueError(
+                "terminal cache audit requires a compressed KV codec or KV capture"
+            )
+        if payload is None:
+            raise RuntimeError("terminal cache audit payload is unavailable")
+        device = self.execution_device
+        latents = payload["latents"].to(device)
+        cond_latents = payload["cond_latents"].to(device)
+        latent_frames = int(latents.shape[2])
+        if latent_frames != 40:
+            raise ValueError(f"terminal audit requires 40 latent frames, got {latent_frames}")
+        if infer_state.append_only_vision_cache:
+            start_frame = latent_frames - self.chunk_latent_frames
+            context = torch.cat(
+                (
+                    latents[:, :, start_frame:],
+                    cond_latents[:, :, start_frame:],
+                ),
+                dim=1,
+            )
+            viewmats = payload["viewmats"][:, start_frame:].to(device)
+            Ks = payload["Ks"][:, start_frame:].to(device)
+            action = payload["action"][:, start_frame:].to(device)
+            audit_cache = self._kv_cache
+            timestep_frames = self.chunk_latent_frames
+            rope_start = start_frame
+        else:
+            context = torch.cat((latents, cond_latents), dim=1)
+            viewmats = payload["viewmats"].to(device)
+            Ks = payload["Ks"].to(device)
+            action = payload["action"].to(device)
+            audit_cache = [
+                {
+                    "k_vision": None,
+                    "v_vision": None,
+                    "k_txt": layer["k_txt"],
+                    "v_txt": layer["v_txt"],
+                }
+                for layer in self._kv_cache
+            ]
+            timestep_frames = latent_frames
+            rope_start = 0
+        event_start = len(infer_state.kv_codec_encode_events)
+        started = time.perf_counter()
+        timestep = torch.full(
+            (timestep_frames,),
+            14,
+            device=device,
+            dtype=payload["timestep_dtype"],
+        )
+        with (
+            torch.autocast(
+                device_type="cuda",
+                dtype=self.target_dtype,
+                enabled=self.autocast_enabled,
+            ),
+            auto_offload_model(
+                self.transformer,
+                self.execution_device,
+                enabled=self.enable_offloading,
+            ),
+        ):
+            terminal_cache = self.transformer(
+                bi_inference=False,
+                ar_txt_inference=False,
+                ar_vision_inference=True,
+                hidden_states=context,
+                timestep=timestep,
+                timestep_r=None,
+                mask_type=payload["task_type"],
+                return_dict=False,
+                viewmats=viewmats.to(self.target_dtype),
+                Ks=Ks.to(self.target_dtype),
+                action=action.to(self.target_dtype),
+                kv_cache=audit_cache,
+                cache_vision=True,
+                rope_temporal_size=latent_frames,
+                start_rope_start_idx=rope_start,
+            )
+        torch.cuda.synchronize(device)
+        seconds = time.perf_counter() - started
+        events = [
+            row
+            for row in infer_state.kv_codec_encode_events[event_start:]
+            if int(row.get("history_spans", 0)) == 10
+            and "post_truncation_accounting" in row
+        ]
+        if not capture_only and len(events) != 54:
+            raise RuntimeError(f"terminal cache audit encoded {len(events)} layers, expected 54")
+        layer_rows = []
+        avg2_accounting_rows = []
+        for row in events:
+            accounting = row["post_truncation_accounting"]
+            layer_row = {
+                "layer": int(row["layer"]),
+                "bf16_kv_bytes": int(accounting["bf16_kv_bytes"]),
+                "physical_payload_bytes": int(accounting["physical_payload_bytes"]),
+                "compression_ratio": float(accounting["bf16_kv_bytes"])
+                / int(accounting["physical_payload_bytes"]),
+                "old_spans_reencoded": bool(
+                    accounting.get("old_spans_reencoded", True)
+                ),
+            }
+            if infer_state.kv_cache_codec in {
+                "rvq_ours_avg1",
+                "rvq_ours_avg2",
+                "rvq_ours_avg3",
+                "rvq_ours_avg4",
+            }:
+                avg2_accounting_rows.append(accounting)
+                layer_row.update(
+                    {
+                        "kv_shared_budget": bool(
+                            accounting.get("kv_shared_budget", False)
+                        ),
+                        "K_bits": accounting["selected_k_bits"],
+                        "V_bits": accounting["selected_v_bits"],
+                        "K_bit_sum": int(accounting["selected_k_bit_sum"]),
+                        "V_bit_sum": int(accounting["selected_v_bit_sum"]),
+                    }
+                )
+            if infer_state.append_only_vision_cache and layer_row[
+                "old_spans_reencoded"
+            ]:
+                raise RuntimeError("append-only terminal audit re-encoded old spans")
+            layer_rows.append(layer_row)
+        nominal_budget_audit = None
+        if infer_state.kv_cache_codec in {
+            "rvq_ours_avg1",
+            "rvq_ours_avg2",
+            "rvq_ours_avg3",
+            "rvq_ours_avg4",
+        }:
+            from quant_videogen.hyworldplay8b_cache_codec import (
+                validate_avg2_terminal_budget,
+            )
+
+            nominal_budget_audit = validate_avg2_terminal_budget(
+                avg2_accounting_rows,
+                expected_layers=54,
+            )
+        result = {
+            "schema_version": "hyworldplay_append_only_terminal_cache_audit.v1",
+            "status": "passed",
+            "history_spans": 10,
+            "layers": 54,
+            "codec": infer_state.kv_cache_codec,
+            "capture_only": capture_only,
+            "seconds": seconds,
+            "excluded_from_generation_e2e": True,
+            "append_only": bool(infer_state.append_only_vision_cache),
+            "old_spans_reencoded": not bool(
+                infer_state.append_only_vision_cache
+            ),
+            "nominal_budget_audit": nominal_budget_audit,
+            "rows": layer_rows,
+        }
+        infer_state.terminal_cache_audit_result = result
+        infer_state.add_part_seconds("terminal_cache_audit", seconds)
+        self._kv_cache = terminal_cache
+        self._qvg_terminal_cache_audit_payload = None
+        return result
 
     def bi_rollout(
         self,
@@ -1323,31 +1580,34 @@ class HunyuanVideo_1_5_Pipeline(DiffusionPipeline):
                 # the current frame index to generate (in latent space): 4, 8, 12, 16, 20
                 current_frame_idx = chunk_i * self.chunk_latent_frames
 
-                selected_frame_indices = []
-                for chunk_start_idx in range(
-                    current_frame_idx, current_frame_idx + self.chunk_latent_frames, 4
-                ):
-                    selected_history_frame_id = select_aligned_memory_frames(
-                        viewmats[0].cpu().detach().numpy(),
-                        chunk_start_idx,
-                        memory_frames=20,
-                        temporal_context_size=12,
-                        pred_latent_size=4,
-                        points_local=self.points_local,
-                        device=device,
+                if get_infer_state().full_history_attention:
+                    selected_frame_indices = list(range(current_frame_idx))
+                else:
+                    selected_frame_indices = []
+                    for chunk_start_idx in range(
+                        current_frame_idx, current_frame_idx + self.chunk_latent_frames, 4
+                    ):
+                        selected_history_frame_id = select_aligned_memory_frames(
+                            viewmats[0].cpu().detach().numpy(),
+                            chunk_start_idx,
+                            memory_frames=20,
+                            temporal_context_size=12,
+                            pred_latent_size=4,
+                            points_local=self.points_local,
+                            device=device,
+                        )
+                        selected_frame_indices = (
+                            selected_frame_indices + selected_history_frame_id
+                        )
+                    selected_frame_indices = sorted(list(set(selected_frame_indices)))
+                    to_remove = list(
+                        range(
+                            current_frame_idx, current_frame_idx + self.chunk_latent_frames
+                        )
                     )
-                    selected_frame_indices = (
-                        selected_frame_indices + selected_history_frame_id
-                    )
-                selected_frame_indices = sorted(list(set(selected_frame_indices)))
-                to_remove = list(
-                    range(
-                        current_frame_idx, current_frame_idx + self.chunk_latent_frames
-                    )
-                )
-                selected_frame_indices = [
-                    x for x in selected_frame_indices if x not in to_remove
-                ]
+                    selected_frame_indices = [
+                        x for x in selected_frame_indices if x not in to_remove
+                    ]
 
                 context_latents = latents[:, :, selected_frame_indices]
                 context_w2c = viewmats[:, selected_frame_indices]
@@ -1738,6 +1998,8 @@ class HunyuanVideo_1_5_Pipeline(DiffusionPipeline):
                 "\n"
             )
 
+        infer_state = get_infer_state()
+        text_encode_started = time.perf_counter()
         with auto_offload_model(
             self.text_encoder, self.execution_device, enabled=self.enable_offloading
         ):
@@ -1755,6 +2017,8 @@ class HunyuanVideo_1_5_Pipeline(DiffusionPipeline):
                 clip_skip=self.clip_skip,
                 data_type="video",
             )
+        torch.cuda.synchronize(device)
+        infer_state.add_part_seconds("text_encode", time.perf_counter() - text_encode_started)
 
         # Encode prompts with second encoder if available
         if self.text_encoder_2 is not None:
@@ -1786,10 +2050,13 @@ class HunyuanVideo_1_5_Pipeline(DiffusionPipeline):
 
         extra_kwargs = {}
         if self.config.glyph_byT5_v2:
+            byt5_started = time.perf_counter()
             with auto_offload_model(
                 self.byt5_model, self.execution_device, enabled=self.enable_offloading
             ):
                 extra_kwargs = self._prepare_byt5_embeddings(prompt, device)
+            torch.cuda.synchronize(device)
+            infer_state.add_part_seconds("byt5_encode", time.perf_counter() - byt5_started)
 
         if self.do_classifier_free_guidance:
             prompt_embeds = torch.cat([negative_prompt_embeds, prompt_embeds])
@@ -1823,6 +2090,7 @@ class HunyuanVideo_1_5_Pipeline(DiffusionPipeline):
             generator,
         )
 
+        image_condition_started = time.perf_counter()
         with auto_offload_model(
             self.vae, self.execution_device, enabled=self.enable_offloading
         ):
@@ -1839,6 +2107,10 @@ class HunyuanVideo_1_5_Pipeline(DiffusionPipeline):
             vision_states = self._prepare_vision_states(
                 semantic_images_np, target_resolution, latents, device
             )
+        torch.cuda.synchronize(device)
+        infer_state.add_part_seconds(
+            "image_condition_encode", time.perf_counter() - image_condition_started
+        )
 
         self.num_warmup_steps = (
             len(timesteps) - num_inference_steps * self.scheduler.order
@@ -1883,6 +2155,29 @@ class HunyuanVideo_1_5_Pipeline(DiffusionPipeline):
                 device=device,
             )
 
+        if infer_state.terminal_cache_audit:
+            capture_only = bool(
+                infer_state.kv_cache_codec == "none" and infer_state.kv_capture_dir
+            )
+            if model_type != "ar" or (
+                infer_state.kv_cache_codec == "none" and not capture_only
+            ):
+                raise ValueError(
+                    "terminal cache audit requires AR inference with a compressed KV codec or KV capture"
+                )
+            # Keep only the small latent/control tensors needed to rebuild the
+            # complete history after the MP4 is finalized.  Model/text caches
+            # remain owned by the pipeline and are not duplicated here.
+            self._qvg_terminal_cache_audit_payload = {
+                "latents": latents.detach().to("cpu", dtype=torch.bfloat16).contiguous(),
+                "cond_latents": cond_latents.detach().to("cpu", dtype=torch.bfloat16).contiguous(),
+                "viewmats": viewmats.detach().to("cpu").contiguous(),
+                "Ks": Ks.detach().to("cpu").contiguous(),
+                "action": action.detach().to("cpu").contiguous(),
+                "task_type": task_type,
+                "timestep_dtype": timesteps.dtype,
+            }
+
         if enable_sr:
             assert hasattr(self, "sr_pipeline")
             sr_out = self.sr_pipeline(
@@ -1923,6 +2218,7 @@ class HunyuanVideo_1_5_Pipeline(DiffusionPipeline):
                 self.vae.enable_tile_parallelism()
 
             if return_pre_sr_video or not enable_sr:
+                vae_started = time.perf_counter()
                 with (
                     torch.autocast(
                         device_type="cuda",
@@ -1936,6 +2232,8 @@ class HunyuanVideo_1_5_Pipeline(DiffusionPipeline):
                     video_frames = self.vae.decode(
                         latents, return_dict=False, generator=generator
                     )[0]
+                torch.cuda.synchronize(device)
+                infer_state.add_part_seconds("vae_decode", time.perf_counter() - vae_started)
 
                 if video_frames is not None:
                     video_frames = (video_frames / 2 + 0.5).clamp(0, 1).cpu().float()

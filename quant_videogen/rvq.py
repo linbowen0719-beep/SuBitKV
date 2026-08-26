@@ -568,6 +568,45 @@ def _rvq_triton_fastpath_enabled() -> bool:
     return os.getenv("HYWORLDPLAY_RVQ_TRITON_FASTPATH", "1").lower() not in {"0", "false", "no", "off"}
 
 
+def _rvq_triton_encode_fastpath_enabled() -> bool:
+    """Allow encode-only rollback without disabling the fused decoder."""
+
+    return (
+        _rvq_triton_fastpath_enabled()
+        and os.getenv("HYWORLDPLAY_RVQ_TRITON_ENCODE", "1")
+        .strip()
+        .lower()
+        not in {"", "0", "false", "no", "off"}
+    )
+
+
+def _rvq_staged_defer_stop_checks_enabled() -> bool:
+    return (
+        os.getenv("HYWORLDPLAY_RVQ_STAGED_DEFER_STOP_CHECKS", "0")
+        .strip()
+        .lower()
+        not in {"", "0", "false", "no", "off"}
+    )
+
+
+def _rvq_staged_batch2_enabled() -> bool:
+    return (
+        os.getenv("HYWORLDPLAY_RVQ_STAGED_BATCH2", "0")
+        .strip()
+        .lower()
+        not in {"", "0", "false", "no", "off"}
+    )
+
+
+def _rvq_staged_stop_check_stride() -> int:
+    value = int(os.getenv("HYWORLDPLAY_RVQ_STAGED_STOP_CHECK_STRIDE", "2"))
+    if value <= 0:
+        raise ValueError(
+            "HYWORLDPLAY_RVQ_STAGED_STOP_CHECK_STRIDE must be positive"
+        )
+    return value
+
+
 def _rvq_triton_block_tokens(default: int = 64) -> int:
     raw = os.getenv("HYWORLDPLAY_RVQ_TRITON_BLOCK_TOKENS", "").strip()
     if not raw:
@@ -1696,6 +1735,7 @@ def _rvq_encode_grouped_tensor_cache(
 def rvq_encode_tensor_cache(
     tensor: torch.Tensor,
     *,
+    tensor_name: str | None = None,
     layer_idx: int,
     codebook_dir: str | Path,
     batch_size: int = 2048,
@@ -1719,6 +1759,8 @@ def rvq_encode_tensor_cache(
     relative_stop_min_depth: int = 4,
     relative_stop_max_depth: int = 16,
     relative_stop_fast_approximate: bool = False,
+    relative_stop_monolithic_exact: bool = False,
+    relative_stop_exact_staged_layers: tuple[int, ...] = (),
 ) -> dict:
     """Encode a BHSD tensor with fixed per-layer/head RVQ codebooks.
 
@@ -1754,6 +1796,20 @@ def rvq_encode_tensor_cache(
     heterogeneous_head_depth = _is_heterogeneous_head_depth_rvq(codebooks)
     progressive = _progressive_enabled(progressive)
     relative_stop = bool(relative_stop)
+    relative_stop_fast_approximate = bool(
+        relative_stop_fast_approximate
+    )
+    relative_stop_monolithic_exact = bool(
+        relative_stop_monolithic_exact
+    )
+    if (
+        relative_stop_fast_approximate
+        and relative_stop_monolithic_exact
+    ):
+        raise ValueError(
+            "relative_stop_fast_approximate and "
+            "relative_stop_monolithic_exact are mutually exclusive"
+        )
     if progressive and relative_stop:
         raise ValueError(
             "relative span-level stopping is incompatible with progressive RVQ"
@@ -1862,6 +1918,13 @@ def rvq_encode_tensor_cache(
     assignment_transform = _assignment_transform(codebooks, compute_t)
     residual_norm_mode = _residual_norm_mode(codebooks)
     input_norm_mode = _input_norm_mode(codebooks)
+    use_monolithic_exact_relative = bool(
+        relative_stop
+        and relative_stop_monolithic_exact
+        and input_norm_mode == "none"
+        and int(layer_idx)
+        not in {int(value) for value in relative_stop_exact_staged_layers}
+    )
     if progressive:
         if feedback_method != "none":
             raise ValueError("Progressive RVQ does not support RVQ feedback modes")
@@ -1896,15 +1959,26 @@ def rvq_encode_tensor_cache(
     )
     triton_codebooks = _runtime_codebooks_for_triton(codebooks, compute_t, need_sq=True)
     if (
+        _rvq_triton_encode_fastpath_enabled()
+        and
         rvq_encode_bhsd_triton is not None
         and triton_codebooks is not None
         and tensor.is_cuda
         and tensor.is_contiguous()
         # The exact staged relative-stop path preserves the reference H-major
-        # global-MSE reduction order for the production batch size B=1.  Fall
-        # back to the eager implementation for B>1 rather than silently
-        # changing the floating-point stopping decision.
-        and (not relative_stop or bsz == 1)
+        # global-MSE reduction order for B=1.  The explicitly requested
+        # near-tie/approximate path obtains all stage SSEs from the monolithic
+        # kernel and is batch-size agnostic, so do not make HY's production
+        # B=2 input fall back to the per-level eager implementation.  Exact
+        # relative stopping at B>1 intentionally retains the eager fallback.
+        and (
+            not relative_stop
+            or bsz == 1
+            or relative_stop_fast_approximate
+            or use_monolithic_exact_relative
+            or _rvq_staged_batch2_enabled()
+            or _rvq_staged_defer_stop_checks_enabled()
+        )
         # The fused kernel emits one dense [L,B,H,S] index tensor.  A
         # heterogeneous-depth directory pads codebooks to the layer maximum
         # only for batched assignment; using the fused path would therefore
@@ -1925,10 +1999,19 @@ def rvq_encode_tensor_cache(
         use_fast_approximate_relative = bool(
             relative_stop and relative_stop_fast_approximate
         )
+        monolithic_exact_audit = bool(
+            use_monolithic_exact_relative
+            and os.getenv(
+                "HYWORLDPLAY_RVQ_MONOLITHIC_EXACT_AUDIT", "0"
+            ).strip().lower()
+            not in {"", "0", "false", "no", "off"}
+        )
+        monolithic_exact_audit_prefix_equal: bool | None = None
         if (
             relative_stop
             and rvq_encode_bhsd_staged_triton is not None
             and not use_fast_approximate_relative
+            and not use_monolithic_exact_relative
         ):
             encoded = rvq_encode_bhsd_staged_triton(
                 tensor,
@@ -1940,7 +2023,74 @@ def rvq_encode_tensor_cache(
                 normalize=input_norm_mode == "rms",
                 relative_stop_threshold=relative_stop_threshold,
                 relative_stop_min_depth=relative_stop_min_depth,
+                defer_stop_checks_after_min=(
+                    _rvq_staged_defer_stop_checks_enabled()
+                ),
+                stop_check_stride=_rvq_staged_stop_check_stride(),
             )
+        elif use_monolithic_exact_relative:
+            indices, scale = rvq_encode_bhsd_triton(
+                tensor,
+                runtime_codebooks,
+                runtime_codebook_sq,
+                num_levels,
+                index_dtype,
+                block_tokens=_rvq_triton_block_tokens(),
+                normalize=False,
+                track_stage_mse=False,
+            )
+            residual = tensor.to(torch.bfloat16).contiguous()
+            stage_mse = [residual.float().square().mean()]
+            head_ids = torch.arange(
+                heads, device=device, dtype=torch.long
+            ).view(1, heads, 1)
+            for level in range(int(num_levels)):
+                selected = runtime_codebooks[level][
+                    head_ids, indices[level].long()
+                ]
+                residual = (
+                    residual.float() - selected.float()
+                ).to(torch.bfloat16)
+                stage_mse.append(residual.float().square().mean())
+            encoded = indices, scale, torch.stack(stage_mse)
+            if (
+                monolithic_exact_audit
+                and rvq_encode_bhsd_staged_triton is not None
+            ):
+                exact_encoded = rvq_encode_bhsd_staged_triton(
+                    tensor,
+                    runtime_codebooks,
+                    runtime_codebook_sq,
+                    num_levels,
+                    index_dtype,
+                    block_tokens=_rvq_triton_block_tokens(),
+                    normalize=False,
+                    relative_stop_threshold=relative_stop_threshold,
+                    relative_stop_min_depth=relative_stop_min_depth,
+                    defer_stop_checks_after_min=False,
+                    stop_check_stride=2,
+                )
+                exact_indices = exact_encoded[0]
+                compared_levels = min(
+                    int(indices.shape[0]), int(exact_indices.shape[0])
+                )
+                monolithic_exact_audit_prefix_equal = bool(
+                    int(indices.shape[0]) >= int(exact_indices.shape[0])
+                    and torch.equal(
+                        indices[:compared_levels],
+                        exact_indices[:compared_levels],
+                    )
+                )
+                print(
+                    "[QVG_RVQ_MONOLITHIC_AUDIT] "
+                    f"tensor={tensor_name or '?'} layer={int(layer_idx)} "
+                    f"prefix_equal={monolithic_exact_audit_prefix_equal} "
+                    f"exact_levels={int(exact_indices.shape[0])}",
+                    flush=True,
+                )
+                # Audit runs are correctness references: they retain exact
+                # staged assignments even when the candidate agrees.
+                encoded = exact_encoded
         else:
             encoded = rvq_encode_bhsd_triton(
                 tensor,
@@ -2029,13 +2179,27 @@ def rvq_encode_tensor_cache(
                     "encode_backend": (
                         "triton_monolithic_near_tie_relative_stop"
                         if use_fast_approximate_relative
-                        else "triton_staged_exact_relative_stop"
+                        else (
+                            "triton_monolithic_exact_mse_replay"
+                            if use_monolithic_exact_relative
+                            else "triton_staged_exact_relative_stop"
+                        )
                     ),
                     "relative_stop_fast_approximate": bool(
                         use_fast_approximate_relative
                     ),
+                    "monolithic_exact_audit": bool(
+                        monolithic_exact_audit
+                    ),
+                    "monolithic_exact_audit_prefix_equal": (
+                        monolithic_exact_audit_prefix_equal
+                    ),
                 }
             )
+            if monolithic_exact_audit:
+                packed["encode_backend"] = (
+                    "triton_monolithic_audit_staged_exact_output"
+                )
         if temporal_residual_mode == "delta":
             packed["temporal_residual_mode"] = "delta"
             packed["temporal_frame_seq_length"] = int(temporal_frame_seq_length)

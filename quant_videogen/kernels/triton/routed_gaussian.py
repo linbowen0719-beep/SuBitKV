@@ -592,7 +592,15 @@ def _packed_bit(
     return result
 
 
-@triton.jit
+@triton.jit(
+    do_not_specialize=(
+        "BASE_TOKENS",
+        "BASE_TOKEN_OFFSET",
+        "BASE_STRIDE_B",
+        "BASE_STRIDE_H",
+        "BASE_STRIDE_S",
+    )
+)
 def _decode_routed_gaussian_g128_kernel(
     plane_0_ptr,
     plane_1_ptr,
@@ -634,6 +642,9 @@ def _decode_routed_gaussian_g128_kernel(
     # kernel across cache lengths and chunk offsets.
     BASE_TOKENS,
     BASE_TOKEN_OFFSET,
+    BASE_STRIDE_B,
+    BASE_STRIDE_H,
+    BASE_STRIDE_S,
     SUFFIX_KIND: tl.constexpr,
     OUTPUT_KIND: tl.constexpr,
     NUM_SEGMENTS: tl.constexpr,
@@ -742,8 +753,11 @@ def _decode_routed_gaussian_g128_kernel(
         elif OUTPUT_KIND == 2:
             residual = residual.to(tl.bfloat16).to(tl.float32)
         base_offset = (
-            batch_head * BASE_TOKENS + BASE_TOKEN_OFFSET + token
-        ) * 128 + channel
+            batch * BASE_STRIDE_B
+            + head * BASE_STRIDE_H
+            + (BASE_TOKEN_OFFSET + token) * BASE_STRIDE_S
+            + channel
+        )
         if ADD_BASE:
             residual += tl.load(base_ptr + base_offset).to(tl.float32)
         else:
@@ -901,7 +915,7 @@ def decode_routed_gaussian_g128(
             or int(base.shape[0]) != batch
             or int(base.shape[1]) != heads
             or int(base.shape[3]) != dim
-            or not base.is_contiguous()
+            or base.stride(-1) != 1
             or base_token_offset < 0
             or base_token_offset + tokens > int(base.shape[2])
         ):
@@ -947,6 +961,9 @@ def decode_routed_gaussian_g128(
         ADD_RVQ=add_rvq,
         BASE_TOKENS=int(base.shape[2]) if (add_base or add_rvq) else tokens,
         BASE_TOKEN_OFFSET=base_token_offset,
+        BASE_STRIDE_B=(int(base.stride(0)) if (add_base or add_rvq) else heads * tokens * dim),
+        BASE_STRIDE_H=(int(base.stride(1)) if (add_base or add_rvq) else tokens * dim),
+        BASE_STRIDE_S=(int(base.stride(2)) if (add_base or add_rvq) else dim),
         # The public frame-mean codec historically rounds the decoded suffix
         # to BF16 before adding its FP32 predictor.
         SUFFIX_KIND=2 if add_frame_mean else output_kind,

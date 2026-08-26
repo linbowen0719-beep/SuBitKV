@@ -15,6 +15,9 @@
 # See the License for the specific language governing permissions and limitations under the License.
 
 from typing import Any, Tuple, Optional, Union, Dict
+from pathlib import Path
+import os
+import time
 
 import torch
 import torch.nn as nn
@@ -46,8 +49,738 @@ from hyvideo.utils.communications import all_gather
 from hyvideo.utils.infer_utils import torch_compile_wrapper
 from hyvideo.models.text_encoders.byT5 import ByT5Mapper
 from hyvideo.commons.parallel_states import get_parallel_state
+from hyvideo.commons.infer_state import get_infer_state
+
+from quant_videogen.hyworldplay8b_cache_codec import (
+    append_encoded_vision_kv,
+    encode_vision_kv,
+    make_codec_settings,
+    tensor_tree_nbytes,
+    tensor_tree_to,
+)
+from quant_videogen.uncompress import uncompress_kv_cache
+from quant_videogen.hyworldplay_capture import (
+    CAPTURE_SCHEMA,
+    finalize_append_rows,
+    finalize_history_rows,
+    sample_append_span,
+    sample_history_call,
+)
+from quant_videogen.hyworldplay_residual_stats import collect_terminal_residual_stats
 
 from hyvideo.prope.camera_rope import prope_qkv
+
+
+def _cache_layer_nbytes(layer: dict, device_type: str | None = None) -> int:
+    """Return recursive physical storage bytes for one AR cache layer."""
+    return tensor_tree_nbytes(layer, device_type)
+
+
+def _move_cache_layer(layer: dict, device: torch.device) -> None:
+    """Move one cache layer in place so callers never retain the old tensor."""
+    for name, value in layer.items():
+        if isinstance(value, torch.Tensor) and value.device != device:
+            layer[name] = value.to(device)
+
+
+def _codec_settings():
+    state = get_infer_state()
+    if state is None:
+        return None
+    return make_codec_settings(
+        state.kv_cache_codec,
+        k_rvq_codebook_dir=state.kv_codec_k_codebook_dir,
+        v_rvq_codebook_dir=state.kv_codec_v_codebook_dir,
+        routed_gaussian_routing_path=state.kv_codec_routing_path,
+        routed_gaussian_tree_params_path=state.kv_codec_tree_path,
+        progressive_v_absmax_params_path=state.kv_codec_v_params_path,
+        temporal_profile_path=state.kv_codec_temporal_profile_path,
+        frame_spatial_tokens=state.kv_codec_frame_spatial_tokens,
+    )
+
+
+_KV_CAPTURE: dict[int, list[dict]] = {}
+_KV_CAPTURE_CALLS: dict[int, set[int]] = {}
+_KV_RESIDUAL_CAPTURED: set[int] = set()
+
+
+def _capture_vision_kv(k: torch.Tensor, v: torch.Tensor, layer_idx: int) -> None:
+    state = get_infer_state()
+    if state is None or not state.kv_capture_dir:
+        return
+    spatial = int(state.kv_codec_frame_spatial_tokens)
+    if k.ndim != 4 or v.shape != k.shape or int(k.shape[2]) % spatial:
+        raise ValueError(f"invalid HY capture shape at layer {layer_idx}: {tuple(k.shape)}")
+    # The transformer is invoked once per denoising step, so the same rebuilt
+    # history is observed four times in the official distilled path.  Capture
+    # each distinct history length once; counting forward calls would label the
+    # second denoising pass as a new AR history step and bias the sample toward
+    # the earliest span.
+    span_tokens = spatial * 4
+    if int(k.shape[2]) % span_tokens:
+        raise ValueError(
+            f"HY history length {k.shape[2]} is not divisible by {span_tokens}"
+        )
+    call = int(k.shape[2]) // span_tokens
+    seen = _KV_CAPTURE_CALLS.setdefault(int(layer_idx), set())
+    if call in seen:
+        return
+    seen.add(call)
+    if state.append_only_vision_cache:
+        spans = int(state.kv_capture_history_calls)
+        if call > spans:
+            raise ValueError(f"append-only capture observed span {call}, configured for {spans}")
+        sampled = sample_append_span(
+            k[:, :, -span_tokens:],
+            v[:, :, -span_tokens:],
+            layer_idx=int(layer_idx),
+            prompt_index=int(state.kv_capture_prompt_index),
+            span_id=call - 1,
+            spatial_tokens=spatial,
+            sample_tokens=int(state.kv_capture_sample_tokens),
+            seed=int(state.kv_capture_seed),
+            spans=spans,
+        )
+    else:
+        sampled = sample_history_call(
+            k,
+            v,
+            layer_idx=int(layer_idx),
+            prompt_index=int(state.kv_capture_prompt_index),
+            history_step=call,
+            spatial_tokens=spatial,
+            sample_tokens=int(state.kv_capture_sample_tokens),
+            seed=int(state.kv_capture_seed),
+            history_calls=int(state.kv_capture_history_calls),
+        )
+    _KV_CAPTURE.setdefault(int(layer_idx), []).append(sampled)
+
+
+def finalize_kv_capture() -> dict | None:
+    state = get_infer_state()
+    if state is None or not state.kv_capture_dir:
+        return None
+    if len(_KV_CAPTURE) != 54:
+        raise RuntimeError(f"expected captures for 54 layers, got {len(_KV_CAPTURE)}")
+    root = Path(state.kv_capture_dir).expanduser().resolve() / "kv_dump" / "train" / str(state.kv_capture_prompt_index)
+    root.mkdir(parents=True, exist_ok=False)
+    saved = 0
+    for layer_idx in range(54):
+        rows = _KV_CAPTURE[layer_idx]
+        limit = int(state.kv_capture_sample_tokens)
+        if state.append_only_vision_cache:
+            captured = finalize_append_rows(
+                rows,
+                sample_tokens=limit,
+                spans=int(state.kv_capture_history_calls),
+            )
+        else:
+            captured = finalize_history_rows(
+                rows,
+                sample_tokens=limit,
+                history_calls=int(state.kv_capture_history_calls),
+            )
+        payload = {
+            "K": captured["K"],
+            "V": captured["V"],
+            "span_ids": captured["span_ids"],
+            "latent_frame_ids": captured["latent_frame_ids"],
+            "chunk_age": captured["chunk_age"],
+            "history_step": captured["history_step"],
+            "attention_stream_ids": captured["attention_stream_ids"],
+            "metadata": {
+                "schema_version": CAPTURE_SCHEMA,
+                "prompt_index": int(state.kv_capture_prompt_index),
+                "layer": layer_idx,
+                "frame_spatial_tokens": int(state.kv_codec_frame_spatial_tokens),
+                "seed": int(state.kv_capture_seed),
+                "history_calls": int(state.kv_capture_history_calls),
+                "capture_lifecycle": (
+                    "append_only_per_chunk"
+                    if state.append_only_vision_cache
+                    else "official_full_history_rebuild"
+                ),
+                "cell_counts": captured.get(
+                    "span_counts", captured.get("cell_counts", {})
+                ),
+                "attention_stream_names": ["rope", "prope"],
+            },
+        }
+        if int(payload["K"].shape[2]) != limit:
+            raise RuntimeError(f"layer {layer_idx} captured {payload['K'].shape[2]} tokens, expected {limit}")
+        output = root / f"layer_{layer_idx}.pt"
+        if output.exists():
+            raise FileExistsError(output)
+        torch.save(payload, output)
+        saved += 1
+    _KV_CAPTURE.clear()
+    _KV_CAPTURE_CALLS.clear()
+    return {
+        "capture_root": str(root),
+        "schema_version": CAPTURE_SCHEMA,
+        "layers": saved,
+        "tokens_per_layer": int(state.kv_capture_sample_tokens),
+        "history_calls": int(state.kv_capture_history_calls),
+        "capture_lifecycle": (
+            "append_only_per_chunk"
+            if state.append_only_vision_cache
+            else "official_full_history_rebuild"
+        ),
+        "capture_cells": (
+            int(state.kv_capture_history_calls)
+            if state.append_only_vision_cache
+            else int(state.kv_capture_history_calls)
+            * (int(state.kv_capture_history_calls) + 1)
+            // 2
+        ),
+    }
+
+
+def _retain_compressed_vision_on_gpu(state) -> bool:
+    return bool(
+        state is not None
+        and state.kv_cache_offload
+        and getattr(state, "kv_cache_gpu_resident_compressed", False)
+        and state.kv_cache_codec != "none"
+    )
+
+
+def _begin_deferred_codec_timer(state, device: torch.device):
+    async_enabled = os.getenv(
+        "QVG_HY_ASYNC_CODEC_TIMING", "1"
+    ).strip().lower() not in {"", "0", "false", "no", "off"}
+    if not (
+        async_enabled
+        and _retain_compressed_vision_on_gpu(state)
+        and device.type == "cuda"
+    ):
+        return None
+    start_event = torch.cuda.Event(enable_timing=True)
+    end_event = torch.cuda.Event(enable_timing=True)
+    start_event.record()
+    return start_event, end_event, time.perf_counter()
+
+
+def _packed_pair_is_on_device(packed: tuple[dict, dict], device: torch.device) -> bool:
+    total = tensor_tree_nbytes(packed)
+    return total > 0 and tensor_tree_nbytes(packed, device.type) == total
+
+
+def _supports_reserved_temporal_decode(cache: dict) -> bool:
+    return bool(
+        isinstance(cache, dict)
+        and cache.get("quant_method") == "segmented"
+        and cache.get("segments")
+        and all(
+            isinstance(item.get("cache"), dict)
+            and item["cache"].get("quant_method")
+            == "rvq_temporal_adaptive_residual"
+            for item in cache["segments"]
+        )
+    )
+
+
+_QVG_CACHE_DECODE_PREFETCH_STREAMS: dict[int, torch.cuda.Stream] = {}
+
+
+def _cache_decode_prefetch_enabled(device: torch.device) -> bool:
+    """Whether one-layer-ahead history restore may overlap transformer work."""
+
+    return bool(
+        device.type == "cuda"
+        and os.getenv("QVG_HY_CACHE_DECODE_PREFETCH", "0")
+        .strip()
+        .lower()
+        not in {"", "0", "false", "no", "off"}
+    )
+
+
+def _cache_decode_prefetch_stream(device: torch.device) -> torch.cuda.Stream:
+    index = int(
+        device.index
+        if device.index is not None
+        else torch.cuda.current_device()
+    )
+    stream = _QVG_CACHE_DECODE_PREFETCH_STREAMS.get(index)
+    if stream is None:
+        with torch.cuda.device(index):
+            stream = torch.cuda.Stream()
+        _QVG_CACHE_DECODE_PREFETCH_STREAMS[index] = stream
+    return stream
+
+
+def _prefetch_cache_layer(
+    layer: dict, device: torch.device, layer_idx: int
+) -> torch.cuda.Event:
+    """Restore one packed layer on a side stream and return its ready event."""
+
+    stream = _cache_decode_prefetch_stream(device)
+    stream.wait_stream(torch.cuda.current_stream(device))
+    ready = torch.cuda.Event()
+    with torch.cuda.stream(stream):
+        _onload_cache_layer(layer, device, layer_idx)
+        ready.record(stream)
+    return ready
+
+
+def _adopt_prefetched_cache_layer(
+    layer: dict, device: torch.device, ready: torch.cuda.Event
+) -> None:
+    """Make side-stream restores visible and allocator-safe on the main stream."""
+
+    current = torch.cuda.current_stream(device)
+    current.wait_event(ready)
+    for name in ("k_vision", "v_vision", "k_txt", "v_txt"):
+        value = layer.get(name)
+        if torch.is_tensor(value) and value.device.type == "cuda":
+            value.record_stream(current)
+
+
+def _onload_cache_layer(layer: dict, device: torch.device, layer_idx: int | None = None) -> None:
+    state = get_infer_state()
+    if state is None or not state.kv_cache_offload:
+        return
+    if isinstance(layer.get("k_vision"), dict):
+        packed = (layer["k_vision"], layer["v_vision"])
+        payload_bytes = tensor_tree_nbytes(packed)
+        resident_hit = (
+            _retain_compressed_vision_on_gpu(state)
+            and _packed_pair_is_on_device(packed, device)
+        )
+        if resident_hit:
+            gpu_k, gpu_v = packed
+            h2d_elapsed = 0.0
+            state.kv_cache_gpu_resident_hits += 1
+        else:
+            started = time.perf_counter()
+            gpu_k = tensor_tree_to(packed[0], device)
+            gpu_v = tensor_tree_to(packed[1], device)
+            if device.type == "cuda":
+                torch.cuda.synchronize(device)
+            h2d_elapsed = time.perf_counter() - started
+            if _retain_compressed_vision_on_gpu(state):
+                state.kv_cache_gpu_resident_promotions += 1
+        segmented_backend = os.getenv(
+            "QVG_HY_SEGMENTED_DECODE_BACKEND", "legacy"
+        ).strip().lower()
+        reserve_attention_buffer = bool(
+            segmented_backend == "preallocated"
+            and _supports_reserved_temporal_decode(gpu_k)
+            and _supports_reserved_temporal_decode(gpu_v)
+        )
+        text_value = layer.get("k_txt")
+        leading_tokens = (
+            int(text_value.shape[2])
+            if reserve_attention_buffer and torch.is_tensor(text_value)
+            else 0
+        )
+        trailing_tokens = (
+            int(state.kv_codec_frame_spatial_tokens) * 4
+            if reserve_attention_buffer
+            else 0
+        )
+        deferred_timer = _begin_deferred_codec_timer(state, device)
+        decode_started = time.perf_counter()
+        k_vision, v_vision = uncompress_kv_cache(
+            gpu_k,
+            gpu_v,
+            segmented_backend=segmented_backend,
+            leading_tokens=leading_tokens,
+            trailing_tokens=trailing_tokens,
+        )
+        if deferred_timer is not None:
+            deferred_timer[1].record()
+        if deferred_timer is None and device.type == "cuda":
+            torch.cuda.synchronize(device)
+        host_submit_elapsed = time.perf_counter() - decode_started
+        if deferred_timer is not None:
+            decode_compute_elapsed = 0.0
+        else:
+            decode_compute_elapsed = host_submit_elapsed
+        elapsed = h2d_elapsed + decode_compute_elapsed
+        state.add_part_seconds("kv_h2d", h2d_elapsed)
+        state.kv_codec_decode_count += 1
+        history_tokens = int(k_vision.shape[2]) - leading_tokens - trailing_tokens
+        event = {
+            "layer": layer_idx,
+            "seconds": elapsed,
+            "h2d_seconds": h2d_elapsed,
+            "decode_compute_seconds": decode_compute_elapsed,
+            "payload_bytes": payload_bytes,
+            "history_tokens": history_tokens,
+            "history_spans": history_tokens
+            // (int(state.kv_codec_frame_spatial_tokens) * 4),
+            "compressed_gpu_resident_hit": resident_hit,
+            "reserved_attention_buffer": reserve_attention_buffer,
+        }
+        state.kv_codec_decode_events.append(event)
+        if deferred_timer is not None:
+            state.defer_codec_cuda_timing(
+                kind="decode",
+                event=event,
+                start_event=deferred_timer[0],
+                end_event=deferred_timer[1],
+                host_submit_seconds=host_submit_elapsed,
+                transfer_seconds=h2d_elapsed,
+            )
+        else:
+            state.add_part_seconds("kv_decode_compute", decode_compute_elapsed)
+            state.kv_codec_decode_seconds += elapsed
+        layer["_qvg_packed_vision"] = packed
+        if state.append_only_vision_cache or _retain_compressed_vision_on_gpu(state):
+            layer["_qvg_packed_vision_gpu"] = (gpu_k, gpu_v)
+        layer["k_vision"], layer["v_vision"] = k_vision, v_vision
+        if reserve_attention_buffer:
+            layer["_qvg_attention_buffer"] = {
+                "leading_tokens": leading_tokens,
+                "history_tokens": history_tokens,
+                "trailing_tokens": trailing_tokens,
+            }
+        for name in ("k_txt", "v_txt"):
+            value = layer.get(name)
+            if torch.is_tensor(value) and value.device != device:
+                layer[name] = value.to(device)
+    else:
+        started = time.perf_counter()
+        _move_cache_layer(layer, device)
+        if any(torch.is_tensor(layer.get(name)) for name in ("k_vision", "v_vision")):
+            if device.type == "cuda":
+                torch.cuda.synchronize(device)
+            elapsed = time.perf_counter() - started
+            state.add_part_seconds("kv_h2d", elapsed)
+            k_value = layer.get("k_vision")
+            history_tokens = int(k_value.shape[2]) if torch.is_tensor(k_value) else 0
+            state.kv_codec_decode_seconds += elapsed
+            state.kv_codec_decode_count += 1
+            state.kv_codec_decode_events.append(
+                {"layer": layer_idx, "seconds": elapsed, "h2d_seconds": elapsed, "decode_compute_seconds": 0.0, "payload_bytes": _cache_layer_nbytes(layer, device.type), "history_tokens": history_tokens, "history_spans": history_tokens // (int(state.kv_codec_frame_spatial_tokens) * 4)}
+            )
+    state.kv_cache_onload_count += 1
+    state.kv_cache_gpu_layer_bytes_peak = max(
+        state.kv_cache_gpu_layer_bytes_peak, _cache_layer_nbytes(layer, "cuda")
+    )
+
+
+def _record_codec_accounting(state, accounting: dict | None) -> None:
+    if not accounting:
+        return
+    if accounting.get("schema_version") == "hyworldplay_rvq_ours_int2_accounting.v1":
+        state.kv_codec_int2_budget_bytes_peak = max(
+            state.kv_codec_int2_budget_bytes_peak,
+            int(accounting["post_truncation_budget_bytes"]),
+        )
+        state.kv_codec_post_truncation_bytes_peak = max(
+            state.kv_codec_post_truncation_bytes_peak,
+            int(accounting["post_truncation_payload_bytes"]),
+        )
+    elif accounting.get("schema_version") in {
+        "hyworldplay_rvq_ours_avg2_accounting.v2",
+        "hyworldplay_rvq_ours_avg2_accounting.v3",
+        "hyworldplay_rvq_temporal_accounting.v4",
+    }:
+        state.kv_codec_nominal_k_bit_sum_peak = max(
+            state.kv_codec_nominal_k_bit_sum_peak,
+            int(accounting["selected_k_bit_sum"]),
+        )
+        state.kv_codec_nominal_v_bit_sum_peak = max(
+            state.kv_codec_nominal_v_bit_sum_peak,
+            int(accounting["selected_v_bit_sum"]),
+        )
+        state.kv_codec_avg2_physical_bytes_peak = max(
+            state.kv_codec_avg2_physical_bytes_peak,
+            int(accounting["physical_payload_bytes"]),
+        )
+
+
+def _offload_appended_cache_layer(
+    layer: dict,
+    previous_layer: dict,
+    layer_idx: int,
+) -> None:
+    """Encode one new span and preserve prior packed segments byte-for-byte."""
+
+    state = get_infer_state()
+    settings = _codec_settings()
+    previous_packed = previous_layer.get("_qvg_packed_vision_gpu")
+    if (
+        state is None
+        or not state.kv_cache_offload
+        or not state.append_only_vision_cache
+        or settings is None
+        or previous_packed is None
+    ):
+        _offload_cache_layer(layer, layer_idx)
+        return
+    k_vision, v_vision = layer.get("k_vision"), layer.get("v_vision")
+    if not torch.is_tensor(k_vision) or not torch.is_tensor(v_vision):
+        raise TypeError("append-only encoded cache requires materialized vision K/V")
+    span_tokens = int(state.kv_codec_frame_spatial_tokens) * 4
+    if int(k_vision.shape[2]) <= span_tokens:
+        raise ValueError("append-only packed update requires an existing history span")
+    new_k = k_vision[:, :, -span_tokens:, :].contiguous()
+    new_v = v_vision[:, :, -span_tokens:, :].contiguous()
+    bf16_bytes = int(
+        k_vision.numel() * k_vision.element_size()
+        + v_vision.numel() * v_vision.element_size()
+    )
+    gpu_resident = _retain_compressed_vision_on_gpu(state)
+    deferred_timer = _begin_deferred_codec_timer(state, k_vision.device)
+    started = time.perf_counter()
+    packed_k, packed_v = append_encoded_vision_kv(
+        previous_packed[0],
+        previous_packed[1],
+        new_k,
+        new_v,
+        layer_idx=int(layer_idx),
+        settings=settings,
+    )
+    if deferred_timer is not None:
+        deferred_timer[1].record()
+    if deferred_timer is None and k_vision.device.type == "cuda":
+        torch.cuda.synchronize(k_vision.device)
+    host_submit_elapsed = time.perf_counter() - started
+    encode_compute_elapsed = (
+        0.0 if deferred_timer is not None else host_submit_elapsed
+    )
+    if gpu_resident:
+        stored_k, stored_v = packed_k, packed_v
+        d2h_elapsed = 0.0
+    else:
+        d2h_started = time.perf_counter()
+        stored_k = tensor_tree_to(packed_k, torch.device("cpu"))
+        stored_v = tensor_tree_to(packed_v, torch.device("cpu"))
+        if k_vision.device.type == "cuda":
+            torch.cuda.synchronize(k_vision.device)
+        d2h_elapsed = time.perf_counter() - d2h_started
+    elapsed = encode_compute_elapsed + d2h_elapsed
+    state.add_part_seconds("kv_d2h", d2h_elapsed)
+    state.kv_codec_encode_count += 1
+    layer["k_vision"], layer["v_vision"] = stored_k, stored_v
+    for name in ("k_txt", "v_txt"):
+        value = layer.get(name)
+        if torch.is_tensor(value) and value.device.type != "cpu":
+            layer[name] = value.to("cpu")
+    payload_bytes = tensor_tree_nbytes((stored_k, stored_v))
+    accounting = packed_k.get("qvg_accounting")
+    history_tokens = int(k_vision.shape[2])
+    event = {
+        "layer": int(layer_idx),
+        "seconds": elapsed,
+        "encode_compute_seconds": encode_compute_elapsed,
+        "d2h_seconds": d2h_elapsed,
+        "bf16_bytes": bf16_bytes,
+        "payload_bytes": int(payload_bytes),
+        "history_tokens": history_tokens,
+        "history_spans": history_tokens // span_tokens,
+        "append_only": True,
+        "new_spans_encoded": 1,
+        "old_spans_reencoded": False,
+        "compressed_gpu_resident": gpu_resident,
+        "post_truncation_accounting": accounting,
+    }
+    _record_codec_accounting(state, accounting)
+    state.kv_codec_encode_events.append(event)
+    if deferred_timer is not None:
+        state.defer_codec_cuda_timing(
+            kind="encode",
+            event=event,
+            start_event=deferred_timer[0],
+            end_event=deferred_timer[1],
+            host_submit_seconds=host_submit_elapsed,
+            transfer_seconds=d2h_elapsed,
+        )
+    else:
+        state.add_part_seconds("kv_encode_compute", encode_compute_elapsed)
+        state.kv_codec_encode_seconds += elapsed
+    state.kv_cache_bf16_vision_bytes_peak = max(
+        state.kv_cache_bf16_vision_bytes_peak, bf16_bytes
+    )
+    state.kv_cache_compressed_vision_bytes_peak = max(
+        state.kv_cache_compressed_vision_bytes_peak,
+        tensor_tree_nbytes((stored_k, stored_v)),
+    )
+    state.kv_cache_offload_count += 1
+
+
+def _offload_cache_layer(layer: dict, layer_idx: int | None = None) -> None:
+    state = get_infer_state()
+    if state is None or not state.kv_cache_offload:
+        return
+    layer.pop("_qvg_attention_buffer", None)
+    packed = layer.pop("_qvg_packed_vision", None)
+    if packed is not None:
+        gpu_packed = layer.pop("_qvg_packed_vision_gpu", None)
+        if _retain_compressed_vision_on_gpu(state) and gpu_packed is not None:
+            layer["k_vision"], layer["v_vision"] = gpu_packed
+        else:
+            layer["k_vision"], layer["v_vision"] = packed
+        for name in ("k_txt", "v_txt"):
+            value = layer.get(name)
+            if torch.is_tensor(value) and value.device.type != "cpu":
+                layer[name] = value.to("cpu")
+    else:
+        settings = _codec_settings()
+        k_vision, v_vision = layer.get("k_vision"), layer.get("v_vision")
+        if (
+            state.kv_residual_stats_dir
+            and layer_idx is not None
+            and int(layer_idx) not in _KV_RESIDUAL_CAPTURED
+            and torch.is_tensor(k_vision)
+            and torch.is_tensor(v_vision)
+            and int(k_vision.shape[2])
+            == 9 * int(state.kv_codec_frame_spatial_tokens) * 4
+        ):
+            if layer_idx is None:
+                raise ValueError("layer_idx is required for residual-stat collection")
+            event = collect_terminal_residual_stats(
+                k_vision,
+                v_vision,
+                layer_idx=int(layer_idx),
+                prompt_index=int(state.kv_residual_stats_prompt_index),
+                output_root=state.kv_residual_stats_dir,
+                k_codebook_dir=state.kv_codec_k_codebook_dir,
+                v_codebook_dir=state.kv_codec_v_codebook_dir,
+                spatial_tokens=int(state.kv_codec_frame_spatial_tokens),
+                samples_per_head=int(state.kv_residual_stats_samples_per_head),
+                seed=int(state.kv_residual_stats_seed),
+            )
+            state.kv_residual_stats_events.append(event)
+            state.add_part_seconds("rvq_residual_stats", float(event["seconds"]))
+            _KV_RESIDUAL_CAPTURED.add(int(layer_idx))
+        if settings is not None and torch.is_tensor(k_vision) and torch.is_tensor(v_vision):
+            if layer_idx is None:
+                raise ValueError("layer_idx is required to compress vision KV")
+            bf16_bytes = k_vision.numel() * k_vision.element_size() + v_vision.numel() * v_vision.element_size()
+            _capture_vision_kv(k_vision, v_vision, int(layer_idx))
+            gpu_resident = _retain_compressed_vision_on_gpu(state)
+            deferred_timer = _begin_deferred_codec_timer(
+                state, k_vision.device
+            )
+            started = time.perf_counter()
+            packed_k, packed_v = encode_vision_kv(
+                k_vision, v_vision, layer_idx=layer_idx, settings=settings
+            )
+            if deferred_timer is not None:
+                deferred_timer[1].record()
+            if deferred_timer is None and k_vision.device.type == "cuda":
+                torch.cuda.synchronize(k_vision.device)
+            host_submit_elapsed = time.perf_counter() - started
+            encode_compute_elapsed = (
+                0.0 if deferred_timer is not None else host_submit_elapsed
+            )
+            if gpu_resident:
+                stored_k, stored_v = packed_k, packed_v
+                d2h_elapsed = 0.0
+            else:
+                d2h_started = time.perf_counter()
+                stored_k = tensor_tree_to(packed_k, torch.device("cpu"))
+                stored_v = tensor_tree_to(packed_v, torch.device("cpu"))
+                if k_vision.device.type == "cuda":
+                    torch.cuda.synchronize(k_vision.device)
+                d2h_elapsed = time.perf_counter() - d2h_started
+            elapsed = encode_compute_elapsed + d2h_elapsed
+            state.add_part_seconds("kv_d2h", d2h_elapsed)
+            state.kv_codec_encode_count += 1
+            layer["k_vision"] = stored_k
+            layer["v_vision"] = stored_v
+            for name in ("k_txt", "v_txt"):
+                value = layer.get(name)
+                if torch.is_tensor(value) and value.device.type != "cpu":
+                    layer[name] = value.to("cpu")
+            payload_bytes = tensor_tree_nbytes((stored_k, stored_v))
+            accounting = packed_k.get("qvg_accounting") if isinstance(packed_k, dict) else None
+            event = {
+                "layer": int(layer_idx),
+                "seconds": elapsed,
+                "encode_compute_seconds": encode_compute_elapsed,
+                "d2h_seconds": d2h_elapsed,
+                "bf16_bytes": int(bf16_bytes),
+                "payload_bytes": int(payload_bytes),
+                "history_tokens": int(k_vision.shape[2]),
+                "history_spans": int(k_vision.shape[2]) // (int(state.kv_codec_frame_spatial_tokens) * 4),
+                "compressed_gpu_resident": gpu_resident,
+            }
+            if accounting:
+                event["post_truncation_accounting"] = accounting
+                _record_codec_accounting(state, accounting)
+            state.kv_codec_encode_events.append(event)
+            if deferred_timer is not None:
+                state.defer_codec_cuda_timing(
+                    kind="encode",
+                    event=event,
+                    start_event=deferred_timer[0],
+                    end_event=deferred_timer[1],
+                    host_submit_seconds=host_submit_elapsed,
+                    transfer_seconds=d2h_elapsed,
+                )
+            else:
+                state.add_part_seconds(
+                    "kv_encode_compute", encode_compute_elapsed
+                )
+                state.kv_codec_encode_seconds += elapsed
+            state.kv_cache_bf16_vision_bytes_peak = max(
+                state.kv_cache_bf16_vision_bytes_peak, bf16_bytes
+            )
+            state.kv_cache_compressed_vision_bytes_peak = max(
+                state.kv_cache_compressed_vision_bytes_peak,
+                tensor_tree_nbytes((layer["k_vision"], layer["v_vision"])),
+            )
+        else:
+            if torch.is_tensor(k_vision) and torch.is_tensor(v_vision):
+                _capture_vision_kv(k_vision, v_vision, int(layer_idx))
+                bf16_bytes = k_vision.numel() * k_vision.element_size() + v_vision.numel() * v_vision.element_size()
+                started = time.perf_counter()
+            else:
+                started = None
+            _move_cache_layer(layer, torch.device("cpu"))
+            if started is not None:
+                elapsed = time.perf_counter() - started
+                state.add_part_seconds("kv_d2h", elapsed)
+                state.kv_codec_encode_seconds += elapsed
+                state.kv_codec_encode_count += 1
+                state.kv_codec_encode_events.append(
+                    {"layer": int(layer_idx), "seconds": elapsed, "encode_compute_seconds": 0.0, "d2h_seconds": elapsed, "bf16_bytes": int(bf16_bytes), "payload_bytes": int(bf16_bytes), "history_tokens": int(k_vision.shape[2]), "history_spans": int(k_vision.shape[2]) // (int(state.kv_codec_frame_spatial_tokens) * 4)}
+                )
+    state.kv_cache_offload_count += 1
+
+
+def record_cpu_cache_peak(*caches: list[dict]) -> None:
+    """Record aggregate CPU and compressed-CUDA KV residency."""
+    state = get_infer_state()
+    if state is None or not state.kv_cache_offload:
+        return
+    cpu_bytes = sum(
+        _cache_layer_nbytes(layer, "cpu")
+        for cache in caches
+        for layer in cache
+    )
+    state.kv_cache_cpu_bytes_peak = max(state.kv_cache_cpu_bytes_peak, cpu_bytes)
+    gpu_compressed_bytes = sum(
+        tensor_tree_nbytes(
+            (layer.get("k_vision"), layer.get("v_vision")), "cuda"
+        )
+        for cache in caches
+        for layer in cache
+        if isinstance(layer.get("k_vision"), dict)
+    )
+    state.kv_cache_gpu_compressed_bytes_current = gpu_compressed_bytes
+    state.kv_cache_gpu_compressed_bytes_peak = max(
+        state.kv_cache_gpu_compressed_bytes_peak, gpu_compressed_bytes
+    )
+
+
+def _record_non_kv_peak(*resident_layers: dict) -> None:
+    """Estimate the allocator peak with currently resident KV storage removed."""
+    state = get_infer_state()
+    if state is None or not state.kv_cache_offload or not torch.cuda.is_available():
+        return
+    resident_bytes = sum(
+        _cache_layer_nbytes(layer, "cuda") for layer in resident_layers
+    )
+    state.peak_allocated_excluding_kv_estimate_bytes = max(
+        state.peak_allocated_excluding_kv_estimate_bytes,
+        max(0, torch.cuda.max_memory_allocated() - resident_bytes),
+    )
 
 
 def is_blocks(n: str, m) -> bool:
@@ -1293,8 +2026,12 @@ class HunyuanVideo_1_5_DiffusionTransformer(ModelMixin, ConfigMixin):
             if cache_txt:
                 _kv_cache_new[index]["k_txt"] = t_kv["k_txt"]
                 _kv_cache_new[index]["v_txt"] = t_kv["v_txt"]
+                _record_non_kv_peak(_kv_cache_new[index])
+                _offload_cache_layer(_kv_cache_new[index], index)
+                del t_kv
 
         if cache_txt:
+            record_cpu_cache_peak(_kv_cache_new)
             return _kv_cache_new
 
     # using kv cache to calculate vision embedding
@@ -1389,8 +2126,28 @@ class HunyuanVideo_1_5_DiffusionTransformer(ModelMixin, ConfigMixin):
         freqs_cis = (freqs_cos, freqs_sin) if freqs_cos is not None else None
 
         # Pass through double-stream blocks
+        decode_prefetch = _cache_decode_prefetch_enabled(img.device)
+        prefetched_ready = (
+            _prefetch_cache_layer(kv_cache[0], img.device, 0)
+            if decode_prefetch and self.double_blocks
+            else None
+        )
         for index, block in enumerate(self.double_blocks):
             self.attn_param["layer-name"] = f"double_block_{index + 1}"
+
+            if prefetched_ready is None:
+                _onload_cache_layer(kv_cache[index], img.device, index)
+            else:
+                _adopt_prefetched_cache_layer(
+                    kv_cache[index], img.device, prefetched_ready
+                )
+                prefetched_ready = (
+                    _prefetch_cache_layer(
+                        kv_cache[index + 1], img.device, index + 1
+                    )
+                    if index + 1 < len(self.double_blocks)
+                    else None
+                )
 
             img, vision_kv = block(
                 bi_inference=False,
@@ -1409,8 +2166,23 @@ class HunyuanVideo_1_5_DiffusionTransformer(ModelMixin, ConfigMixin):
             if cache_vision:
                 _kv_cache_new[index]["k_vision"] = vision_kv["k_vision"]
                 _kv_cache_new[index]["v_vision"] = vision_kv["v_vision"]
+                _record_non_kv_peak(kv_cache[index], _kv_cache_new[index])
+                if (
+                    get_infer_state().append_only_vision_cache
+                    and get_infer_state().kv_cache_codec != "none"
+                ):
+                    _offload_appended_cache_layer(
+                        _kv_cache_new[index], kv_cache[index], index
+                    )
+                else:
+                    _offload_cache_layer(_kv_cache_new[index], index)
+                del vision_kv
+            else:
+                _record_non_kv_peak(kv_cache[index])
+            _offload_cache_layer(kv_cache[index], index)
 
         if cache_vision:
+            record_cpu_cache_peak(_kv_cache_new)
             return _kv_cache_new
 
         # Final Layer

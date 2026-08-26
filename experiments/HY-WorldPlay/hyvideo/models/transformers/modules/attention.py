@@ -45,6 +45,8 @@ except Exception:
 
 from hyvideo.models.transformers.modules.ssta_attention import ssta_3d_attention
 from hyvideo.commons.infer_state import get_infer_state
+from quant_videogen.hyworldplay_attention_calibration import calibrate_attention_once
+from quant_videogen.hyworldplay_append_only import append_vision_kv
 
 
 @torch.compiler.disable
@@ -237,27 +239,133 @@ def sequence_parallel_attention_vision(
     key = key.transpose(1, 2)
     value = value.transpose(1, 2)
 
-    cache_vision_key = kv_cache[block_idx]["k_vision"]  # previous key
-    cache_vision_value = kv_cache[block_idx]["v_vision"]  # previous value
+    cache_layer = kv_cache[block_idx]
+    cache_vision_key = cache_layer["k_vision"]  # previous key
+    cache_vision_value = cache_layer["v_vision"]  # previous value
+    attention_buffer = cache_layer.get("_qvg_attention_buffer")
+    history_key = cache_vision_key
+    history_value = cache_vision_value
+    if attention_buffer is not None:
+        leading_tokens = int(attention_buffer["leading_tokens"])
+        history_tokens = int(attention_buffer["history_tokens"])
+        trailing_tokens = int(attention_buffer["trailing_tokens"])
+        if (
+            not torch.is_tensor(cache_vision_key)
+            or not torch.is_tensor(cache_vision_value)
+            or cache_vision_key.shape != cache_vision_value.shape
+            or int(cache_vision_key.shape[2])
+            != leading_tokens + history_tokens + trailing_tokens
+        ):
+            raise ValueError("invalid preallocated HY attention buffer")
+        history_key = cache_vision_key[
+            :, :, leading_tokens : leading_tokens + history_tokens, :
+        ]
+        history_value = cache_vision_value[
+            :, :, leading_tokens : leading_tokens + history_tokens, :
+        ]
+
+    infer_state = get_infer_state()
+    append_only = bool(
+        cache_vision
+        and history_key is not None
+        and infer_state is not None
+        and infer_state.append_only_vision_cache
+    )
+    if append_only:
+        if attention_buffer is not None:
+            current_tokens = int(key.shape[2])
+            if current_tokens > trailing_tokens:
+                raise ValueError(
+                    "current HY span exceeds reserved attention suffix"
+                )
+            visual_start = leading_tokens
+            current_start = leading_tokens + history_tokens
+            cache_vision_key[
+                :, :, current_start : current_start + current_tokens, :
+            ].copy_(key)
+            cache_vision_value[
+                :, :, current_start : current_start + current_tokens, :
+            ].copy_(value)
+            key = cache_vision_key[
+                :, :, visual_start : current_start + current_tokens, :
+            ]
+            value = cache_vision_value[
+                :, :, visual_start : current_start + current_tokens, :
+            ]
+        else:
+            key = append_vision_kv(history_key, key)
+            value = append_vision_kv(history_value, value)
 
     vision_kv = {}
     if cache_vision:
         vision_kv["k_vision"] = key
         vision_kv["v_vision"] = value
 
-    if not cache_vision and cache_vision_key is not None:
-        key = torch.cat([cache_vision_key, key], dim=2)
-        value = torch.cat([cache_vision_value, value], dim=2)
+    if not cache_vision and history_key is not None:
+        if attention_buffer is not None:
+            current_tokens = int(key.shape[2])
+            if current_tokens > trailing_tokens:
+                raise ValueError(
+                    "current HY span exceeds reserved attention suffix"
+                )
+            current_start = leading_tokens + history_tokens
+            cache_vision_key[
+                :, :, current_start : current_start + current_tokens, :
+            ].copy_(key)
+            cache_vision_value[
+                :, :, current_start : current_start + current_tokens, :
+            ].copy_(value)
+            key = cache_vision_key[
+                :, :, leading_tokens : current_start + current_tokens, :
+            ]
+            value = cache_vision_value[
+                :, :, leading_tokens : current_start + current_tokens, :
+            ]
+        else:
+            key = torch.cat([history_key, key], dim=2)
+            value = torch.cat([history_value, value], dim=2)
 
     encoder_key = kv_cache[block_idx]["k_txt"]
     encoder_value = kv_cache[block_idx]["v_txt"]
     encoder_key = repeat(encoder_key, "B H S D->(B R) H S D", R=2)
     encoder_value = repeat(encoder_value, "B H S D->(B R) H S D", R=2)
 
-    key = torch.cat([encoder_key, key], dim=2)
-    value = torch.cat([encoder_value, value], dim=2)
+    if (
+        not cache_vision
+        and cache_vision_key is not None
+        and infer_state is not None
+        and infer_state.kv_avg2_calibration_dir
+    ):
+        calibrate_attention_once(
+            query=query,
+            history_k=history_key,
+            history_v=history_value,
+            current_k=key,
+            current_v=value,
+            text_k=encoder_key,
+            text_v=encoder_value,
+            layer_idx=int(block_idx),
+            state=infer_state,
+        )
 
-    infer_state = get_infer_state()
+    if attention_buffer is not None and (append_only or not cache_vision):
+        if int(encoder_key.shape[2]) != leading_tokens:
+            raise ValueError(
+                "text KV length disagrees with reserved attention prefix"
+            )
+        current_visual_tokens = int(key.shape[2])
+        cache_vision_key[:, :, :leading_tokens, :].copy_(encoder_key)
+        cache_vision_value[:, :, :leading_tokens, :].copy_(encoder_value)
+        key = cache_vision_key[
+            :, :, : leading_tokens + current_visual_tokens, :
+        ]
+        value = cache_vision_value[
+            :, :, : leading_tokens + current_visual_tokens, :
+        ]
+    else:
+        key = torch.cat([encoder_key, key], dim=2)
+        value = torch.cat([encoder_value, value], dim=2)
+
     enable_sageattn = (
         infer_state.enable_sageattn and block_idx in infer_state.sage_blocks_range
     )

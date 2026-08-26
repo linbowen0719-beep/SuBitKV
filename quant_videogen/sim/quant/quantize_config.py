@@ -349,6 +349,15 @@ class QuantizeConfig:
     rvq_relative_stop_fast_approximate: bool = False
     """Use one monolithic kernel; only FP32 near-tie assignments may differ."""
 
+    rvq_relative_stop_monolithic_exact: bool = False
+    """Use monolithic assignment plus exact BF16 early-stop MSE replay."""
+
+    rvq_relative_stop_exact_staged_k_layers: tuple[int, ...] = ()
+    """K layers that retain staged assignment under monolithic-exact mode."""
+
+    rvq_relative_stop_exact_staged_v_layers: tuple[int, ...] = ()
+    """V layers that retain staged assignment under monolithic-exact mode."""
+
     rvq_k_calibration: str = "none"
     """Post-RVQ K calibration mode: none, online, or offline."""
 

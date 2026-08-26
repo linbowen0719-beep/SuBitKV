@@ -3,6 +3,7 @@ Uncompress and dequantize for triton-xxx quant types (triton-nstages-kmeans-int2
 Mirrors the structure of compress.py: get_dequantize_fn + uncompress_kv_cache.
 """
 
+import os
 import re
 import time
 import torch
@@ -136,6 +137,10 @@ def _packed_state_device(packed_state: dict):
 
 
 def _start_dequant_timer(device: torch.device):
+    if os.getenv("QVG_CODEC_BREAKDOWN", "1").lower() in {
+        "0", "false", "no", "off", ""
+    }:
+        return None
     if device.type == "cuda":
         start_event = torch.cuda.Event(enable_timing=True)
         end_event = torch.cuda.Event(enable_timing=True)
@@ -146,7 +151,9 @@ def _start_dequant_timer(device: torch.device):
 
 def _stop_dequant_timer(timer, *, calls: int = 1):
     global _DEQUANT_CPU_SECONDS, _DEQUANT_CALLS
-    if isinstance(timer, tuple):
+    if timer is None:
+        pass
+    elif isinstance(timer, tuple):
         _, end_event = timer
         end_event.record()
         _DEQUANT_EVENT_PAIRS.append(timer)
@@ -157,6 +164,11 @@ def _stop_dequant_timer(timer, *, calls: int = 1):
 
 def uncompress_temporal_adaptive_residual_states(
     caches: list[dict],
+    *,
+    leading_tokens: int = 0,
+    trailing_tokens: int = 0,
+    output_layout: str = "BHSD",
+    validate_states: bool = True,
 ) -> torch.Tensor:
     """Decode consecutive temporal states directly into one BHSD buffer.
 
@@ -178,7 +190,12 @@ def uncompress_temporal_adaptive_residual_states(
     timer = _start_dequant_timer(_packed_state_device(caches[0]))
     try:
         return decode_temporal_adaptive_residual_states(
-            caches, output_dtype=output_dtypes[0]
+            caches,
+            output_dtype=output_dtypes[0],
+            leading_tokens=leading_tokens,
+            trailing_tokens=trailing_tokens,
+            output_layout=output_layout,
+            validate_states=validate_states,
         )
     finally:
         _stop_dequant_timer(timer, calls=len(caches))
@@ -221,7 +238,28 @@ def svd_triton_prq_dequantize_tensor(
     return reconstruct_svd_lowrank(packed_state["svd_factors"], output_dtype) + residual
 
 
-def uncompress_single_kv_cache(cache: torch.Tensor | dict) -> torch.Tensor:
+def _segmented_decode_backend(explicit: str | None) -> str:
+    backend = (
+        explicit
+        if explicit is not None
+        else os.getenv("QVG_HY_SEGMENTED_DECODE_BACKEND", "legacy")
+    )
+    normalized = str(backend).strip().lower()
+    if normalized not in {"legacy", "preallocated"}:
+        raise ValueError(
+            "segmented decode backend must be legacy or preallocated, "
+            f"got {backend!r}"
+        )
+    return normalized
+
+
+def uncompress_single_kv_cache(
+    cache: torch.Tensor | dict,
+    *,
+    segmented_backend: str | None = None,
+    leading_tokens: int = 0,
+    trailing_tokens: int = 0,
+) -> torch.Tensor:
     if not isinstance(cache, dict):
         return cache
 
@@ -229,9 +267,43 @@ def uncompress_single_kv_cache(cache: torch.Tensor | dict) -> torch.Tensor:
         segments = cache.get("segments", [])
         if not segments:
             raise ValueError("Segmented KV cache has no segments")
+        ordered = sorted(segments, key=lambda item: int(item["start"]))
+        backend = _segmented_decode_backend(segmented_backend)
+        states = [segment["cache"] for segment in ordered]
+        if backend == "preallocated" and all(
+            isinstance(state, dict)
+            and state.get("quant_method") == TEMPORAL_ADAPTIVE_RESIDUAL_METHOD
+            for state in states
+        ):
+            if int(cache.get("seq_dim", 2)) != 2:
+                raise ValueError(
+                    "preallocated temporal segmented decode requires BHSD seq_dim=2"
+                )
+            state_signature = tuple(id(state) for state in states)
+            already_validated = (
+                cache.get("_qvg_preallocated_validated_signature")
+                == state_signature
+            )
+            result = uncompress_temporal_adaptive_residual_states(
+                states,
+                leading_tokens=leading_tokens,
+                trailing_tokens=trailing_tokens,
+                output_layout="BHSD",
+                validate_states=not already_validated,
+            )
+            cache["_qvg_preallocated_validated_signature"] = state_signature
+            return result
+        if int(leading_tokens) or int(trailing_tokens):
+            raise ValueError(
+                "reserved decode tokens require the preallocated temporal backend"
+            )
         parts = []
-        for segment in sorted(segments, key=lambda item: int(item["start"])):
-            parts.append(uncompress_single_kv_cache(segment["cache"]))
+        for segment in ordered:
+            parts.append(
+                uncompress_single_kv_cache(
+                    segment["cache"], segmented_backend=backend
+                )
+            )
         return torch.cat(parts, dim=int(cache.get("seq_dim", 2))).contiguous()
 
     if cache.get("quant_method") == KIVI_METHOD:
@@ -655,6 +727,10 @@ def uncompress_single_kv_cache(cache: torch.Tensor | dict) -> torch.Tensor:
 def uncompress_kv_cache(
     k_cache: torch.Tensor | dict,
     v_cache: torch.Tensor | dict,
+    *,
+    segmented_backend: str | None = None,
+    leading_tokens: int = 0,
+    trailing_tokens: int = 0,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     """
     Uncompress (and dequantize) one layer of KV cache, mirroring compress_kv_cache.
@@ -679,4 +755,81 @@ def uncompress_kv_cache(
     if not isinstance(k_cache, dict) or not isinstance(v_cache, dict):
         return k_cache, v_cache
 
-    return uncompress_single_kv_cache(k_cache), uncompress_single_kv_cache(v_cache)
+    backend = _segmented_decode_backend(segmented_backend)
+    if _parallel_preallocated_kv_decode_enabled(k_cache, v_cache, backend):
+        device = _packed_state_device(k_cache)
+        current_stream = torch.cuda.current_stream(device)
+        k_stream, v_stream = _hy_parallel_decode_streams(device)
+        k_stream.wait_stream(current_stream)
+        v_stream.wait_stream(current_stream)
+        with torch.cuda.stream(k_stream):
+            restored_k = uncompress_single_kv_cache(
+                k_cache,
+                segmented_backend=backend,
+                leading_tokens=leading_tokens,
+                trailing_tokens=trailing_tokens,
+            )
+        with torch.cuda.stream(v_stream):
+            restored_v = uncompress_single_kv_cache(
+                v_cache,
+                segmented_backend=backend,
+                leading_tokens=leading_tokens,
+                trailing_tokens=trailing_tokens,
+            )
+        current_stream.wait_stream(k_stream)
+        current_stream.wait_stream(v_stream)
+        restored_k.record_stream(current_stream)
+        restored_v.record_stream(current_stream)
+        return restored_k, restored_v
+
+    return (
+        uncompress_single_kv_cache(
+            k_cache,
+            segmented_backend=backend,
+            leading_tokens=leading_tokens,
+            trailing_tokens=trailing_tokens,
+        ),
+        uncompress_single_kv_cache(
+            v_cache,
+            segmented_backend=backend,
+            leading_tokens=leading_tokens,
+            trailing_tokens=trailing_tokens,
+        ),
+    )
+
+
+_HY_PARALLEL_DECODE_STREAMS: dict[
+    int, tuple[torch.cuda.Stream, torch.cuda.Stream]
+] = {}
+
+
+def _hy_parallel_decode_streams(
+    device: torch.device,
+) -> tuple[torch.cuda.Stream, torch.cuda.Stream]:
+    index = int(device.index if device.index is not None else torch.cuda.current_device())
+    streams = _HY_PARALLEL_DECODE_STREAMS.get(index)
+    if streams is None:
+        with torch.cuda.device(index):
+            streams = (torch.cuda.Stream(), torch.cuda.Stream())
+        _HY_PARALLEL_DECODE_STREAMS[index] = streams
+    return streams
+
+
+def _parallel_preallocated_kv_decode_enabled(
+    k_cache: dict, v_cache: dict, backend: str
+) -> bool:
+    if backend != "preallocated" or os.getenv(
+        # Two independent streams are retained as an opt-in experiment.  On
+        # RTX 6000 Ada the K/V decoders contend for the same memory subsystem
+        # and measured slightly slower, so the production default is serial.
+        "QVG_HY_PARALLEL_KV_DECODE", "0"
+    ).strip().lower() in {"0", "false", "no", "off"}:
+        return False
+    if not (
+        k_cache.get("quant_method") == "segmented"
+        and v_cache.get("quant_method") == "segmented"
+    ):
+        return False
+    k_device = _packed_state_device(k_cache)
+    v_device = _packed_state_device(v_cache)
+    return k_device.type == "cuda" and k_device == v_device
