@@ -1,0 +1,55 @@
+#!/bin/bash -l
+#PBS -N hy-i2v-cap
+#PBS -A SDR
+#PBS -q capacity
+#PBS -l select=1:system=polaris
+#PBS -l place=scatter
+#PBS -l walltime=05:00:00
+#PBS -l filesystems=home:grand
+#PBS -j oe
+#PBS -o /lus/grand/projects/SDR/chengming/zhenghui/ICLR2026_RVQ_polaris/logs/
+
+# A single-node stage (train / gate) that has to go through prod because the
+# debug queues allow one running job per user and prod's floor is 10 nodes.
+# Only rank 0 works; the other nine idle.  Wasteful, but prod is the only queue
+# with turnaround right now, and these stages are short.
+#
+# qsub -v QVG_STAGE=gate hy_i2v_prod_single.pbs
+
+set -uo pipefail
+ulimit -c 0
+DATA_ROOT=/lus/grand/projects/SDR/chengming/zhenghui/ICLR2026_RVQ_polaris
+. "${DATA_ROOT}/hy_i2v.env"
+STAGE="${QVG_STAGE:?}"
+RUN_ID="${QVG_RUN_ID:-hy-main-r1}"
+
+module use /soft/modulefiles
+module load conda
+module load cudatoolkit-standalone/12.8.1
+# Triton JIT-compiles a C helper at first kernel launch and picks up $CC; the
+# default PrgEnv-nvidia hands it nvc, which rejects -Wno-psabi.  gcc-native is
+# what the debug-queue script already loads and what build_env validated.
+module load gcc-native/14
+export CC=/usr/bin/gcc-14 CXX=/usr/bin/g++-14
+export PYTHONPATH="${QVG_REPO_ROOT}:${PYTHONPATH:-}"
+export PYTHONNOUSERSITE=1
+export OPENBLAS_NUM_THREADS=2 OMP_NUM_THREADS=2
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+export HF_HOME="${DATA_ROOT}/cache/huggingface"
+export TRANSFORMERS_CACHE="${HF_HOME}"
+export TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD=1
+export http_proxy=http://proxy.alcf.anl.gov:3128
+export https_proxy=http://proxy.alcf.anl.gov:3128
+export HTTP_PROXY="${http_proxy}" HTTPS_PROXY="${https_proxy}"
+export PATH="$(dirname "${QVG_VBENCH}"):${PATH}"
+
+cd "${QVG_REPO_ROOT}"
+# Full dependency + attempt-budget check before touching a GPU; quarantines any
+# capture prompt that has burned all 3 attempts so resume does not abort.
+jobs/polaris/hy_i2v_preflight.sh || { echo "PREFLIGHT FAILED"; exit 2; }
+echo "job: ${PBS_JOBID}  stage: ${STAGE}  host: $(hostname -s)  $(date)"
+"${QVG_PYTHON}" scripts/main/hyworldplay_i2v.py \
+  --run-id "${RUN_ID}" --gpus 0,1,2,3 --resume --execute "${STAGE}"
+rc=$?
+echo "=== ${STAGE} rc=${rc}  $(date) ==="
+exit "${rc}"

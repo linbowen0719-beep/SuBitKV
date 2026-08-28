@@ -1,0 +1,111 @@
+#!/bin/bash -l
+#PBS -N hy-i2v-fetch
+#PBS -A SDR
+#PBS -q debug-scaling
+#PBS -l select=1:system=polaris
+#PBS -l place=scatter
+#PBS -l walltime=01:00:00
+#PBS -l filesystems=home:grand
+#PBS -j oe
+#PBS -o /lus/grand/projects/SDR/chengming/zhenghui/ICLR2026_RVQ_polaris/logs/
+
+# Stage the three prerequisites doctor reports missing.  All three are public;
+# none of them has to come from Bowen.
+#
+#   1. HunyuanVideo-1.5, 480p_i2v only.  The repo carries eleven 33 GB
+#      transformer variants (372 GB total) but generate.py:732 asserts
+#      transformer_version == "480p_i2v", and the pipeline loads only
+#      transformer/<version>, vae/ and scheduler/.  38 GB instead of 372 GB.
+#   2. ar_distilled_action_model, from tencent/HY-WorldPlay — the same repo the
+#      existing download_models.sh already uses for the Wan weights.
+#   3. meta-ai-for-media-research/movie_gen_video_bench, 16 GB.  Verified to
+#      match what prepare_moviegen_i2v.py demands: exactly 33
+#      test_with_generations shards plus data/test-00000-of-00001.parquet.
+#
+# Queue: preemptable with a short 2 h window.  capacity looked right — it is
+# non-preemptable — but it allows one running job per project, and the account
+# already has work queued there; the two only block each other, so capacity is
+# left free.  A 2 h request also backfills into gaps that a 6 h one cannot.
+# Being preempted costs nothing here: hf_hub_download resumes, and the verify
+# block at the end reports what is still missing.
+#
+# Run as a job rather than from a shell: a killed transfer of a 33 GB file
+# leaves a truncated artifact, and hf_hub_download's resume needs to own the
+# whole attempt.  Everything is idempotent — already-complete files are skipped.
+
+set -uo pipefail
+ulimit -c 0
+
+DATA_ROOT=/lus/grand/projects/SDR/chengming/zhenghui/ICLR2026_RVQ_polaris
+. "${DATA_ROOT}/hy_i2v.env"
+
+module use /soft/modulefiles
+module load conda
+export PYTHONNOUSERSITE=1
+export http_proxy=http://proxy.alcf.anl.gov:3128
+export https_proxy=http://proxy.alcf.anl.gov:3128
+export HTTP_PROXY="${http_proxy}" HTTPS_PROXY="${https_proxy}"
+# Keep the HF cache on Grand: the login environment points HF_HOME at another
+# project's Eagle space, and 38 GB must not land there or in /home.
+export HF_HOME="${DATA_ROOT}/cache/huggingface"
+export HF_HUB_ENABLE_HF_TRANSFER=0
+mkdir -p "${HF_HOME}"
+
+echo "job: ${PBS_JOBID}  host: $(hostname -s)  $(date)"
+df -h /lus/grand | tail -1
+
+"${QVG_PYTHON}" - <<'PYEOF'
+import os, sys
+from pathlib import Path
+from huggingface_hub import hf_hub_download
+
+CK = Path(os.environ["QVG_CKPT_ROOT"])
+HY8B = Path(os.environ["QVG_HY8B_MODEL"])
+MG = Path(os.environ["QVG_MOVIEGEN_ROOT"])
+
+def grab(repo, files, dest, repo_type="model"):
+    dest.mkdir(parents=True, exist_ok=True)
+    for rel in files:
+        target = dest / rel
+        if target.is_file() and target.stat().st_size > 0:
+            print(f"  skip {rel} ({target.stat().st_size/1e9:.2f} GB)", flush=True)
+            continue
+        print(f"  get  {repo}:{rel}", flush=True)
+        p = hf_hub_download(repo_id=repo, filename=rel, repo_type=repo_type,
+                            local_dir=str(dest), resume_download=True)
+        print(f"       -> {Path(p).stat().st_size/1e9:.2f} GB", flush=True)
+
+print("=== 1/3 HunyuanVideo-1.5 (480p_i2v only) ===", flush=True)
+grab("tencent/HunyuanVideo-1.5", [
+    "config.json",
+    "scheduler/scheduler_config.json",
+    "vae/config.json",
+    "vae/diffusion_pytorch_model.safetensors",
+    "transformer/480p_i2v/config.json",
+    "transformer/480p_i2v/diffusion_pytorch_model.safetensors",
+], HY8B)
+
+print("=== 2/3 ar_distilled_action_model ===", flush=True)
+grab("tencent/HY-WorldPlay", ["ar_distilled_action_model/model.safetensors"],
+     CK / "HY-WorldPlay")
+
+print("=== 3/3 MovieGen video bench ===", flush=True)
+files = ["data/test-00000-of-00001.parquet"] + [
+    f"data/test_with_generations-{i:05d}-of-00033.parquet" for i in range(33)]
+grab("meta-ai-for-media-research/movie_gen_video_bench", files, MG,
+     repo_type="dataset")
+PYEOF
+rc=$?
+
+echo "=== verify  $(date) ==="
+for p in "${QVG_HY8B_MODEL}/transformer/480p_i2v/diffusion_pytorch_model.safetensors" \
+         "${QVG_HY8B_MODEL}/vae/diffusion_pytorch_model.safetensors" \
+         "${QVG_HY_ACTION_CKPT}" \
+         "${QVG_MOVIEGEN_ROOT}/data/test-00000-of-00001.parquet"; do
+  if [ -s "$p" ]; then echo "  ok   $(du -h "$p" | cut -f1)  ${p##*/}"; else echo "  MISS $p"; rc=1; fi
+done
+n=$(ls "${QVG_MOVIEGEN_ROOT}/data"/test_with_generations-*.parquet 2>/dev/null | wc -l)
+echo "  shards ${n}/33"
+[ "${n}" -eq 33 ] || rc=1
+[ "${rc}" -eq 0 ] && echo "ASSETS READY" || echo "INCOMPLETE — resubmit resumes"
+exit "${rc}"

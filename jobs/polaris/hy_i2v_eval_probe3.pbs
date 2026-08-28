@@ -1,0 +1,113 @@
+#!/bin/bash -l
+#PBS -N hy-i2v-eval3
+#PBS -A SDR
+#PBS -q debug
+#PBS -l select=1:system=polaris
+#PBS -l place=scatter
+#PBS -l walltime=01:00:00
+#PBS -l filesystems=home:grand
+#PBS -j oe
+#PBS -o /lus/grand/projects/SDR/chengming/zhenghui/ICLR2026_RVQ_polaris/logs/
+
+# Third and final evaluate probe.  The first two failed on the probe's own
+# inputs, not the pipeline: 15-frame smoke clips against a script that requires
+# 157, and a plain-text prompt file where VBench wants the JSON name->prompt map
+# that prepare_vbench_inputs writes.  This one uses the real 157-frame dev
+# videos and reuses the pipeline's own helpers (trim_vbench_input,
+# prepare_vbench_inputs conventions) so a pass here means the scheduled
+# evaluate stage will work.
+# Reads the real generation tree; writes only under tmp/eval_probe3.
+set -uo pipefail
+ulimit -c 0
+export DATA_ROOT=/lus/grand/projects/SDR/chengming/zhenghui/ICLR2026_RVQ_polaris
+. "${DATA_ROOT}/hy_i2v.env"
+module use /soft/modulefiles; module load conda; module load cudatoolkit-standalone/12.8.1
+module load gcc-native/14
+export CC=/usr/bin/gcc-14 CXX=/usr/bin/g++-14
+export PYTHONPATH="${QVG_REPO_ROOT}:${PYTHONPATH:-}" PYTHONNOUSERSITE=1
+export OPENBLAS_NUM_THREADS=2 OMP_NUM_THREADS=2
+export HF_HOME="${DATA_ROOT}/cache/huggingface" TORCH_HOME="${DATA_ROOT}/cache/torch"
+export http_proxy=http://proxy.alcf.anl.gov:3128 https_proxy=http://proxy.alcf.anl.gov:3128
+export HTTP_PROXY="${http_proxy}" HTTPS_PROXY="${https_proxy}"
+export PATH="$(dirname "${QVG_VBENCH}"):${PATH}"
+mkdir -p "${TORCH_HOME}"
+
+REAL="${QVG_OUTPUT_ROOT}/hyworldplay-moviegen-i2v-20-973/hy-main-r1"
+MAN="${QVG_DATA_ROOT}/hyworldplay-moviegen-i2v-20-973/artifacts/inputs/manifest.json"
+P="${DATA_ROOT}/tmp/eval_probe3"; rm -rf "${P}"; mkdir -p "${P}"
+echo "job ${PBS_JOBID} host $(hostname -s) $(date)"
+cd "${QVG_REPO_ROOT}"
+
+echo "=== 1/3 real similarity script on real 157-frame dev videos ==="
+"${QVG_PYTHON}" scripts/HY-WorldPlay/evaluate_moviegen_i2v_dataset.py \
+  --generation-root "${REAL}/generation" --manifest "${MAN}" \
+  --split dev --method ours_rvq_avg2 --output-dir "${P}/similarity" \
+  --device cuda \
+  --codebook-root "${QVG_DATA_ROOT}/hyworldplay-moviegen-i2v-20-973/artifacts" 2>&1 | tail -8
+rc1=${PIPESTATUS[0]}; echo "  similarity rc=${rc1}"
+"${QVG_PYTHON}" - <<'PYEOF'
+import json, glob, os
+from pathlib import Path
+P = Path(os.environ["DATA_ROOT"]) / "tmp/eval_probe3/similarity"
+for f in sorted(P.rglob("*.json")):
+    d = json.load(open(f))
+    if isinstance(d, dict):
+        rows = d.get("rows") or d.get("results") or []
+        keys = [k for k in ("psnr", "ssim", "lpips") if k in json.dumps(d)[:4000]]
+        print(f"  {f.name}: keys={sorted(d)[:6]} metrics_seen={keys} rows={len(rows) if isinstance(rows,list) else 'n/a'}")
+        if isinstance(rows, list) and rows:
+            r = rows[0]
+            print("   sample:", {k: r[k] for k in list(r)[:5]})
+PYEOF
+
+echo "=== 2/3 VBench with the pipeline's own input convention ==="
+"${QVG_PYTHON}" - <<'PYEOF'
+import json, os, sys
+from pathlib import Path
+sys.path.insert(0, os.environ["QVG_REPO_ROOT"])
+sys.argv = ["probe"]
+from scripts.main.hyworldplay_i2v import trim_vbench_input, successful_attempt
+P = Path(os.environ["DATA_ROOT"]) / "tmp/eval_probe3"
+REAL = Path(os.environ["QVG_OUTPUT_ROOT"]) / "hyworldplay-moviegen-i2v-20-973/hy-main-r1"
+man = json.load(open(Path(os.environ["QVG_DATA_ROOT"]) / "hyworldplay-moviegen-i2v-20-973/artifacts/inputs/manifest.json"))
+rows = [r for r in man["records"] if r["split"] == "dev"][:3]
+indir = P / "vb/inputs"; indir.mkdir(parents=True, exist_ok=True)
+pm = {}
+for r in rows:
+    dr = int(r["dataset_row"])
+    ok = successful_attempt(REAL / "generation/dev/bf16" / f"row_{dr:04d}")
+    assert ok is not None, f"row {dr} missing"
+    tgt = indir / f"row_{dr:04d}.mp4"
+    trim_vbench_input(ok / "gen.mp4", tgt)
+    pm[tgt.name] = r["prompt"]
+json.dump(pm, open(P / "vb/prompts.json", "w"), indent=2, ensure_ascii=False)
+print(f"  prepared {len(pm)} trimmed videos + JSON prompt map", flush=True)
+PYEOF
+[ $? -eq 0 ] || { echo "PROBE3 FAILED at vbench input prep"; exit 1; }
+rc2=0
+for dim in subject_consistency background_consistency imaging_quality aesthetic_quality; do
+  timeout 900 "${QVG_VBENCH}" evaluate --ngpus 1 --output_path "${P}/vb/out_${dim}" \
+    --videos_path "${P}/vb/inputs" --dimension "${dim}" \
+    --mode custom_input --prompt_file "${P}/vb/prompts.json" > "${P}/vb/${dim}.log" 2>&1
+  r=$?; n=$(find "${P}/vb/out_${dim}" -name '*_eval_results.json' 2>/dev/null | wc -l)
+  echo "  ${dim}: rc=${r} 结果文件=${n}"
+  [ "${n}" -eq 0 ] && { rc2=1; grep -aE 'Error|Traceback|assert|No such|KeyError' "${P}/vb/${dim}.log" | tail -3 | sed 's/^/     /'; }
+done
+
+echo "=== 3/3 scores readable ==="
+"${QVG_PYTHON}" - <<'PYEOF'
+import json, os
+from pathlib import Path
+P = Path(os.environ["DATA_ROOT"]) / "tmp/eval_probe3/vb"
+n = 0
+for f in sorted(P.rglob("*_eval_results.json")):
+    d = json.load(open(f))
+    for k, v in (d.items() if isinstance(d, dict) else []):
+        val = v[0] if isinstance(v, list) and v else v
+        if isinstance(val, (int, float)):
+            print(f"  {k} = {val:.4f}"); n += 1
+print("  SCORES READ:", n)
+PYEOF
+rc3=$?
+[ "${rc1}" -eq 0 ] && [ "${rc2}" -eq 0 ] && [ "${rc3}" -eq 0 ] \
+  && echo "EVAL PROBE3 PASSED" || echo "EVAL PROBE3 FAILED sim=${rc1} vbench=${rc2} scores=${rc3}"

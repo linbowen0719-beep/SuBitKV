@@ -1,0 +1,74 @@
+#!/bin/bash -l
+#PBS -N hy-i2v-txt
+#PBS -A SDR
+#PBS -q debug-scaling
+#PBS -l select=1:system=polaris
+#PBS -l place=scatter
+#PBS -l walltime=01:00:00
+#PBS -l filesystems=home:grand
+#PBS -j oe
+#PBS -o /lus/grand/projects/SDR/chengming/zhenghui/ICLR2026_RVQ_polaris/logs/
+
+# The three text-encoder components HunyuanVideo-1.5 needs but does not ship.
+#
+# Found the hard way: train died with "Object of type PosixPath is not JSON
+# serializable", which turned out to be a reporting bug masking the real error
+# three levels down — "Glyph checkpoint not found from .../text_encoder/
+# Glyph-SDXL-v2".  glyph_byT5_v2 is not optional here: transformer/480p_i2v/
+# config.json sets it True, so the weights themselves require the glyph path.
+#
+# Per the upstream checkpoints-download.md:
+#   MLLM        Qwen/Qwen2.5-VL-7B-Instruct   -> text_encoder/llm        16.6 GB
+#   byT5        google/byt5-small             -> text_encoder/byt5-small
+#   glyph       AI-ModelScope/Glyph-SDXL-v2   -> text_encoder/Glyph-SDXL-v2
+#
+# Glyph lives on ModelScope, not HuggingFace, so it uses the modelscope CLI.
+
+set -uo pipefail
+ulimit -c 0
+
+DATA_ROOT=/lus/grand/projects/SDR/chengming/zhenghui/ICLR2026_RVQ_polaris
+. "${DATA_ROOT}/hy_i2v.env"
+
+module use /soft/modulefiles
+module load conda
+export PYTHONNOUSERSITE=1
+export OPENBLAS_NUM_THREADS=1
+export http_proxy=http://proxy.alcf.anl.gov:3128
+export https_proxy=http://proxy.alcf.anl.gov:3128
+export HTTP_PROXY="${http_proxy}" HTTPS_PROXY="${https_proxy}"
+export HF_HOME="${DATA_ROOT}/cache/huggingface"
+export MODELSCOPE_CACHE="${DATA_ROOT}/cache/modelscope"
+mkdir -p "${HF_HOME}" "${MODELSCOPE_CACHE}"
+
+TE="${QVG_HY8B_MODEL}/text_encoder"
+mkdir -p "${TE}"
+echo "job: ${PBS_JOBID}  host: $(hostname -s)  $(date)"
+
+# Exactly the three commands in HunyuanVideo-1.5's checkpoints-download.md,
+# pointed at this model root.  Both CLIs resume, so re-running is a no-op
+# check once the files are present.
+HF="${QVG_VENV}/bin/hf"; [ -x "${HF}" ] || HF="${QVG_VENV}/bin/huggingface-cli"
+MS="${QVG_VENV}/bin/modelscope"
+
+echo "=== 1/3 hf download Qwen/Qwen2.5-VL-7B-Instruct -> text_encoder/llm ==="
+"${HF}" download Qwen/Qwen2.5-VL-7B-Instruct --local-dir "${TE}/llm"
+
+echo "=== 2/3 hf download google/byt5-small -> text_encoder/byt5-small ==="
+"${HF}" download google/byt5-small --local-dir "${TE}/byt5-small"
+
+echo "=== 3/3 modelscope download AI-ModelScope/Glyph-SDXL-v2 -> text_encoder/Glyph-SDXL-v2 ==="
+"${MS}" download --model AI-ModelScope/Glyph-SDXL-v2 --local_dir "${TE}/Glyph-SDXL-v2"
+
+echo "=== verify  $(date) ==="
+RC=0
+for p in "${TE}/llm/config.json" \
+         "${TE}/byt5-small/config.json" \
+         "${TE}/Glyph-SDXL-v2/checkpoints/byt5_model.pt" \
+         "${TE}/Glyph-SDXL-v2/assets/color_idx.json" \
+         "${TE}/Glyph-SDXL-v2/assets/multilingual_10-lang_idx.json"; do
+  if [ -s "$p" ]; then echo "  ok   ${p#${TE}/}"; else echo "  MISS ${p#${TE}/}"; RC=1; fi
+done
+du -sh "${TE}"/* 2>/dev/null | sed 's/^/  /'
+[ "${RC}" -eq 0 ] && echo "TEXT ENCODERS READY" || echo "INCOMPLETE — resubmit resumes"
+exit "${RC}"

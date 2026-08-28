@@ -78,8 +78,12 @@ def write_create(path: Path, payload: Any) -> None:
 def write_status(path: Path, payload: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(".tmp")
+    # The failure row carries Path objects (log/output locations).  Without a
+    # default, json.dumps raised TypeError at exactly the moment a GPU task had
+    # exhausted its attempts — replacing the real error ("Glyph checkpoint not
+    # found ...", three log levels down) with a serialisation traceback.
     temporary.write_text(
-        json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
+        json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False, default=str) + "\n",
         encoding="utf-8",
     )
     temporary.replace(path)
@@ -387,6 +391,7 @@ def generate_tasks(
     records: list[dict[str, Any]],
     gpus: tuple[int, ...],
     resume: bool,
+    shard_index: int = 0,
 ) -> list[dict[str, Any]]:
     manifest = Path(config["paths"]["manifest"])
     generation_root = run_dir / "generation"
@@ -428,7 +433,13 @@ def generate_tasks(
             command.append("--terminal-cache-audit")
         return command, {}, attempt_root / "launcher.log"
 
-    status_path = generation_root / split / "status.json"
+    # Per-shard, matching what the evaluate and vbench stages already do
+    # (status_shard_XXXX.json).  write_status stages through
+    # "<name>.tmp" in the same directory, so concurrent shards writing one
+    # shared status.json race on that temp file and die with FileNotFoundError
+    # in os.replace.  Resume keys off successful_attempt(parent), not this
+    # file, so the split does not re-run any finished video.
+    status_path = generation_root / split / f"status_shard_{int(shard_index):04d}.json"
     return run_gpu_queue(
         tasks,
         gpus=gpus,
@@ -652,6 +663,7 @@ def command_generate(args: argparse.Namespace) -> int:
         records=records,
         gpus=parse_gpus(args.gpus),
         resume=args.resume,
+        shard_index=args.shard_index,
     )
     return 0
 
@@ -784,7 +796,27 @@ def run_short_model_gate(
                     for row in events
                     if isinstance(row.get("post_truncation_accounting"), dict)
                 ]
-                if any(row.get("old_spans_reencoded", False) for row in accounting):
+                # old_spans_reencoded is defined as `not append_only`
+                # (hyworldplay8b_cache_codec.py:685), so the very first encode of
+                # each layer sets it: there is no history to append to yet, and
+                # nothing was actually re-encoded.  Auditing every row therefore
+                # fails for every ours_rvq_* method by construction -- the
+                # observed three_chunk sequence is exactly 54 initial encodes
+                # followed by 54 appends, i.e. the mechanism working correctly.
+                # Assert what the gate is actually for: append-only must engage
+                # and must never fall back once it has.
+                # FLAG FOR BOWEN: confirm this is the intended invariant.
+                if str(task["method"]).startswith("ours_rvq_"):
+                    flags = [
+                        bool(row.get("append_only_history")) for row in accounting
+                    ]
+                    if accounting and not any(flags):
+                        failures.append(
+                            f"{task['method']} never used the append-only path"
+                        )
+                    elif any(flags) and not all(flags[flags.index(True):]):
+                        failures.append(f"{task['method']} re-encoded an old span")
+                elif any(row.get("old_spans_reencoded", False) for row in accounting):
                     failures.append(f"{task['method']} re-encoded an old span")
                 if any(int(row.get("new_spans_encoded", 1)) != 1 for row in accounting):
                     failures.append(f"{task['method']} encoded more than one new span per event")

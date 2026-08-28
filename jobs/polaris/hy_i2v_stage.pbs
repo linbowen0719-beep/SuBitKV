@@ -1,0 +1,84 @@
+#!/bin/bash -l
+#PBS -N hy-i2v-stage
+#PBS -A SDR
+#PBS -q debug
+#PBS -l select=1:system=polaris
+#PBS -l place=scatter
+#PBS -l walltime=01:00:00
+#PBS -l filesystems=home:grand
+#PBS -j oe
+#PBS -o /lus/grand/projects/SDR/chengming/zhenghui/ICLR2026_RVQ_polaris/logs/
+
+# One stage of the HY-WorldPlay 8B i2v pipeline.
+#
+#   qsub -v QVG_STAGE=prepare-data                        hy_i2v_stage.pbs
+#   qsub -v QVG_STAGE=train                               hy_i2v_stage.pbs
+#   qsub -v QVG_STAGE=gate                                hy_i2v_stage.pbs
+#   qsub -v QVG_STAGE=generate,QVG_SHARD=0,QVG_NSHARDS=10 hy_i2v_stage.pbs
+#   qsub -v QVG_STAGE=evaluate,QVG_SHARD=0,QVG_NSHARDS=10 hy_i2v_stage.pbs
+#
+# Deliberately NOT the `all` subcommand: command_all overwrites the sharding
+# with shard_index=0 / num_shards=1 (scripts/main/hyworldplay_i2v.py:1255-1256),
+# so `all` always means the full 973 rows.  The agreed pilot is 10% of test —
+# dataset_row % 10 == 0, which the frozen split makes 99 rows and 1,089 videos —
+# and only the per-stage subcommands honour --num-shards.
+#
+# Polaris has 4 GPUs per node; the docs' examples assume 8.
+#
+# Every stage is create-only with its own run_info.json and is resumable, so a
+# preempted stage is resubmitted unchanged.
+
+set -uo pipefail
+ulimit -c 0
+
+DATA_ROOT=/lus/grand/projects/SDR/chengming/zhenghui/ICLR2026_RVQ_polaris
+. "${DATA_ROOT}/hy_i2v.env"
+
+STAGE="${QVG_STAGE:?QVG_STAGE must be passed with qsub -v}"
+RUN_ID="${QVG_RUN_ID:-hy-main-r1}"
+SHARD="${QVG_SHARD:-0}"
+NSHARDS="${QVG_NSHARDS:-1}"
+
+module use /soft/modulefiles
+module load conda
+module load cudatoolkit-standalone/12.8.1
+module load gcc-native/14
+export CC=/usr/bin/gcc-14 CXX=/usr/bin/g++-14
+
+export PYTHONPATH="${QVG_REPO_ROOT}:${PYTHONPATH:-}"
+export PYTHONNOUSERSITE=1
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+export HF_HOME="${DATA_ROOT}/cache/huggingface"
+export TRANSFORMERS_CACHE="${HF_HOME}"
+# LPIPS pulls a 528 MB VGG from download.pytorch.org on first use; without this
+# every node re-downloads it into its own home cache.
+export TORCH_HOME="${DATA_ROOT}/cache/torch"
+export TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD=1
+export http_proxy=http://proxy.alcf.anl.gov:3128
+export https_proxy=http://proxy.alcf.anl.gov:3128
+export HTTP_PROXY="${http_proxy}" HTTPS_PROXY="${https_proxy}"
+# VBench hardcodes the interpreter as bare "python" under shell=True with no
+# check=True, so its venv has to be on PATH or the inner run fails silently.
+export PATH="$(dirname "${QVG_VBENCH}"):${PATH}"
+
+cd "${QVG_REPO_ROOT}"
+CLI=(scripts/main/hyworldplay_i2v.py --run-id "${RUN_ID}" --gpus 0,1,2,3)
+case "${STAGE}" in
+  generate|evaluate) CLI+=(--shard-index "${SHARD}" --num-shards "${NSHARDS}") ;;
+esac
+
+echo "job: ${PBS_JOBID}  stage: ${STAGE}  shard ${SHARD}/${NSHARDS}  host: $(hostname -s)"
+echo "start: $(date +%s) $(date)"
+
+case "${STAGE}" in
+  prepare-data|train|gate)
+    "${QVG_PYTHON}" "${CLI[@]}" --resume --execute "${STAGE}" ;;
+  generate|evaluate)
+    "${QVG_PYTHON}" "${CLI[@]}" --resume --execute "${STAGE}" --split test --methods all ;;
+  *) echo "FATAL: unknown stage ${STAGE}"; exit 2 ;;
+esac
+rc=$?
+
+echo "end:   $(date +%s) $(date)"
+echo "=== ${STAGE} rc=${rc} ==="
+exit "${rc}"

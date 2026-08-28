@@ -1127,17 +1127,40 @@ class HunyuanVideo_1_5_Pipeline(DiffusionPipeline):
                 raise ValueError(
                     "append_only_vision_cache requires full_history_attention"
                 )
+            # avg3/avg4 added here: without them the pipeline cannot run at all.
+            # The CLI passes --append-only-vision-cache unconditionally for every
+            # method (hyworldplay_i2v.py:427/540/759), the config declares all
+            # eleven methods with required_methods: 11, and the accounting block
+            # below (avg2_accounting_rows / nominal_budget_audit) already handles
+            # all four avg levels under append-only -- all from this same commit.
+            # The one list that stopped at avg2 looks like an oversight, and the
+            # property it protects is independently enforced at runtime by the
+            # "append-only terminal audit re-encoded old spans" check below.
+            # FLAG FOR BOWEN: confirm avg3/avg4 are meant to run append-only.
             if infer_state.kv_cache_codec not in {
                 "none",
                 "rvq_ours_avg1",
                 "rvq_ours_avg2",
+                "rvq_ours_avg3",
+                "rvq_ours_avg4",
+                # The bare names below are aliases the pipeline never emits:
+                # METHOD_CODEC (run_moviegen_i2v_job.py:30) maps every baseline
+                # to a width-suffixed id, so all six were rejected by a guard
+                # whose own message claims to support them.
                 "kivi",
+                "kivi_int2",
+                "kivi_int4",
                 "turboquant",
+                "turboquant_int2",
+                "turboquant_int4",
                 "quantvideo",
+                "quantvideo_int2",
+                "quantvideo_int4",
             }:
                 raise ValueError(
-                    "append_only_vision_cache supports BF16, rvq_ours_avg1/avg2, "
-                    "kivi, turboquant, and quantvideo"
+                    "append_only_vision_cache supports BF16, rvq_ours_avg1/avg2/"
+                    "avg3/avg4, kivi_int2/int4, turboquant_int2/int4, and "
+                    "quantvideo_int2/int4"
                 )
 
         for chunk_i in range(self.chunk_num):
