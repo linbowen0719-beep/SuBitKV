@@ -3,7 +3,10 @@
 99 test rows (`dataset_row % 10 == 0`) x 11 methods, run on Polaris (A100-40GB).
 The official aggregate is fail-closed on a partial split, so these numbers are
 aggregated separately from the per-video outputs; see
-`results_unofficial_10pct.json` for the raw values.
+`results_unofficial_10pct.json` for the raw values, and
+`main_results_10pct_unofficial.csv` for the official main_results.csv columns
+(same sources and formulas as command_aggregate, 99-row coverage asserted per
+method).
 
 - Similarity (PSNR / SSIM / LPIPS-VGG): per-video vs the same-run bf16 reference, mean over 99 rows.
 - VBench: per-video `video_results`, mean over 99 rows, custom_input mode.
