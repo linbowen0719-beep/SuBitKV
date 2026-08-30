@@ -47,6 +47,15 @@ export HTTP_PROXY="${http_proxy}" HTTPS_PROXY="${https_proxy}"
 export PATH="$(dirname "${QVG_VBENCH}"):${PATH}"
 
 cd "${QVG_REPO_ROOT}"
+# aggregate 残目录自愈: command_aggregate mkdirs its output up front and only
+# honors --resume when main_results.json landed, so a round that dies mid-write
+# would strand every later retry on FileExistsError.
+if [ "${STAGE}" = "aggregate" ]; then
+  AGG="${QVG_OUTPUT_ROOT}/hyworldplay-moviegen-i2v-20-973/${RUN_ID}/aggregate"
+  if [ -d "${AGG}" ] && [ ! -f "${AGG}/main_results.json" ]; then
+    mv "${AGG}" "${AGG%.*}_partial_$(date +%s)" && echo "quarantined partial aggregate dir"
+  fi
+fi
 # Full dependency + attempt-budget check before touching a GPU; quarantines any
 # capture prompt that has burned all 3 attempts so resume does not abort.
 jobs/polaris/hy_i2v_preflight.sh || { echo "PREFLIGHT FAILED"; exit 2; }

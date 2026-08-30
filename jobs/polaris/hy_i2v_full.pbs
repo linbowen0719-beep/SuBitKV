@@ -1,0 +1,49 @@
+#!/bin/bash -l
+#PBS -N hy-i2v-full
+#PBS -A SDR
+#PBS -q prod
+#PBS -l select=100:system=polaris
+#PBS -l place=scatter
+#PBS -l walltime=06:00:00
+#PBS -l filesystems=home:grand
+#PBS -j oe
+#PBS -o /lus/grand/projects/SDR/chengming/zhenghui/ICLR2026_RVQ_polaris/logs/
+
+# Full 973-row run: 100 nodes x 4 A100, shard i of 100 == dataset_row % 100.
+# Routes to prod `large` (floor 100 nodes, 24 h cap); 6 h covers the measured
+# throughput with margin, and every stage is create-only + resume, so a
+# timed-out round simply continues in the next one.
+#
+# qsub -v QVG_STAGE=generate hy_i2v_full.pbs
+# qsub -v QVG_STAGE=evaluate hy_i2v_full.pbs
+
+set -uo pipefail
+ulimit -c 0
+
+export DATA_ROOT=/lus/grand/projects/SDR/chengming/zhenghui/ICLR2026_RVQ_polaris
+. "${DATA_ROOT}/hy_i2v.env"
+export QVG_STAGE="${QVG_STAGE:?QVG_STAGE must be passed with qsub -v}"
+export QVG_RUN_ID="${QVG_RUN_ID:-hy-main-r1}"
+OUT="${QVG_OUTPUT_ROOT}/hyworldplay-moviegen-i2v-20-973/${QVG_RUN_ID}"
+
+echo "job: ${PBS_JOBID}  stage: ${QVG_STAGE}  100 nodes x 4 GPU  $(date)"
+mkdir -p "${OUT}"
+rm -f "${OUT}"/.status_full_${QVG_STAGE}_rank*
+
+ "${QVG_REPO_ROOT}/jobs/polaris/hy_i2v_preflight.sh" || { echo "PREFLIGHT FAILED"; exit 2; }
+if [ "${QVG_STAGE}" = "generate" ]; then
+  "${QVG_PYTHON}" "${QVG_REPO_ROOT}/jobs/polaris/hy_i2v_sweep_exhausted.py" \
+    --generation-root "${OUT}/generation" --split test --stamp "${PBS_JOBID%%.*}"
+fi
+
+mpiexec -n 100 -ppn 1 --cpu-bind none \
+  "${QVG_REPO_ROOT}/jobs/polaris/hy_i2v_full_worker.sh"
+
+RC=0; done_=0
+for f in "${OUT}"/.status_full_${QVG_STAGE}_rank*; do
+  [ -f "${f}" ] || continue
+  done_=$((done_+1))
+  [ "$(cat "${f}")" = "0" ] || { echo "  rank failed: $(basename "${f}")"; RC=1; }
+done
+echo "=== full ${QVG_STAGE} ranks_reported=${done_}/100 rc=${RC}  $(date) ==="
+exit "${RC}"
