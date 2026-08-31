@@ -15,7 +15,19 @@ from pathlib import Path
 
 
 def has_success(row: Path) -> bool:
-    return any(row.glob("attempt_*/job/gen.mp4"))
+    # Mirror successful_attempt exactly: a gen.mp4 without a result.json that
+    # says status=success/returncode=0 is NOT a success (the walltime can kill
+    # a job between saving the mp4 and writing result.json), and treating it
+    # as one left such rows stuck at the attempt limit forever.
+    import json
+    for r in row.glob("attempt_*/job/result.json"):
+        try:
+            d = json.loads(r.read_text())
+        except Exception:
+            continue
+        if d.get("status") == "success" and int(d.get("returncode", 0)) == 0:
+            return True
+    return False
 
 
 def main() -> int:

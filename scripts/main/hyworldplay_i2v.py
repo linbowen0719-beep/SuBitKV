@@ -190,6 +190,11 @@ def gpu_state(gpu: int) -> dict[str, Any]:
     for line in process_output.splitlines():
         fields = [item.strip() for item in line.split(",", 2)]
         if len(fields) == 3 and fields[0] == uuid:
+            # nvidia-smi reports "[N/A]" for a pid it cannot resolve (e.g. a
+            # leftover process from the previous job on the node); crashing
+            # here took down an otherwise healthy run.  FLAG FOR BOWEN.
+            if not str(fields[1]).strip().isdigit():
+                continue
             processes.append({"pid": int(fields[1]), "name": fields[2]})
     return {
         "gpu": gpu,
