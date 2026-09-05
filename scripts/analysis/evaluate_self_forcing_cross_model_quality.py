@@ -7,9 +7,9 @@ import argparse
 import json
 from pathlib import Path
 
+import cv2
 import numpy as np
 import torch
-from torchvision.io import read_video
 
 
 DEFAULT_METHODS = (
@@ -29,8 +29,21 @@ DEFAULT_METHODS = (
 
 
 def read(path: Path) -> np.ndarray:
-    frames = read_video(str(path), pts_unit="sec", output_format="THWC")[0]
-    return frames.numpy()
+    capture = cv2.VideoCapture(str(path))
+    if not capture.isOpened():
+        raise ValueError(f"unable to decode video: {path}")
+    frames = []
+    try:
+        while True:
+            ok, frame = capture.read()
+            if not ok:
+                break
+            frames.append(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+    finally:
+        capture.release()
+    if not frames:
+        raise ValueError(f"decoded no frames: {path}")
+    return np.stack(frames)
 
 
 def main() -> None:

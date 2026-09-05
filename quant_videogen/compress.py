@@ -941,10 +941,13 @@ def _quantize_rvq_residual(
                 )
             )
         )
-        if admission_bits not in {16, 8, 4, 3, 2, 1}:
+        # Frozen sub-bit schedules can deliberately omit a newly admitted
+        # residual (B0).  transition_state handles the zero-depth terminal
+        # representation, so admission must accept it as well.
+        if admission_bits not in {16, 8, 4, 3, 2, 1, 0}:
             raise ValueError(
                 "temporal_adaptive_admission_target_bits must be one of "
-                "16/8/4/3/2/1"
+                "16/8/4/3/2/1/0"
             )
         if admission_bits < 16:
             state = transition_state(

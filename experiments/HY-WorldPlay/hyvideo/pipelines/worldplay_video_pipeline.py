@@ -1143,6 +1143,9 @@ class HunyuanVideo_1_5_Pipeline(DiffusionPipeline):
                 "rvq_ours_avg2",
                 "rvq_ours_avg3",
                 "rvq_ours_avg4",
+                "rvq_ours_avg0",
+                "rvq_ours_avg0p2_alt",
+                "rvq_ours_avg0p5",
                 # The bare names below are aliases the pipeline never emits:
                 # METHOD_CODEC (run_moviegen_i2v_job.py:30) maps every baseline
                 # to a width-suffixed id, so all six were rejected by a guard
@@ -1527,6 +1530,9 @@ class HunyuanVideo_1_5_Pipeline(DiffusionPipeline):
                 "rvq_ours_avg2",
                 "rvq_ours_avg3",
                 "rvq_ours_avg4",
+                "rvq_ours_avg0",
+                "rvq_ours_avg0p2_alt",
+                "rvq_ours_avg0p5",
             }:
                 avg2_accounting_rows.append(accounting)
                 layer_row.update(
@@ -1551,6 +1557,9 @@ class HunyuanVideo_1_5_Pipeline(DiffusionPipeline):
             "rvq_ours_avg2",
             "rvq_ours_avg3",
             "rvq_ours_avg4",
+            "rvq_ours_avg0",
+            "rvq_ours_avg0p2_alt",
+            "rvq_ours_avg0p5",
         }:
             from quant_videogen.hyworldplay8b_cache_codec import (
                 validate_avg2_terminal_budget,

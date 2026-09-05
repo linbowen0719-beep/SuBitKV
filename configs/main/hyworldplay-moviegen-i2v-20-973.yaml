@@ -32,6 +32,9 @@ methods:
   - ours_rvq_avg2
   - ours_rvq_avg3
   - ours_rvq_avg4
+  - ours_rvq_avg0
+  - ours_rvq_avg0p2_alt
+  - ours_rvq_avg0p5
   - kivi_int2
   - kivi_int4
   - turboquant_int2
@@ -83,7 +86,7 @@ paths:
 
 gate:
   split: dev
-  required_methods: 11
+  required_methods: 14
   ours_psnr_min: 25.0
   ours_ssim_min: 0.80
   ours_lpips_max: 0.25

@@ -1,0 +1,31 @@
+#!/bin/bash -l
+#PBS -N hy-subbit-full
+#PBS -A SDR
+#PBS -q prod
+#PBS -l select=10:system=polaris
+#PBS -l place=scatter
+#PBS -l walltime=03:00:00
+#PBS -l filesystems=home:grand
+#PBS -j oe
+#PBS -o /lus/grand/projects/SDR/chengming/zhenghui/ICLR2026_RVQ_polaris/logs/
+
+set -uo pipefail
+ulimit -c 0
+export QVG_RUN_ID="${QVG_RUN_ID:-hy-subbit-prod-20260904b}"
+DATA_ROOT=/lus/grand/projects/SDR/chengming/zhenghui/ICLR2026_RVQ_polaris
+. "${DATA_ROOT}/hy_i2v.env"
+OUT="${QVG_OUTPUT_ROOT}/hyworldplay-moviegen-i2v-20-973/${QVG_RUN_ID}"
+mkdir -p "${OUT}"
+export QVG_METHODS="${QVG_METHODS:-ours_rvq_avg0,ours_rvq_avg0p2_alt,ours_rvq_avg0p5}"
+METHOD_TAG="${QVG_METHODS//,/__}"
+echo "job=${PBS_JOBID} run=${QVG_RUN_ID} rows=973 methods=${QVG_METHODS}"
+export QVG_NUM_SHARDS=10
+mpiexec -n 10 -ppn 1 --cpu-bind none \
+  /home/czh5/zhenghui/bowen/ICLR2026_RVQ-subbit-hy/jobs/polaris/hy_i2v_subbit_full_worker.sh
+
+rc=0
+for status in "${OUT}"/.status_subbit_${METHOD_TAG}_rank*; do
+  [ -f "${status}" ] || continue
+  [ "$(cat "${status}")" = 0 ] || rc=1
+done
+exit "${rc}"

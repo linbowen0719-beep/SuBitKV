@@ -799,6 +799,13 @@ def load_profile(path: str | Path | Mapping[str, Any]) -> DistortionProfile:
     joint_capacity = int(raw.get("joint_schedule_capacity_bit_chunks", 40))
     if joint_capacity <= 0:
         raise ValueError("joint_schedule_capacity_bit_chunks must be positive")
+    joint_terminal = int(
+        raw.get("joint_schedule_terminal_bit_chunks", joint_capacity)
+    )
+    if not 0 <= joint_terminal <= joint_capacity:
+        raise ValueError(
+            "joint_schedule_terminal_bit_chunks must lie within [0, capacity]"
+        )
     joint_schedule = None
     if joint_schedule_raw is not None:
         joint_schedule = tuple(
@@ -820,9 +827,9 @@ def load_profile(path: str | Path | Mapping[str, Any]) -> DistortionProfile:
             ):
                 raise ValueError("joint_schedule precision cannot increase")
             previous = row
-        if sum(joint_schedule[-1]) != joint_capacity:
+        if sum(joint_schedule[-1]) != joint_terminal:
             raise ValueError(
-                "joint_schedule terminal row must sum to its configured capacity"
+                "joint_schedule terminal row must sum to its configured terminal budget"
             )
     return DistortionProfile(
         distortions=distortions,

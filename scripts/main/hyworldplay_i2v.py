@@ -41,6 +41,9 @@ METHODS = (
     "ours_rvq_avg2",
     "ours_rvq_avg3",
     "ours_rvq_avg4",
+    "ours_rvq_avg0",
+    "ours_rvq_avg0p2_alt",
+    "ours_rvq_avg0p5",
     "kivi_int2",
     "kivi_int4",
     "turboquant_int2",
@@ -49,6 +52,11 @@ METHODS = (
     "quantvideo_int4",
 )
 OURS_METHODS = tuple(method for method in METHODS if method.startswith("ours_rvq_"))
+SUBBIT_SCHEDULES = {
+    "ours_rvq_avg0": (0.0, 4, 0, ((4,), (0, 4), (0, 1, 2), (0, 0, 1, 2), (0, 0, 0, 0, 2), (0, 0, 0, 0, 0, 2), (0, 0, 0, 0, 0, 0, 1), (0, 0, 0, 0, 0, 0, 0, 1), (0, 0, 0, 0, 0, 0, 0, 0, 0), (0, 0, 0, 0, 0, 0, 0, 0, 0, 0))),
+    "ours_rvq_avg0p2_alt": (0.2, 6, 2, ((4,), (2, 4), (1, 2, 2), (1, 1, 1, 2), (1, 0, 1, 1, 1), (0, 0, 1, 1, 1, 1), (0, 0, 0, 0, 1, 1, 1), (0, 0, 0, 0, 0, 1, 1, 1), (0, 0, 0, 0, 0, 0, 0, 1, 1), (0, 0, 0, 0, 0, 0, 0, 0, 1, 1))),
+    "ours_rvq_avg0p5": (0.5, 8, 5, ((8,), (4, 4), (2, 2, 4), (2, 2, 2, 2), (1, 1, 1, 2, 2), (1, 1, 1, 1, 1, 2), (1, 0, 1, 1, 1, 1, 1), (1, 0, 0, 1, 1, 1, 1, 1), (1, 0, 0, 0, 0, 1, 1, 1, 1), (1, 0, 0, 0, 0, 0, 1, 1, 1, 1))),
+}
 VBENCH_DIMENSIONS = (
     "subject_consistency",
     "background_consistency",
@@ -247,7 +255,7 @@ def run_gpu_queue(
     status_path: Path,
     command_for: Callable[[dict[str, Any], int, int], tuple[list[str], dict[str, str], Path]],
     resume: bool,
-    max_attempts: int = 3,
+    max_attempts: int = 6,
 ) -> list[dict[str, Any]]:
     pending = deque(tasks)
     active: dict[int, dict[str, Any]] = {}
@@ -369,14 +377,34 @@ def task_keys(task: dict[str, Any]) -> set[str]:
 def artifact_args(artifact_root: Path, method: str) -> list[str]:
     if not method.startswith("ours_rvq_"):
         return []
-    average = int(method.rsplit("avg", 1)[1])
     params = artifact_root / "advanced_avg2_params"
-    profile = (
-        artifact_root
-        / "advanced_temporal_profiles"
-        / f"avg{average}"
-        / f"temporal_avg{average}_profile.json"
-    )
+    if method in SUBBIT_SCHEDULES:
+        reported_bits, capacity, terminal, schedule = SUBBIT_SCHEDULES[method]
+        source = artifact_root / "advanced_temporal_profiles/avg1/temporal_avg1_profile.json"
+        profile = artifact_root / "subbit_profiles" / method / "temporal_profile.json"
+        if not profile.exists():
+            raw = json.loads(source.read_text(encoding="utf-8"))
+            raw["allowed_bits"] = [16, 8, 4, 3, 2, 1, 0]
+            for tensor in raw["tensor_profiles"].values():
+                tensor["capacity_bit_chunks"] = capacity
+                tensor["terminal_bit_chunks"] = terminal
+                tensor["joint_schedule"] = [list(row) for row in schedule]
+            raw["training"] = {
+                "selection_source": "user_specified_frozen_subbit_schedule",
+                "source_profile": str(source),
+                "reported_bits": reported_bits,
+                "terminal_bit_chunks": terminal,
+                "test_prompts_read": False,
+            }
+            write_create(profile, raw)
+    else:
+        average = int(method.rsplit("avg", 1)[1])
+        profile = (
+            artifact_root
+            / "advanced_temporal_profiles"
+            / f"avg{average}"
+            / f"temporal_avg{average}_profile.json"
+        )
     return [
         "--codebook-root", str(artifact_root),
         "--routing-path", str(params / "routing.json"),
@@ -444,7 +472,11 @@ def generate_tasks(
     # shared status.json race on that temp file and die with FileNotFoundError
     # in os.replace.  Resume keys off successful_attempt(parent), not this
     # file, so the split does not re-run any finished video.
-    status_path = generation_root / split / f"status_shard_{int(shard_index):04d}.json"
+    method_tag = "__".join(methods)
+    status_path = (
+        generation_root / split /
+        f"status_{method_tag}_shard_{int(shard_index):04d}.json"
+    )
     return run_gpu_queue(
         tasks,
         gpus=gpus,

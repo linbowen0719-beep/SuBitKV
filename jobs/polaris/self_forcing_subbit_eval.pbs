@@ -1,0 +1,16 @@
+#!/bin/bash -l
+#PBS -N sf-subbit-eval
+#PBS -A SDR
+#PBS -q prod
+#PBS -l select=10:system=polaris
+#PBS -l place=scatter
+#PBS -l walltime=03:00:00
+#PBS -l filesystems=home:grand
+#PBS -j oe
+#PBS -o /lus/grand/projects/SDR/chengming/zhenghui/ICLR2026_RVQ_polaris/logs/
+
+set -uo pipefail
+OUT=/lus/grand/projects/SDR/chengming/zhenghui/ICLR2026_RVQ_polaris/outputs/self_forcing_rvq_subbit_20260904d/evaluation_subbit
+mkdir -p "${OUT}"
+mpiexec -n 10 -ppn 1 --cpu-bind none \
+  /home/czh5/zhenghui/bowen/ICLR2026_RVQ-subbit-hy/jobs/polaris/self_forcing_subbit_eval_worker.sh

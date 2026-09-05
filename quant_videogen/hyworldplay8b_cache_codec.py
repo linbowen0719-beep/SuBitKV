@@ -48,6 +48,9 @@ CODEC_QUANT_TYPES = {
     "rvq_ours_avg1": "naive-int4",
     "rvq_ours_avg3": "naive-int4",
     "rvq_ours_avg4": "naive-int4",
+    "rvq_ours_avg0": "naive-int4",
+    "rvq_ours_avg0p2_alt": "naive-int4",
+    "rvq_ours_avg0p5": "naive-int4",
 }
 
 OURS_BITS = (0, 1, 2, 3, 4)
@@ -57,10 +60,10 @@ AVG2_RESIDUAL_BITS = (8, 4, 3, 2, 1)
 # B16 is a lossless BF16 bypass used only while early cache headroom permits.
 # It has no learned residual distortion entry; compressed residual candidates
 # remain B8/B4/B3/B2/B1.
-AVG2_SCHEDULE_BITS = (16, *AVG2_RESIDUAL_BITS)
+AVG2_SCHEDULE_BITS = (16, *AVG2_RESIDUAL_BITS, 0)
 AVG2_HORIZON = 10
 AVG2_CAPACITY = 20
-TEMPORAL_CAPACITIES = (10, 20, 30, 40)
+TEMPORAL_CAPACITIES = (4, 6, 8, 10, 20, 30, 40)
 
 
 @dataclass(frozen=True)
@@ -69,6 +72,7 @@ class Avg2TensorProfile:
     age_weights: tuple[float, ...]
     joint_schedule: tuple[tuple[int, ...], ...]
     capacity_bit_chunks: int
+    terminal_bit_chunks: int
 
 
 @dataclass(frozen=True)
@@ -94,6 +98,15 @@ class Avg2Profile:
         if name not in self.tensors:
             raise ValueError(f"temporal profile has no {name} tensor section")
         return int(self.tensors[name].capacity_bit_chunks)
+
+    def terminal(self, tensor_name: str) -> int:
+        """Return the declared final-row residual budget for one stream."""
+        name = str(tensor_name).strip().upper()
+        if self.shared is not None:
+            return AVG2_CAPACITY
+        if name not in self.tensors:
+            raise ValueError(f"temporal profile has no {name} tensor section")
+        return int(self.tensors[name].terminal_bit_chunks)
 
     def schedule(
         self,
@@ -123,6 +136,9 @@ def _validate_avg2_tensor_profile(name: str, raw: Mapping[str, Any]) -> Avg2Tens
         raise ValueError(
             f"{name} capacity must be one of {TEMPORAL_CAPACITIES}, got {capacity}"
         )
+    terminal = int(raw.get("terminal_bit_chunks", capacity))
+    if not 0 <= terminal <= capacity:
+        raise ValueError(f"{name} terminal bit chunks must be in [0,{capacity}]")
     distortions = {int(key): float(value) for key, value in raw.get("distortions", {}).items()}
     if set(distortions) != set(AVG2_RESIDUAL_BITS):
         raise ValueError(f"{name} distortions must contain B8/B4/B3/B2/B1")
@@ -150,13 +166,14 @@ def _validate_avg2_tensor_profile(name: str, raw: Mapping[str, Any]) -> Avg2Tens
         ):
             raise ValueError(f"{name} schedule requests a precision upgrade at row {step}")
         previous = row
-    if sum(schedule[-1]) != capacity:
-        raise ValueError(f"{name} terminal schedule must sum to {capacity}")
+    if sum(schedule[-1]) != terminal:
+        raise ValueError(f"{name} terminal schedule must sum to {terminal}")
     return Avg2TensorProfile(
         distortions=distortions,
         age_weights=age_weights,
         joint_schedule=schedule,
         capacity_bit_chunks=capacity,
+        terminal_bit_chunks=terminal,
     )
 
 
@@ -295,7 +312,8 @@ def make_codec_settings(
         turboquant_seed=20260803,
     )
     temporal_rvq_names = {
-        "rvq_ours_avg1", "rvq_ours_avg2", "rvq_ours_avg3", "rvq_ours_avg4"
+        "rvq_ours_avg0", "rvq_ours_avg0p2_alt", "rvq_ours_avg0p5",
+        "rvq_ours_avg1", "rvq_ours_avg2", "rvq_ours_avg3", "rvq_ours_avg4",
     }
     temporal_rvq = name in temporal_rvq_names
     advanced_rvq = name == "rvq_ours_int2" or temporal_rvq
@@ -605,6 +623,8 @@ def _avg2_accounting(
     terminal_v = profile.schedule("V", AVG2_HORIZON, layer_idx=layer_idx)
     capacity_k = profile.capacity("K")
     capacity_v = profile.capacity("V")
+    terminal_budget_k = profile.terminal("K")
+    terminal_budget_v = profile.terminal("V")
     scalar_values = int((bf16_k_bytes + bf16_v_bytes) // 2)
     nominal_average = float(sum(target_k) + sum(target_v)) / (
         2.0 * len(target_k)
@@ -620,6 +640,8 @@ def _avg2_accounting(
         "layer": int(layer_idx),
         "nominal_capacity_k_bit_chunks": int(capacity_k),
         "nominal_capacity_v_bit_chunks": int(capacity_v),
+        "nominal_terminal_k_bit_chunks": int(terminal_budget_k),
+        "nominal_terminal_v_bit_chunks": int(terminal_budget_v),
         "selected_k_bits": list(target_k),
         "selected_v_bits": list(target_v),
         "selected_k_bit_sum": int(sum(target_k)),
@@ -720,6 +742,18 @@ def validate_avg2_terminal_budget(
         raise RuntimeError("terminal audit mixed nominal K/V capacities")
     capacity_k = k_capacities.pop()
     capacity_v = v_capacities.pop()
+    k_terminals = {
+        int(row.get("nominal_terminal_k_bit_chunks", capacity_k))
+        for row in accounting_rows
+    }
+    v_terminals = {
+        int(row.get("nominal_terminal_v_bit_chunks", capacity_v))
+        for row in accounting_rows
+    }
+    if len(k_terminals) != 1 or len(v_terminals) != 1:
+        raise RuntimeError("terminal audit mixed nominal K/V terminal budgets")
+    terminal_k = k_terminals.pop()
+    terminal_v = v_terminals.pop()
     if shared:
         expected_total = (capacity_k + capacity_v) * int(expected_layers)
         if k_sum + v_sum != expected_total:
@@ -729,15 +763,15 @@ def validate_avg2_terminal_budget(
             )
         ownership = "model_wide_kv_shared"
     else:
-        expected_k_total = capacity_k * int(expected_layers)
-        expected_v_total = capacity_v * int(expected_layers)
+        expected_k_total = terminal_k * int(expected_layers)
+        expected_v_total = terminal_v * int(expected_layers)
         if k_sum != expected_k_total:
             raise RuntimeError(
-                f"terminal K schedule does not sum to {capacity_k} per layer"
+                f"terminal K schedule does not sum to {terminal_k} per layer"
             )
         if v_sum != expected_v_total:
             raise RuntimeError(
-                f"terminal V schedule does not sum to {capacity_v} per layer"
+                f"terminal V schedule does not sum to {terminal_v} per layer"
             )
         ownership = "per_layer_per_tensor_independent"
     return {
@@ -749,6 +783,8 @@ def validate_avg2_terminal_budget(
         / (2.0 * int(expected_layers) * AVG2_HORIZON),
         "K_capacity_bit_chunks": int(capacity_k),
         "V_capacity_bit_chunks": int(capacity_v),
+        "K_terminal_bit_chunks": int(terminal_k),
+        "V_terminal_bit_chunks": int(terminal_v),
     }
 
 
@@ -1036,7 +1072,8 @@ def append_encoded_vision_kv(
     quantize_fn = get_quantize_fn(settings.quant_type, settings.quant_config)
     config = settings.quant_config
     if settings.name in {
-        "rvq_ours_avg1", "rvq_ours_avg2", "rvq_ours_avg3", "rvq_ours_avg4"
+        "rvq_ours_avg0", "rvq_ours_avg0p2_alt", "rvq_ours_avg0p5",
+        "rvq_ours_avg1", "rvq_ours_avg2", "rvq_ours_avg3", "rvq_ours_avg4",
     }:
         profile = _avg2_profile(settings.temporal_profile_path)
         target_k = profile.schedule("K", span_count, layer_idx=layer_idx)
@@ -1184,7 +1221,8 @@ def encode_vision_kv(
     if settings.name == "rvq_ours_int2":
         return _encode_ours_int2(k, v, layer_idx=layer_idx, settings=settings)
     if settings.name in {
-        "rvq_ours_avg1", "rvq_ours_avg2", "rvq_ours_avg3", "rvq_ours_avg4"
+        "rvq_ours_avg0", "rvq_ours_avg0p2_alt", "rvq_ours_avg0p5",
+        "rvq_ours_avg1", "rvq_ours_avg2", "rvq_ours_avg3", "rvq_ours_avg4",
     }:
         return _encode_ours_avg2(k, v, layer_idx=layer_idx, settings=settings)
     quantize_fn = get_quantize_fn(settings.quant_type, settings.quant_config)

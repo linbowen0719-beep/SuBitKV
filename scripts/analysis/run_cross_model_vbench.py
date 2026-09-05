@@ -42,8 +42,17 @@ def main() -> None:
     parser.add_argument("--prompt-start", type=int, default=0)
     parser.add_argument("--prompt-count", type=int, default=10)
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument(
+        "--dimensions",
+        default=",".join(DIMS),
+        help="Comma-separated VBench dimensions to evaluate.",
+    )
     args = parser.parse_args()
     methods = tuple(value for value in args.methods.split(",") if value)
+    dimensions = tuple(value for value in args.dimensions.split(",") if value)
+    unknown_dimensions = set(dimensions) - set(DIMS)
+    if not dimensions or unknown_dimensions:
+        raise ValueError(f"invalid VBench dimensions: {sorted(unknown_dimensions)}")
     gpus = tuple(int(value) for value in args.gpus.split(",") if value)
     prompt_stop = args.prompt_start + args.prompt_count
     if not 0 <= args.prompt_start < prompt_stop:
@@ -83,7 +92,7 @@ def main() -> None:
     pending = deque(
         (method, dimension)
         for method in methods
-        for dimension in DIMS
+        for dimension in dimensions
         if not result_exists(args.output_root / method / dimension)
     )
     active = {}

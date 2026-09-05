@@ -72,7 +72,31 @@ METHODS = (
     "adaptive_temporal_avg3",
     "adaptive_temporal_avg2",
     "adaptive_temporal_avg1",
+    "adaptive_temporal_avg0",
+    "adaptive_temporal_avg0p2_alt",
+    "adaptive_temporal_avg0p5",
 )
+
+SUBBIT_SCHEDULES = {
+    "adaptive_temporal_avg0": {
+        "reported_bits": 0.0,
+        "capacity": 4,
+        "terminal": 0,
+        "schedule": ((4,), (0, 4), (0, 1, 2), (0, 0, 1, 2), (0, 0, 0, 0, 2), (0, 0, 0, 0, 0, 2), (0, 0, 0, 0, 0, 0, 1), (0, 0, 0, 0, 0, 0, 0, 1), (0, 0, 0, 0, 0, 0, 0, 0, 0), (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
+    },
+    "adaptive_temporal_avg0p2_alt": {
+        "reported_bits": 0.2,
+        "capacity": 6,
+        "terminal": 2,
+        "schedule": ((4,), (2, 4), (1, 2, 2), (1, 1, 1, 2), (1, 0, 1, 1, 1), (0, 0, 1, 1, 1, 1), (0, 0, 0, 0, 1, 1, 1), (0, 0, 0, 0, 0, 1, 1, 1), (0, 0, 0, 0, 0, 0, 0, 1, 1), (0, 0, 0, 0, 0, 0, 0, 0, 1, 1)),
+    },
+    "adaptive_temporal_avg0p5": {
+        "reported_bits": 0.5,
+        "capacity": 8,
+        "terminal": 5,
+        "schedule": ((8,), (4, 4), (2, 2, 4), (2, 2, 2, 2), (1, 1, 1, 2, 2), (1, 1, 1, 1, 1, 2), (1, 0, 1, 1, 1, 1, 1), (1, 0, 0, 1, 1, 1, 1, 1), (1, 0, 0, 0, 0, 1, 1, 1, 1), (1, 0, 0, 0, 0, 0, 1, 1, 1, 1)),
+    },
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -131,7 +155,27 @@ def prompt_at(path: Path, index: int) -> str:
     return prompts[index]
 
 
-def method_config(args: argparse.Namespace) -> dict[str, Any]:
+def materialize_subbit_profile(base: Path, method: str, destination: Path) -> Path:
+    """Freeze a requested Q schedule over this model's existing calibration."""
+    schedule = SUBBIT_SCHEDULES[method]
+    raw = json.loads(base.read_text(encoding="utf-8"))
+    if raw.get("schema_version") != "rvq_temporal_adaptive_residual.profile.v1":
+        raise ValueError(f"unsupported temporal profile schema: {base}")
+    raw["joint_schedule_capacity_bit_chunks"] = schedule["capacity"]
+    raw["joint_schedule_terminal_bit_chunks"] = schedule["terminal"]
+    raw["joint_schedule"] = [list(row) for row in schedule["schedule"]]
+    raw["fit"] = {
+        "selection_source": "user_specified_frozen_subbit_schedule",
+        "source_profile": str(base.resolve()),
+        "reported_bits": schedule["reported_bits"],
+        "test_prompts_read": False,
+        "rvq_required": True,
+    }
+    atomic_json(destination, raw)
+    return destination
+
+
+def method_config(args: argparse.Namespace, run_dir: Path) -> dict[str, Any]:
     common: dict[str, Any] = {
         "compression_policy": "all",
         "cache_num_k_centroids": 256,
@@ -230,13 +274,23 @@ def method_config(args: argparse.Namespace) -> dict[str, Any]:
     elif "uniform_b" in args.method:
         common["temporal_uniform_bits"] = bits
     else:
-        average = int(args.method.rsplit("avg", 1)[1])
         if not args.profile.exists():
             raise FileNotFoundError(args.profile)
+        if args.method in SUBBIT_SCHEDULES:
+            profile = materialize_subbit_profile(
+                args.profile, args.method, run_dir / "subbit_profile.json"
+            )
+            capacity = SUBBIT_SCHEDULES[args.method]["capacity"]
+            allocation_mode = "frozen_joint_schedule"
+        else:
+            average = int(args.method.rsplit("avg", 1)[1])
+            profile = args.profile
+            capacity = average * 10
+            allocation_mode = "optimal"
         common.update({
-            "temporal_adaptive_profile_path": str(args.profile),
-            "temporal_adaptive_capacity_bit_chunks": average * 10,
-            "temporal_adaptive_allocation_mode": "optimal",
+            "temporal_adaptive_profile_path": str(profile),
+            "temporal_adaptive_capacity_bit_chunks": capacity,
+            "temporal_adaptive_allocation_mode": allocation_mode,
         })
     return common
 
@@ -265,7 +319,7 @@ def main() -> None:
     run_dir.mkdir(parents=True, exist_ok=True)
     prompt_path = run_dir / "prompt.txt"
     prompt_path.write_text(prompt + "\n", encoding="utf-8")
-    quant = method_config(args)
+    quant = method_config(args, run_dir)
     quant_path = run_dir / "quant_config.json"
     atomic_json(quant_path, quant)
     resolved = {
@@ -310,7 +364,11 @@ def main() -> None:
     if args.reconstruction_audit:
         env["SELF_FORCING_RECON_AUDIT"] = "1"
     peak = 0
-    with (run_dir / "run.log").open("x", encoding="utf-8") as log:
+    # A transient CUDA initialization failure leaves partial provenance but no
+    # completed marker.  Keep that evidence and append the retry instead of
+    # making the create-only scheduler fail before launching it.
+    with (run_dir / "run.log").open("a", encoding="utf-8") as log:
+        log.write(f"\n--- attempt started {started.isoformat()} ---\n")
         process = subprocess.Popen(command, cwd=REPO, env=env, stdout=log, stderr=subprocess.STDOUT)
         while process.poll() is None:
             try:

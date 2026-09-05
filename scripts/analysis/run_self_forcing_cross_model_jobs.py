@@ -43,6 +43,7 @@ def main() -> None:
     parser.add_argument("--gpus", default="0,1,2,3,4,5,6,7")
     parser.add_argument("--methods", default=",".join(DEFAULT_METHODS))
     parser.add_argument("--poll-seconds", type=float, default=5.0)
+    parser.add_argument("--max-attempts", type=int, default=3)
     parser.add_argument("--reconstruction-audit", action="store_true")
     parser.add_argument("--prompt-file", type=Path, required=True)
     parser.add_argument("--seed", type=int, default=0)
@@ -75,6 +76,8 @@ def main() -> None:
     log_root = args.output_root / "scheduler_logs"
     log_root.mkdir(exist_ok=True)
 
+    if args.max_attempts < 1:
+        raise ValueError("--max-attempts must be positive")
     pending = deque()
     skipped = []
     for method in methods:
@@ -83,7 +86,7 @@ def main() -> None:
             if (run_dir / "completed.json").exists():
                 skipped.append({"method": method, "prompt": prompt})
                 continue
-            pending.append((method, prompt))
+            pending.append((method, prompt, 1))
 
     active = {}
     failures = []
@@ -92,10 +95,8 @@ def main() -> None:
         for gpu in gpus:
             if gpu in active or not pending:
                 continue
-            method, prompt = pending.popleft()
-            log_path = log_root / f"{method}_prompt_{prompt:02d}.log"
-            if log_path.exists():
-                raise FileExistsError(f"create-only scheduler log exists: {log_path}")
+            method, prompt, attempt = pending.popleft()
+            log_path = log_root / f"{method}_prompt_{prompt:04d}_attempt_{attempt}.log"
             command = [
                 sys.executable,
                 str(RUNNER),
@@ -122,12 +123,15 @@ def main() -> None:
             process = subprocess.Popen(
                 command, cwd=REPO, stdout=handle, stderr=subprocess.STDOUT
             )
-            active[gpu] = (process, handle, method, prompt, log_path, time.time())
-            print(f"launched gpu={gpu} method={method} prompt={prompt}", flush=True)
+            active[gpu] = (process, handle, method, prompt, attempt, log_path, time.time())
+            print(
+                f"launched gpu={gpu} method={method} prompt={prompt} attempt={attempt}",
+                flush=True,
+            )
 
         time.sleep(args.poll_seconds)
         for gpu, item in list(active.items()):
-            process, handle, method, prompt, log_path, started = item
+            process, handle, method, prompt, attempt, log_path, started = item
             code = process.poll()
             if code is None:
                 continue
@@ -136,13 +140,18 @@ def main() -> None:
                 "method": method,
                 "prompt": prompt,
                 "gpu": gpu,
+                "attempt": attempt,
                 "returncode": code,
                 "elapsed_s": time.time() - started,
                 "log": str(log_path),
             }
             if code:
-                failures.append(record)
-                print(f"FAILED {record}", flush=True)
+                if attempt < args.max_attempts:
+                    pending.append((method, prompt, attempt + 1))
+                    print(f"retrying {record}", flush=True)
+                else:
+                    failures.append(record)
+                    print(f"FAILED {record}", flush=True)
             else:
                 completed.append(record)
                 print(f"completed {record}", flush=True)
@@ -164,8 +173,11 @@ def main() -> None:
         "skipped": skipped,
         "failures": failures,
     }
+    # MPI ranks own disjoint prompt ranges but finish in the same second.  Put
+    # the range in the filename so their create-only summaries cannot collide.
     summary_path = args.output_root / (
-        f"scheduler_summary_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}.json"
+        f"scheduler_summary_start{args.prompt_start:04d}_"
+        f"{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}.json"
     )
     with summary_path.open("x", encoding="utf-8") as handle:
         json.dump(summary, handle, indent=2, ensure_ascii=False)
