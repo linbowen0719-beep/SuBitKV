@@ -1,0 +1,19 @@
+Edited with the built-in image_gen tool using assets/subitkv_teaser.png as the source.
+The prior image is preserved in Git history at commit 2ee885e.
+
+Edit the supplied SuBitKV README infographic. Preserve the same overall composition, five top cards, three lower cards, frog detective illustrations, blue/orange palette, typography hierarchy, all scientific meaning, and every numerical value.
+
+Required text replacement: in the top teal pill, replace "RVQ + Adaptive Precision" with EXACTLY "Persistent Base + Adaptive Precision". Widen and center the pill as needed so the text is clearly legible with comfortable padding. The wordmark must remain "SuBitKV". The technical label "RVQ codebook indices" inside the persistent-base card remains correct and should stay.
+
+Remove rendering artifacts throughout the infographic and make it a clean, crisp final graphic at high resolution (preferably about 2880 by 1792):
+- In STEP 2, remove the messy floating orange shards, duplicate outlines, ghost stacks, and ambiguous disconnected arrows above the blocks. Replace that clutter with a simple precise before-to-after illustration: LEFT stack exactly THREE intact blue base slabs with THREE neat orange refinement slabs on top; one clear horizontal arrow; RIGHT stack exactly the SAME THREE intact blue base slabs with ONE orange refinement slab on top. The blue base must not lose any slabs. No stray fragments, overlapping pseudo-geometry, or dashed ghost planes.
+- All other blue and orange isometric stacks must have straight consistent edges, solid rectangular slabs, coherent perspective, clean white separators, no warped corners, and no doubled edges.
+- Remove speckled/dotted background noise and incidental marks. Retain a smooth warm off-white background with only the existing very subtle soft pastel decorative circles.
+- Clean all text halos, duplicate strokes, jagged letter edges, awkward ligatures, and blurry small labels. Keep every label legible, correctly spelled, aligned and contained within its card.
+- Make the frog illustrations tidy and coherent without changing their character, attire, garden setting, or "Illustrative frames" caption.
+- Keep the fixed-cache-budget schematic scientifically identical: all three containers same total height, blue base grows left to right, orange refinement shrinks.
+- Preserve exactly: "21.42×", "Q = 0.2", "30.09×", "Q = 0", "vs BF16 · manuscript results", the three model names, the subtitle, and the footnote "Q is the residual budget, not the total KV bit rate."
+- Retain the footer's three statements. No new labels, logos, performance claims, conference badges or watermarks.
+
+This is a targeted cleanup and top-pill wording correction, not a new design. Aim for precise, professional vector-like linework and sharp typesetting while retaining the supplied aesthetic.
+
