@@ -23,7 +23,9 @@ def _torch_bf16_encode_reference(
 ) -> tuple[torch.Tensor, torch.Tensor]:
     """Mirror the standard RMS RVQ fallback's BF16 assignment arithmetic."""
     bsz, heads, seq_len, dim = tensor.shape
-    scale = torch.sqrt(torch.mean(tensor.float().square(), dim=-1, keepdim=True)).clamp_min(1e-6)
+    scale = torch.sqrt(
+        torch.mean(tensor.float().square(), dim=-1, keepdim=True)
+    ).clamp_min(1e-6)
     residual = (tensor.float() / scale).to(torch.bfloat16)
     all_ids = []
 
@@ -145,7 +147,9 @@ def test_tiled_centroid_rvq_encode_matches_torch_bf16_fallback(centroids: int):
         codebooks,
         actual_scale,
     )
-    torch.testing.assert_close(actual_reconstruction, expected_reconstruction, atol=0, rtol=0)
+    torch.testing.assert_close(
+        actual_reconstruction, expected_reconstruction, atol=0, rtol=0
+    )
 
 
 @pytest.mark.skipif(
@@ -154,8 +158,15 @@ def test_tiled_centroid_rvq_encode_matches_torch_bf16_fallback(centroids: int):
 )
 def test_no_norm_rvq_encode_decode_matches_torch_bf16_fallback():
     generator = torch.Generator(device="cuda").manual_seed(20260715)
-    tensor = torch.randn((1, 2, 19, 128), device="cuda", dtype=torch.bfloat16, generator=generator).contiguous()
-    codebooks = (torch.randn((3, 2, 64, 128), device="cuda", dtype=torch.bfloat16, generator=generator) * 0.125).contiguous()
+    tensor = torch.randn(
+        (1, 2, 19, 128), device="cuda", dtype=torch.bfloat16, generator=generator
+    ).contiguous()
+    codebooks = (
+        torch.randn(
+            (3, 2, 64, 128), device="cuda", dtype=torch.bfloat16, generator=generator
+        )
+        * 0.125
+    ).contiguous()
     codebook_sq = codebooks.float().square().sum(dim=-1).contiguous()
     expected_ids = _torch_bf16_no_norm_encode_reference(tensor, codebooks)
     actual_ids, unused_scale = rvq_encode_bhsd_triton(
@@ -213,13 +224,17 @@ def test_no_norm_rvq_encode_decode_matches_torch_bf16_fallback():
 def test_staged_no_norm_encode_is_exact_and_does_not_mutate_input():
     generator = torch.Generator(device="cuda").manual_seed(20260803)
     tensor = torch.randn(
-        (1, 2, 37, 128), device="cuda", dtype=torch.bfloat16,
+        (1, 2, 37, 128),
+        device="cuda",
+        dtype=torch.bfloat16,
         generator=generator,
     ).contiguous()
     original = tensor.clone()
     codebooks = (
         torch.randn(
-            (6, 2, 64, 128), device="cuda", dtype=torch.bfloat16,
+            (6, 2, 64, 128),
+            device="cuda",
+            dtype=torch.bfloat16,
             generator=generator,
         )
         * 0.125
@@ -249,29 +264,43 @@ def test_staged_no_norm_encode_is_exact_and_does_not_mutate_input():
 def test_packed_uint4_scale_decode_matches_materialized_scale():
     generator = torch.Generator(device="cuda").manual_seed(20260731)
     indices = torch.randint(
-        0, 64, (7, 1, 4, 19), device="cuda", dtype=torch.uint8,
+        0,
+        64,
+        (7, 1, 4, 19),
+        device="cuda",
+        dtype=torch.uint8,
         generator=generator,
     ).contiguous()
     codebooks = (
         torch.randn(
-            (7, 4, 64, 128), device="cuda", dtype=torch.bfloat16,
+            (7, 4, 64, 128),
+            device="cuda",
+            dtype=torch.bfloat16,
             generator=generator,
         )
         * 0.125
     ).contiguous()
     q = torch.randint(
-        0, 16, (1, 4, 19, 1), device="cuda", dtype=torch.uint8,
+        0,
+        16,
+        (1, 4, 19, 1),
+        device="cuda",
+        dtype=torch.uint8,
         generator=generator,
     )
     flat = q.reshape(-1)
     packed = (flat[0::2] | (flat[1::2] << 4)).contiguous()
     scale_min = torch.rand(
-        (1, 4, 1, 1), device="cuda", dtype=torch.float16,
+        (1, 4, 1, 1),
+        device="cuda",
+        dtype=torch.float16,
         generator=generator,
     ).contiguous()
     scale_step = (
         torch.rand(
-            (1, 4, 1, 1), device="cuda", dtype=torch.float16,
+            (1, 4, 1, 1),
+            device="cuda",
+            dtype=torch.float16,
             generator=generator,
         )
         * 0.1
@@ -279,7 +308,11 @@ def test_packed_uint4_scale_decode_matches_materialized_scale():
     ).contiguous()
     scale = (q.float() * scale_step.float() + scale_min.float()).contiguous()
     expected = rvq_decode_bhsd_triton(
-        indices, codebooks, scale, torch.bfloat16, block_tokens=16,
+        indices,
+        codebooks,
+        scale,
+        torch.bfloat16,
+        block_tokens=16,
     )
     actual = rvq_decode_bhsd_triton(
         indices,
@@ -318,12 +351,16 @@ def test_packed_uint4_scale_decode_matches_materialized_scale():
 def test_tracked_stage_mse_matches_encoded_bf16_residuals():
     generator = torch.Generator(device="cuda").manual_seed(20260801)
     tensor = torch.randn(
-        (1, 2, 37, 128), device="cuda", dtype=torch.bfloat16,
+        (1, 2, 37, 128),
+        device="cuda",
+        dtype=torch.bfloat16,
         generator=generator,
     ).contiguous()
     codebooks = (
         torch.randn(
-            (6, 2, 64, 128), device="cuda", dtype=torch.bfloat16,
+            (6, 2, 64, 128),
+            device="cuda",
+            dtype=torch.bfloat16,
             generator=generator,
         )
         * 0.125

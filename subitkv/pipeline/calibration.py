@@ -4,27 +4,23 @@ from __future__ import annotations
 
 import json
 import shutil
-import sys
 
 from subitkv.cache_budget import rvq_schedule_budget
 
+from .adapters import attempt, generate, label
 from .common import (
-    REPO,
-    command,
     identity,
-    load_module,
     save_tensor,
     seal,
     validate_schedule,
     write_json,
 )
 from .scheduling import solve_schedule
-from .adapters import attempt, generate, label
 from .workflow import prompts
 
 
 def train_codebooks(run):
-    cfg, m = run.config["calibration"], run.config["model_config"]
+    m = run.config["model_config"]
     work = run.root / "calibration/codebooks"
     work.mkdir(parents=True, exist_ok=True)
     if not (work / "kv_dump").exists():
@@ -36,54 +32,9 @@ def train_codebooks(run):
 
         def train_one(tensor=tensor, subdir=subdir):
             # Existing deterministic trainer; codebooks are shared by all budgets.
-            command(
-                [
-                    sys.executable,
-                    REPO / "scripts/rvq/diag/run_rvq_diag.py",
-                    "--prompt_source",
-                    run.config["data"]["train_prompts"],
-                    "--output_dir",
-                    work,
-                    "--train_num",
-                    len(prompts(run.config, "train")),
-                    "--test_num",
-                    0,
-                    "--seed",
-                    cfg["seed"],
-                    "--first_stage_layers",
-                    ",".join(map(str, range(m["layers"]))),
-                    "--gpus",
-                    ",".join(map(str, run.config["runtime"]["gpus"])),
-                    "--num_layers",
-                    m["layers"],
-                    "--num_heads",
-                    m["heads"],
-                    "--levels",
-                    cfg["levels"],
-                    "--codebook_size",
-                    cfg["centroids"],
-                    "--codebook_tensor",
-                    tensor,
-                    "--codebook_subdir",
-                    subdir,
-                    "--sample_size",
-                    cfg["sample_size"],
-                    "--kmeans_max_iters",
-                    cfg["kmeans_iters"],
-                    "--input_norm_mode",
-                    cfg["input_norm_mode"],
-                    "--train_objective",
-                    "recon",
-                    "--skip_dump",
-                    "--skip_eval",
-                    "--worker_python",
-                    sys.executable,
-                    "--run_config_name",
-                    f"{tensor}_config.json",
-                    "--stage_prefix",
-                    f"{tensor}_",
-                ]
-            )
+            from .codebooks import train
+
+            train(work, run.config, tensor)
             files = sorted((work / subdir).glob("layer_*_head_*.pt"))
             if len(files) != m["layers"] * m["heads"]:
                 raise ValueError(f"Incomplete {tensor} codebooks: {len(files)}")
@@ -153,10 +104,12 @@ def event_files(run, phase):
 
 def fit_residual(run):
     import torch
+
     from subitkv import routed_gaussian
     from subitkv.progressive_sign_adaptive_absmax_scalar import PARAMS_SCHEMA
 
-    helpers = load_module("scripts/HY-WorldPlay/fit_moviegen_avg2_residual_params.py")
+    from . import residual_fitting as helpers
+
     c, m = run.config["calibration"], run.config["model_config"]
     device = run.config["runtime"]["device"]
     files = event_files(run, "residual")

@@ -26,7 +26,9 @@ def test_stratified_capture_covers_every_history_age_cell_deterministically() ->
     repeats = []
     for step in range(1, calls + 1):
         tokens = step * spatial * 4
-        k = torch.arange(2 * 2 * tokens * 128, dtype=torch.float32).reshape(2, 2, tokens, 128)
+        k = torch.arange(2 * 2 * tokens * 128, dtype=torch.float32).reshape(
+            2, 2, tokens, 128
+        )
         v = -k
         kwargs = dict(
             layer_idx=7,
@@ -48,7 +50,9 @@ def test_stratified_capture_covers_every_history_age_cell_deterministically() ->
     assert captured["K"].shape == (2, 2, sample_tokens, 128)
     assert torch.equal(captured["K"], repeated["K"])
     assert torch.equal(captured["V"], -captured["K"])
-    assert torch.equal(captured["attention_stream_ids"], torch.tensor([0, 1], dtype=torch.int16))
+    assert torch.equal(
+        captured["attention_stream_ids"], torch.tensor([0, 1], dtype=torch.int16)
+    )
     for step, age in history_age_cells(calls):
         observed = int(
             ((captured["history_step"] == step) & (captured["chunk_age"] == age)).sum()
@@ -69,9 +73,12 @@ def test_append_only_capture_is_balanced_over_ten_spans_and_deterministic() -> N
     rows = []
     repeated = []
     for span in range(10):
-        k = torch.arange(
-            2 * 2 * spatial * 4 * 128, dtype=torch.float32
-        ).reshape(2, 2, spatial * 4, 128) + span
+        k = (
+            torch.arange(2 * 2 * spatial * 4 * 128, dtype=torch.float32).reshape(
+                2, 2, spatial * 4, 128
+            )
+            + span
+        )
         kwargs = dict(
             layer_idx=5,
             prompt_index=7,
@@ -89,6 +96,4 @@ def test_append_only_capture_is_balanced_over_ten_spans_and_deterministic() -> N
     assert captured["K"].shape == (2, 2, 50, 128)
     assert torch.equal(captured["K"], again["K"])
     assert torch.equal(captured["V"], -captured["K"])
-    assert [
-        int((captured["span_ids"] == span).sum()) for span in range(10)
-    ] == [5] * 10
+    assert [int((captured["span_ids"] == span).sum()) for span in range(10)] == [5] * 10

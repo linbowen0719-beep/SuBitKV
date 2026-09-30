@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import argparse
-from copy import deepcopy
 import hashlib
 import json
 import math
+from copy import deepcopy
 from pathlib import Path
 
 from subitkv.cache_budget import rvq_schedule_budget
+
 from .scheduling import solve_dp, solve_schedule, validate_objective
 
 DEFAULT_CONSTANTS = Path(__file__).with_name("constants") / "hyworldplay_train4.json"

@@ -1,15 +1,8 @@
-"""Cluster-free sign-adaptive G128 INT4 RVQ-residual codec.
-
-Each block uses all sixteen nibbles while retaining an exact zero.  The larger
-signed endpoint receives eight integer steps and the other side receives
-seven.  The otherwise-unused sign bit of the positive FP8 scale stores this
-orientation, so the physical rate remains four value bits plus one FP8 scale
-per group.
-"""
-
+"""Shared numerical helpers used by the SuBitKV residual codecs."""
 from __future__ import annotations
 
 from collections.abc import Mapping
+
 from typing import Any
 
 import torch
@@ -19,17 +12,15 @@ from .kernels.triton.sign_adaptive_absmax_scalar import (
     encode_packed_sign_adaptive_absmax_scalar,
 )
 
-
 STATE_SCHEMA = "sign_adaptive_absmax_scalar.state.v1"
-QUANT_METHOD = "sign_adaptive_absmax_scalar"
-SUPPORTED_GROUPS = (32, 64, 128)
 
+QUANT_METHOD = "sign_adaptive_absmax_scalar"
+
+SUPPORTED_GROUPS = (32, 64, 128)
 
 def _round_away_zero(value: torch.Tensor) -> torch.Tensor:
     return torch.sign(value) * torch.floor(value.abs() + 0.5)
 
-
-@torch.no_grad()
 def encode_sign_adaptive_absmax_scalar_residual(
     tensor: torch.Tensor,
     *,
@@ -126,7 +117,6 @@ def encode_sign_adaptive_absmax_scalar_residual(
     _validate_state(state)
     return state
 
-
 def _validate_state(
     state: Mapping[str, Any],
 ) -> tuple[tuple[int, int, int, int], int]:
@@ -166,7 +156,6 @@ def _validate_state(
         raise ValueError("sign-adaptive payload accounting mismatch")
     return shape, group_size
 
-
 def _decode_eager(
     state: Mapping[str, Any], output_dtype: torch.dtype
 ) -> torch.Tensor:
@@ -183,7 +172,6 @@ def _decode_eager(
     qmin = torch.where(signed_scale >= 0, -7, -8)
     restored = (grouped_codes + qmin).float() * signed_scale.abs()
     return restored.reshape(shape).to(output_dtype).contiguous()
-
 
 def decode_sign_adaptive_absmax_scalar_residual(
     state: Mapping[str, Any],
@@ -209,12 +197,3 @@ def decode_sign_adaptive_absmax_scalar_residual(
 def payload_nbytes(state: Mapping[str, Any]) -> int:
     _validate_state(state)
     return int(state["local_payload_bytes"])
-
-
-__all__ = [
-    "QUANT_METHOD",
-    "STATE_SCHEMA",
-    "decode_sign_adaptive_absmax_scalar_residual",
-    "encode_sign_adaptive_absmax_scalar_residual",
-    "payload_nbytes",
-]

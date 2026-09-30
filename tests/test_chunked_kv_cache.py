@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import torch
 import pytest
+import torch
 
 from subitkv.kv_cache import ChunkedKVCache
 from subitkv.temporal_adaptive_residual import (

@@ -1,11 +1,11 @@
 """Portable constants, real DP optimality and no-model CLI regression tests."""
 
-from copy import deepcopy
 import itertools
 import json
-from pathlib import Path
 import subprocess
 import sys
+from copy import deepcopy
+from pathlib import Path
 
 import pytest
 

@@ -1,5 +1,0 @@
-study_id: wan5b_historical_kv_rvq_p1_final_clarified
-base_final_dir: results/analysis/wan5b_rvq_mechanisms_p1_final_v3
-output_dir: results/analysis/wan5b_rvq_mechanisms_p1_final_v4
-model_id: Wan-AI/Wan2.2-TI2V-5B-Diffusers
-seed: 42

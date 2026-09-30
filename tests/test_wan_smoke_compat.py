@@ -13,7 +13,7 @@ def test_sdpa_compatibility_path_matches_torch():
     torch = pytest.importorskip("torch")
     source = (
         REPO
-        / "experiments/HY-WorldPlay/wan/models/dits/arwan_w_action_w_mem_relative_rope.py"
+        / "third_party/HY-WorldPlay/wan/models/dits/arwan_w_action_w_mem_relative_rope.py"
     )
     tree = ast.parse(source.read_text())
     function = next(
@@ -38,7 +38,7 @@ def test_sdpa_compatibility_path_matches_torch():
 def test_final_budget_check_uses_terminal_instead_of_peak():
     source = (
         REPO
-        / "experiments/HY-WorldPlay/wan/inference/pipeline_wan_w_mem_relative_rope.py"
+        / "third_party/HY-WorldPlay/wan/inference/pipeline_wan_w_mem_relative_rope.py"
     )
     tree = ast.parse(source.read_text())
     function = next(

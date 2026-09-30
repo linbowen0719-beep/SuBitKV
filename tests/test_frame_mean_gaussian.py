@@ -4,8 +4,8 @@ import pytest
 import torch
 
 from subitkv import frame_mean_gaussian as codec
-from subitkv.uniform_grid_gaussian import DIM, SPATIAL_TOKENS
 from subitkv.kernels.triton.rvq import rvq_decode_bhsd_triton
+from subitkv.uniform_grid_gaussian import DIM, SPATIAL_TOKENS
 
 
 def _sample() -> torch.Tensor:
@@ -15,8 +15,10 @@ def _sample() -> torch.Tensor:
     noise = 0.1 * torch.randn(shape, generator=generator)
     dc = torch.linspace(-0.4, 0.4, frames).reshape(1, 1, frames, 1, 1)
     return (
-        noise.reshape(1, 2, frames, SPATIAL_TOKENS, DIM) + dc
-    ).reshape(shape).to(torch.bfloat16)
+        (noise.reshape(1, 2, frames, SPATIAL_TOKENS, DIM) + dc)
+        .reshape(shape)
+        .to(torch.bfloat16)
+    )
 
 
 def _uniform_route() -> dict:
@@ -61,26 +63,22 @@ def test_roundtrip_payload_and_cluster_free_contract() -> None:
 def test_self_forcing_1560_token_frames_roundtrip_bit_exact_fast_eager() -> None:
     spatial_tokens = 1560
     generator = torch.Generator().manual_seed(20260801)
-    source = torch.randn(
-        1, 2, 3 * spatial_tokens, DIM, generator=generator
-    ).to(torch.bfloat16).cuda()
+    source = (
+        torch.randn(1, 2, 3 * spatial_tokens, DIM, generator=generator)
+        .to(torch.bfloat16)
+        .cuda()
+    )
     kwargs = {
         "layer_idx": 5,
         "routing_table": _uniform_route(),
         "spatial_tokens": spatial_tokens,
     }
-    eager = codec.encode_frame_mean_gaussian_residual(
-        source, **kwargs, use_fast=False
-    )
-    fast = codec.encode_frame_mean_gaussian_residual(
-        source, **kwargs, use_fast=True
-    )
+    eager = codec.encode_frame_mean_gaussian_residual(source, **kwargs, use_fast=False)
+    fast = codec.encode_frame_mean_gaussian_residual(source, **kwargs, use_fast=True)
     assert fast["spatial_tokens"] == spatial_tokens
     assert torch.equal(fast["frame_mean_raw"], eager["frame_mean_raw"])
     assert torch.equal(
-        codec.decode_frame_mean_gaussian_residual(
-            fast, torch.bfloat16, use_fast=True
-        ),
+        codec.decode_frame_mean_gaussian_residual(fast, torch.bfloat16, use_fast=True),
         codec.decode_frame_mean_gaussian_residual(
             eager, torch.bfloat16, use_fast=False
         ),
@@ -188,9 +186,7 @@ def test_universal_shrinkage_is_implicit_and_rate_neutral() -> None:
 
     assert shrunk["mean_shrinkage"] == "universal"
     assert shrunk["mean_threshold_factor"] == pytest.approx(
-        (2.0 * torch.log(torch.tensor(float(DIM))) / SPATIAL_TOKENS)
-        .sqrt()
-        .item()
+        (2.0 * torch.log(torch.tensor(float(DIM))) / SPATIAL_TOKENS).sqrt().item()
     )
     assert shrunk["local_payload_bytes"] == plain["local_payload_bytes"]
     assert not torch.equal(shrunk["frame_mean_raw"], plain["frame_mean_raw"])
@@ -203,12 +199,8 @@ def test_fast_encode_matches_eager_bitstream() -> None:
         "layer_idx": 7,
         "routing_table": _uniform_route(),
     }
-    eager = codec.encode_frame_mean_gaussian_residual(
-        source, **kwargs, use_fast=False
-    )
-    fast = codec.encode_frame_mean_gaussian_residual(
-        source, **kwargs, use_fast=True
-    )
+    eager = codec.encode_frame_mean_gaussian_residual(source, **kwargs, use_fast=False)
+    fast = codec.encode_frame_mean_gaussian_residual(source, **kwargs, use_fast=True)
     assert torch.equal(fast["frame_mean_raw"], eager["frame_mean_raw"])
     assert torch.equal(
         fast["suffix_state"]["scale_raw"],
@@ -247,9 +239,7 @@ def test_fast_encode_matches_eager_bitstream() -> None:
         dtype=fused_decoded.dtype,
     )
     larger[:, :, 3:-3].copy_(torch.randn_like(fused_decoded))
-    expected_strided = (
-        larger[:, :, 3:-3].clone() + fused_decoded
-    ).to(torch.bfloat16)
+    expected_strided = (larger[:, :, 3:-3].clone() + fused_decoded).to(torch.bfloat16)
     actual_strided = codec.decode_frame_mean_gaussian_residual(
         fast,
         output_dtype=torch.bfloat16,
@@ -280,16 +270,20 @@ def test_fused_dense_rvq_frame_mean_restore_is_bit_exact() -> None:
         generator=generator,
     ).contiguous()
     codebooks = (
-        torch.randn(
-            levels,
-            source.shape[1],
-            centroids,
-            DIM,
-            device="cuda",
-            generator=generator,
+        (
+            torch.randn(
+                levels,
+                source.shape[1],
+                centroids,
+                DIM,
+                device="cuda",
+                generator=generator,
+            )
+            * 0.02
         )
-        * 0.02
-    ).to(torch.bfloat16).contiguous()
+        .to(torch.bfloat16)
+        .contiguous()
+    )
     base = rvq_decode_bhsd_triton(
         indices, codebooks, None, torch.bfloat16, apply_scale=False
     )

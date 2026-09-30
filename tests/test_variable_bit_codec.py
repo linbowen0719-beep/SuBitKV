@@ -15,7 +15,6 @@ from subitkv.variable_bit_codec import (
     unpack_variable_indices,
 )
 
-
 CARDINALITIES = [64, 32, 16, 8, 8, 8, 8, 8]
 
 
@@ -74,7 +73,9 @@ def _write_variable_codebooks(root, *, heads: int = 2, dim: int = 4) -> None:
 
 
 @pytest.mark.parametrize("storage_dtype", ["bf16", "int4"])
-def test_variable_rvq_runtime_uses_one_int32_per_vector(tmp_path, storage_dtype: str) -> None:
+def test_variable_rvq_runtime_uses_one_int32_per_vector(
+    tmp_path, storage_dtype: str
+) -> None:
     _write_variable_codebooks(tmp_path)
     value = torch.randn(1, 2, 7, 4, generator=torch.Generator().manual_seed(321))
     packed = rvq_encode_tensor_cache(
@@ -127,15 +128,18 @@ def test_directory_metadata_accepts_equal_rate_mixed_depths(tmp_path) -> None:
 
 
 def test_eval_accounting_includes_variable_int4_codebooks(tmp_path) -> None:
-    from scripts.eval.run_small_eval import rvq_codebook_nbytes
+    from subitkv.models.wan_accounting import rvq_codebook_nbytes
 
     _write_variable_codebooks(tmp_path, heads=2, dim=4)
     centroids_per_head = sum(CARDINALITIES)
     expected_per_head = (centroids_per_head * 4) // 2 + centroids_per_head * 2
-    assert rvq_codebook_nbytes(
-        tmp_path,
-        layer_idx=0,
-        compute_dtype="bf16",
-        codebook_storage_dtype="int4",
-        logical_head_dim=4,
-    ) == 2 * expected_per_head
+    assert (
+        rvq_codebook_nbytes(
+            tmp_path,
+            layer_idx=0,
+            compute_dtype="bf16",
+            codebook_storage_dtype="int4",
+            logical_head_dim=4,
+        )
+        == 2 * expected_per_head
+    )

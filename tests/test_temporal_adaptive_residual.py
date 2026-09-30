@@ -5,8 +5,8 @@ from types import SimpleNamespace
 import pytest
 import torch
 
-from subitkv import progressive_sign_adaptive_absmax_scalar as progressive
 from subitkv import compress as compress_mod
+from subitkv import progressive_sign_adaptive_absmax_scalar as progressive
 from subitkv import temporal_adaptive_residual as temporal
 
 
@@ -21,9 +21,7 @@ def test_b16_is_bit_exact_and_v_prefixes_physically_shrink(
         "quant_method": "rvq",
         "indices": torch.arange(8, dtype=torch.uint8),
     }
-    state = temporal.create_b16_state(
-        source, base, tensor_name="V", layer_idx=3
-    )
+    state = temporal.create_b16_state(source, base, tensor_name="V", layer_idx=3)
     assert state["base"] is base
     assert torch.equal(temporal.decode_state(state), source)
 
@@ -37,17 +35,14 @@ def test_b16_is_bit_exact_and_v_prefixes_physically_shrink(
         progressive_v_absmax_method="midpoint_msb",
         progressive_v_absmax_group_size=128,
     )
+
     def fake_rvq_decode(packed, dtype, **kwargs):
         residual_source = kwargs.get("_residual_source")
         if residual_source is not None:
-            return (
-                residual_source.to(dtype) - base_value.to(dtype)
-            ).contiguous()
+            return (residual_source.to(dtype) - base_value.to(dtype)).contiguous()
         return base_value.to(dtype)
 
-    monkeypatch.setattr(
-        temporal, "rvq_dequantize_tensor_cache", fake_rvq_decode
-    )
+    monkeypatch.setattr(temporal, "rvq_dequantize_tensor_cache", fake_rvq_decode)
     b8 = temporal.transition_state(state, 8, quant_config=config)
     direct_b4 = temporal.transition_state(state, 4, quant_config=config)
     b4 = temporal.transition_state(b8, 4, quant_config=config)
@@ -144,9 +139,7 @@ def test_temporal_admission_encodes_directly_to_scheduler_target(
         lambda *_args, **_kwargs: {"bits": 16, "base": base},
     )
 
-    def fake_transition(
-        state, target_bits, *, quant_config, verify_identity=True
-    ):
+    def fake_transition(state, target_bits, *, quant_config, verify_identity=True):
         calls.append((int(state["bits"]), int(target_bits)))
         assert verify_identity is False
         return {**state, "bits": int(target_bits), "bf16_bypass": None}
@@ -214,9 +207,7 @@ def test_temporal_admission_honors_tensor_specific_target(
 
 def test_scheduler_has_ten_monotone_rows_and_exact_terminal_budget() -> None:
     profile = temporal.DistortionProfile(
-        distortions={
-            16: 0.0, 8: 0.2, 4: 1.0, 3: 1.8, 2: 3.2, 1: 7.0
-        },
+        distortions={16: 0.0, 8: 0.2, 4: 1.0, 3: 1.8, 2: 3.2, 1: 7.0},
         age_weights=(1.0, 0.8, 0.6, 0.4, 0.25, 0.16, 0.1),
         first_anchor_weight=1.7,
     )
@@ -225,9 +216,7 @@ def test_scheduler_has_ten_monotone_rows_and_exact_terminal_budget() -> None:
     for _step in range(10):
         current.append(16)
         current = list(
-            temporal.schedule_precisions(
-                current, profile, capacity_bit_chunks=40
-            )
+            temporal.schedule_precisions(current, profile, capacity_bit_chunks=40)
         )
         schedules.append(tuple(current))
 
@@ -236,13 +225,10 @@ def test_scheduler_has_ten_monotone_rows_and_exact_terminal_budget() -> None:
     assert all(sum(row) <= 40 for row in schedules)
     for previous, present in zip(schedules, schedules[1:]):
         assert all(
-            temporal.ALLOWED_BITS.index(new)
-            >= temporal.ALLOWED_BITS.index(old)
+            temporal.ALLOWED_BITS.index(new) >= temporal.ALLOWED_BITS.index(old)
             for old, new in zip(previous, present)
         )
-    assert all(
-        value in temporal.ALLOWED_BITS for row in schedules for value in row
-    )
+    assert all(value in temporal.ALLOWED_BITS for row in schedules for value in row)
 
 
 def test_profile_rejects_nonmonotone_distortion() -> None:
@@ -304,8 +290,7 @@ def test_force_recent_b16_uses_b2_b3_at_exact_average_four() -> None:
     assert all(sum(row) <= 40 for row in schedules)
     for previous, present in zip(schedules, schedules[1:]):
         assert all(
-            temporal.ALLOWED_BITS.index(new)
-            >= temporal.ALLOWED_BITS.index(old)
+            temporal.ALLOWED_BITS.index(new) >= temporal.ALLOWED_BITS.index(old)
             for old, new in zip(previous, present)
         )
 
@@ -324,9 +309,7 @@ def test_frozen_joint_schedule_is_followed_and_validated() -> None:
         (3, 3, 2, 2, 2, 3, 3, 3, 3, 16),
     )
     profile = temporal.DistortionProfile(
-        distortions={
-            16: 0.0, 8: 0.2, 4: 1.0, 3: 4.0, 2: 18.0, 1: 70.0
-        },
+        distortions={16: 0.0, 8: 0.2, 4: 1.0, 3: 4.0, 2: 18.0, 1: 70.0},
         age_weights=(1.0,),
         joint_schedule=rows,
     )
@@ -403,9 +386,7 @@ def test_frozen_joint_average_two_and_three(
     rows: tuple[tuple[int, ...], ...],
 ) -> None:
     profile = temporal.DistortionProfile(
-        distortions={
-            16: 0.0, 8: 0.2, 4: 1.0, 3: 4.0, 2: 18.0, 1: 70.0
-        },
+        distortions={16: 0.0, 8: 0.2, 4: 1.0, 3: 4.0, 2: 18.0, 1: 70.0},
         age_weights=(1.0,),
         joint_schedule=rows,
         joint_schedule_capacity_bit_chunks=capacity,

@@ -3,17 +3,17 @@
 from __future__ import annotations
 
 import argparse
-from datetime import datetime, timezone
 import fcntl
 import json
-from pathlib import Path
 import re
 import socket
 import subprocess
+from datetime import datetime, timezone
+from pathlib import Path
 
 from .common import (
-    REPO,
     MODELS,
+    REPO,
     absolute,
     digest,
     identity,

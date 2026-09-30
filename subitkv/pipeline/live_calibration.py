@@ -31,7 +31,8 @@ def settings():
 
 def base(source, layer, tensor, cfg, bundle):
     import torch
-    from subitkv.rvq import rvq_encode_tensor_cache, rvq_dequantize_tensor_cache
+
+    from subitkv.rvq import rvq_dequantize_tensor_cache, rvq_encode_tensor_cache
 
     state = rvq_encode_tensor_cache(
         source,
@@ -51,14 +52,15 @@ def base(source, layer, tensor, cfg, bundle):
 
 def candidates(source, layer, tensor, cfg, bundle, spatial, span_tokens):
     import torch
+
     from subitkv.frame_mean_gaussian import (
-        encode_frame_mean_gaussian_residual,
         decode_frame_mean_gaussian_residual,
+        encode_frame_mean_gaussian_residual,
         truncate_frame_mean_gaussian_state,
     )
     from subitkv.progressive_sign_adaptive_absmax_scalar import (
-        encode_progressive_sign_adaptive_absmax_scalar_residual,
         decode_progressive_sign_adaptive_absmax_scalar_residual,
+        encode_progressive_sign_adaptive_absmax_scalar_residual,
         truncate_progressive_sign_adaptive_absmax_state,
     )
 
@@ -122,6 +124,7 @@ def observe(query, history_k, history_v, *, layer, transform, prefix_tokens=0):
     if not enabled() or history_k is None or not history_k.shape[2]:
         return
     import torch
+
     from subitkv.rng import preserve_torch_rng_state
 
     raw = settings()
@@ -187,7 +190,7 @@ def observe(query, history_k, history_v, *, layer, transform, prefix_tokens=0):
                     : c["residual"]["samples_per_head"]
                 ].to(heads.device)
                 residuals[tensor] = heads[:, indices].cpu()
-            from subitkv.hyworldplay_residual_stats import RESIDUAL_STATS_SCHEMA
+            RESIDUAL_STATS_SCHEMA = "hyworldplay_rvq_residual_stats.v2"
 
             torch.save(
                 dict(

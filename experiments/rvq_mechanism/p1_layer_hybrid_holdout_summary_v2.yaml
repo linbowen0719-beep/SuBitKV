@@ -1,6 +1,0 @@
-study_id: wan5b_historical_kv_rvq_p1_layer_hybrid_holdout_summary_v2
-exact_config: experiments/rvq_mechanism/p1_layer_hybrid_holdout_exact.yaml
-output_dir: results/analysis/wan5b_rvq_mechanisms_p1_layer_hybrid_holdout_summary_v2
-hypothesis_registry: artifacts/p1_layer_hybrid_hypotheses.csv
-seed: 42
-status: corrected_summary_after_baseline_key_collision

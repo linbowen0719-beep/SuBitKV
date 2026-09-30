@@ -11,10 +11,10 @@ from subitkv.pipeline.common import REPO, load_config, write_json  # noqa: E402
 
 
 def bundle(tmp_path):
-    from subitkv.routed_gaussian import build_fixed_gaussian_tree, ROUTING_SCHEMA
     from subitkv.progressive_sign_adaptive_absmax_scalar import (
         build_midpoint_params,
     )
+    from subitkv.routed_gaussian import ROUTING_SCHEMA, build_fixed_gaussian_tree
 
     root = tmp_path / "bundle"
     root.mkdir()

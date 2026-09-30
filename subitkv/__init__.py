@@ -1,7 +1,7 @@
 """Public package exports for SuBitKV.
 
 The package root stays lightweight so standalone submodules such as
-``subitkv.rvq_qk`` can be imported without initializing every quantizer.
+``subitkv.cache_budget`` can be imported without initializing every quantizer.
 """
 
 from __future__ import annotations

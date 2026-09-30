@@ -144,10 +144,7 @@ def solve_schedule(
     ]
     index = {v: i for i, v in enumerate(variables)}
     objective = np.array(
-        [
-            chunk_weight(raw, k, s) * raw["distortions"][str(b)]
-            for s, k, b in variables
-        ]
+        [chunk_weight(raw, k, s) * raw["distortions"][str(b)] for s, k, b in variables]
     )
     rows, lower, upper = [], [], []
 

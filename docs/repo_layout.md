@@ -1,41 +1,75 @@
-# Repository Layout
+# Read the code
 
-The repository uses an incremental layout: stable source paths remain in place,
-while supported reproductions are isolated from historical research entrypoints.
-
-## Tracked source
-
-- `subitkv/`: importable compression, storage, and Triton kernel code.
-- `experiments/{LongCat,Self-Forcing,HY-WorldPlay}/`: modified model
-  integrations, pinned and licensed as described in `THIRD_PARTY.md`.
-- `configs/smoke/` and `configs/main/`: portable, supported experiment specs.
-- `scripts/reproduce.py`: stable list, doctor, dry-run, and execution interface.
-- `scripts/main/`: supported RVQ training, MovieGen method matrix, benchmark,
-  and paper-table aggregation modules.
-- `scripts/eval/`, `scripts/rvq/`, and `scripts/analysis/`: reusable and
-  historical research tools.
-- `tests/`: CPU tests plus opt-in CUDA/Triton coverage.
-- `docs/reports/`: selected small, human-readable result summaries.
-
-## Local-only state
-
-These logical directories are ignored and may live on separate volumes:
+Start with the workflow, then follow the stage you want to change.
 
 ```text
-ckpts/       model weights
-data/        datasets and KV dumps
-codebooks/   trained quantizer state
-outputs/     supported reproduction runs
-results/     historical/default result paths
-artifacts/   generated reports, plots, and videos
-logs/        launchers and runtime logs
-exports/     large sharing bundles
+scripts/                     Two CLI wrappers
+configs/subitkv.yaml          Prompts, models, budgets, and hyperparameters
+subitkv/
+  pipeline/                  Download → collect → calibrate → infer → metrics
+  models/                    Wan, Self-Forcing, and HY-WorldPlay adapters
+  compress.py                Encode a persistent base and admit its residual
+  temporal_adaptive_residual.py
+                             Apply the schedule and truncate old residuals
+  uncompress.py              Reconstruct K/V for attention
+  rvq.py                     Persistent base encoding and decoding
+  frame_mean_gaussian.py     K residual codec
+  progressive_sign_adaptive_absmax_scalar.py
+                             V residual codec
+  cache_budget.py            Subtract accumulated base bytes from capacity
+  kernels/                   CUDA/Triton implementations
+third_party/                 Required upstream model code and licenses
+tests/                       Workflow, budget, codec, and numerical tests
 ```
 
-`SUBITKV_CKPT_ROOT`, `SUBITKV_DATA_ROOT`, `SUBITKV_CODEBOOK_ROOT`, and `SUBITKV_OUTPUT_ROOT`
-map these logical roles to machine-specific locations. Do not add a `local-only/`
-directory to Git; it is a documentation concept, not a second copy of data.
+## Follow one run
 
-Nested upstream clones such as `experiments/LongCatOfficial/` and collections
-of generated videos such as `QuantVideo/` are local references and must not be
-committed.
+```mermaid
+flowchart LR
+    A[Download checkpoints] --> B[BF16 samples and KV capture]
+    B --> C[Codebooks and residual parameters]
+    C --> D[Attention loss and age weights]
+    D --> E[Base-aware schedule]
+    E --> F[SuBitKV inference]
+    B --> G[BF16 reference]
+    F --> H[PSNR / SSIM / LPIPS / TWE / VBench]
+    G --> H
+```
+
+The entrypoint is `pipeline/workflow.py`. `pipeline/adapters.py` manages run
+artifacts and invokes the matching model adapter in `models/`. Each model runs
+in its own process; common compression code remains independent of the model.
+
+## Calibration and scheduling
+
+`pipeline/calibration.py` calls the codebook trainer, residual fitting, and live
+attention calibration. These functions use training prompts only. Calibration
+saves the bundle consumed by inference; evaluation prompts do not select it.
+
+`cache_budget.py` reserves the persistent bases admitted so far before converting
+remaining bytes into residual bit counts. `pipeline/scheduling.py` implements
+sequential DP and joint MILP. `pipeline/schedule.py` exposes the bundled-constant
+DP command, which needs only Python.
+
+## Cache lifecycle
+
+`compress.py` encodes each new base once. The temporal module keeps that base
+fixed while truncating K and V residual prefixes according to the schedule.
+B16 keeps the original BF16 tensor; B0 keeps only the persistent base.
+`uncompress.py` reconstructs chronological cache segments for attention.
+
+The shared scalar and Hadamard helpers support the two residual codecs. The
+vendored models contain the hooks that collect KV tensors and apply compressed
+history at the model's attention boundary. Upstream authorship and licenses are
+listed in [third-party notices](../THIRD_PARTY.md).
+
+## Tests
+
+```bash
+python -m pytest -q
+python -S scripts/subitkv_schedule.py --budget 0.5
+```
+
+CUDA tests skip when CUDA is unavailable. Model weights are needed only for
+actual video generation, not the unit tests. Generated checkpoints, KV dumps,
+videos, and reports belong in ignored local output directories.

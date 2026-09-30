@@ -58,7 +58,7 @@ python scripts/run_subitkv.py metrics --model wan2_2_5b --run-id wan-demo --resu
 
 Set prompts, GPUs, and hyperparameters in [`configs/subitkv.yaml`](configs/subitkv.yaml).
 Outputs: `outputs/subitkv/wan2_2_5b/wan-demo/`. Remove `--execute` to preview.
-[Other models, configuration, and troubleshooting →](docs/subitkv.md)
+[Other models, configuration, and troubleshooting →](docs/subitkv.md) · [Read the code →](docs/repo_layout.md)
 
 ### Schedule without calibration
 
@@ -98,4 +98,4 @@ codebooks, metadata, and cache-related workspace. [Manuscript protocol and figur
 [HY-WorldPlay](https://github.com/Tencent-Hunyuan/HY-WorldPlay),
 [Wan](https://github.com/Wan-Video/Wan2.2), and
 [Self-Forcing](https://github.com/guandeh17/Self-Forcing).
-[License](LICENSE) · [Third-party notices](THIRD_PARTY.md) · [Research protocols](docs/research_protocols.md)
+[License](LICENSE) · [Third-party notices](THIRD_PARTY.md) · [Code guide](docs/repo_layout.md)

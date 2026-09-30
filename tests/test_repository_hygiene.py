@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from pathlib import Path
 import re
 import subprocess
-
+from pathlib import Path
 
 REPO_ROOT = Path(__file__).parents[1]
 FORBIDDEN_TRACKED_ROOTS = {
@@ -23,9 +22,9 @@ FORBIDDEN_TRACKED_ROOTS = {
 
 
 def tracked_files() -> list[Path]:
-    output = subprocess.check_output(
-        ["git", "ls-files", "-z"], cwd=REPO_ROOT
-    ).decode("utf-8")
+    output = subprocess.check_output(["git", "ls-files", "-z"], cwd=REPO_ROOT).decode(
+        "utf-8"
+    )
     return [Path(item) for item in output.split("\0") if item]
 
 
@@ -39,16 +38,10 @@ def test_tracked_tree_has_no_local_outputs_or_large_files() -> None:
 
 
 def test_supported_entrypoints_have_no_personal_absolute_paths() -> None:
-    public_launchers = [
-        REPO_ROOT / "scripts" / integration / filename
-        for integration in ("LongCat", "Self-Forcing", "HY-WorldPlay")
-        for filename in ("run_bf16.sh", "run_subitkv.sh")
-    ]
     paths = [
-        REPO_ROOT / "scripts/reproduce.py",
-        *sorted((REPO_ROOT / "configs/smoke").glob("*.yaml")),
-        *sorted((REPO_ROOT / "configs/main").glob("*.yaml")),
-        *public_launchers,
+        *sorted((REPO_ROOT / "scripts").glob("*.py")),
+        *sorted((REPO_ROOT / "subitkv").rglob("*.py")),
+        REPO_ROOT / "configs/subitkv.yaml",
     ]
     for path in paths:
         text = path.read_text(encoding="utf-8")

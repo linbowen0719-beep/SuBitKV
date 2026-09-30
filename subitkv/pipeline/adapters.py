@@ -2,20 +2,17 @@
 
 from __future__ import annotations
 
-import json
 import csv
+import json
 import os
-from pathlib import Path
 import shutil
 import subprocess
-import sys
 import time
-
-import yaml
+from pathlib import Path
 
 from subitkv.cache_budget import rvq_schedule_budget
 
-from .common import REPO, absolute, digest, identity, load_module, seal, write_json
+from .common import REPO, absolute, digest, identity, seal, write_json
 from .workflow import prompts
 
 
@@ -57,7 +54,7 @@ def quant_config(config, bundle, budget):
     c, m = config["calibration"], config["model_config"]
     return dict(
         compression_policy="all",
-        quant_type="triton-nstages-kmeans-int4",
+        quant_type="subitkv",
         cache_position="pre_rope",
         k_rvq=True,
         v_rvq=True,
@@ -139,213 +136,29 @@ def generate(
         "PYTHONPATH": str(REPO),
         "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True",
     }
-    if c["model"] == "wan2_2_5b":
-        argv = [
-            sys.executable,
-            REPO / "scripts/eval/run_small_eval.py",
-            "--prompt-file",
-            prompt_file,
-            "--prompt-start",
-            0,
-            "--num-prompts",
-            1,
-            "--output-dir",
-            destination,
-            "--seed",
-            m["seed"],
-            "--image_path",
-            "none",
-            "--model_id",
-            run.models / m["base"],
-            "--ar_model_path",
-            run.models / m["transformer"],
-            "--ckpt_path",
-            run.models / m["checkpoint"],
-            "--offload_text_encoder",
-            "--kv_logical_head_dim",
-            256,
-            "--kv_quant_factor",
-            1,
-        ]
-        for key, field in (
-            ("num_frames", "frames"),
-            ("num_chunk", "chunks"),
-            ("num_inference_steps", "steps"),
-            ("memory_frames", "memory_frames"),
-            ("temporal_context_size", "temporal_context_size"),
-            ("pred_latent_size", "pred_latent_size"),
-            ("pose", "pose"),
-        ):
-            argv.extend(["--" + key, m[field]])
-        if budget is None:
-            argv += ["--setting", "bf16-prerope"]
-        else:
-            q = quant_config(c, run.bundle, budget)
-            argv += [
-                "--setting",
-                "kvrvq-i4",
-                "--rvq_codebook_storage_dtype",
-                c["calibration"]["codebook_storage_dtype"],
-                "--rvq_scale_storage_dtype",
-                c["calibration"]["scale_storage_dtype"],
-                "--rvq_num_levels",
-                c["calibration"]["levels"],
-            ]
-            keep = (
-                "rvq_",
-                "routed_gaussian_",
-                "progressive_v_absmax_",
-                "temporal_adaptive_",
-            )
-            for key, value in q.items():
-                if key == "temporal_adaptive_residual":
-                    continue
-                if key.startswith(keep) or key in (
-                    "k_rvq_codebook_dir",
-                    "v_rvq_codebook_dir",
-                    "k_rvq_batch_size",
-                    "v_rvq_batch_size",
-                ):
-                    argv.extend(["--" + key] if value is True else ["--" + key, value])
-            argv += ["--kv_quant_temporal_adaptive_residual"]
-        env["HYWORLDPLAY_KV_CACHE_MODE"] = "pre_kv_reconstruct"
-        if budget is None:
-            env["HYWORLDPLAY_GENERATION_KV_CACHE_CPU_OFFLOAD"] = "1"
-        if capture:
-            env.update(
-                HYWORLDPLAY_RVQ_DIAG_DUMP="1",
-                HYWORLDPLAY_RVQ_DIAG_DUMP_DIR=str(capture),
-                HYWORLDPLAY_RVQ_DIAG_LAYERS=",".join(map(str, range(m["layers"]))),
-                HYWORLDPLAY_RVQ_DIAG_POST_CHUNK_CACHE="1",
-                HYWORLDPLAY_RVQ_DIAG_SPLIT="train",
-                HYWORLDPLAY_RVQ_DIAG_PROMPT_ID=str(prompt_id),
-                HYWORLDPLAY_RVQ_DIAG_PROMPT=prompt,
-            )
-    elif c["model"] == "self_forcing":
-        base = yaml.safe_load(
-            (
-                REPO / "experiments/Self-Forcing/configs/self_forcing_dmd.yaml"
-            ).read_text()
-        )
-        base.update(
-            denoising_step_list=m["steps"],
-            guidance_scale=m["guidance_scale"],
-            seed=m["seed"],
-        )
-        config_path = destination / "model.yaml"
-        config_path.write_text(yaml.safe_dump(base))
-        q = (
-            quant_config(c, run.bundle, budget)
-            if budget is not None
-            else dict(
-                quant_type="none",
-                compression_policy="all",
-                cache_position="pre_rope",
-                kv_cache_cpu_offload=True,
-            )
-        )
-        if capture:
-            q.update(
-                calibration_dump_dir=str(capture),
-                calibration_prompt_index=prompt_id,
-                calibration_sample_tokens=m["capture_tokens"],
-                calibration_seed=c["calibration"]["seed"],
-                calibration_sampling_mode="contiguous_generation_chunk",
-            )
-        quant_path = destination / "quant.json"
-        write_json(quant_path, q)
-        argv = [
-            sys.executable,
-            "-m",
-            "torch.distributed.run",
-            "--nproc_per_node=1",
-            "--standalone",
-            REPO / "experiments/Self-Forcing/inference.py",
-            "--config_path",
-            config_path,
-            "--checkpoint_path",
-            run.models / m["checkpoint"],
-            "--data_path",
-            prompt_file,
-            "--output_folder",
-            destination,
-            "--num_samples",
-            1,
-            "--num_output_frames",
-            m["latent_frames"],
-            "--local_attn_size",
-            m["latent_frames"],
-            "--seed",
-            m["seed"],
-            "--use_ema",
-            "--save_with_index",
-            "--quant_config_json",
-            quant_path,
-        ]
-        env.update(
-            SUBITKV_CKPT_ROOT=str(run.models),
-            SELF_FORCING_METRICS_PATH=str(destination / "runtime.json"),
-            PYTHONPATH=f"{REPO / 'experiments/Self-Forcing'}:{REPO}",
-        )
-    else:
-        image = (
-            absolute(c["data"]["conditioning_images"]) / split / f"{prompt_id:04d}.png"
-        )
-        if not image.is_file():
-            raise FileNotFoundError(f"HY-WorldPlay I2V input required: {image}")
-        env.update(
-            PYTHON=sys.executable,
-            MODEL_PATH=str(run.models / m["base"]),
-            ACTION_CKPT=str(run.models / m["checkpoint"]),
-            IMAGE_PATH=str(image),
-            PROMPT=prompt,
-            OUTPUT_PATH=str(destination),
-            VIDEO_LENGTH=str(m["frames"]),
-            SEED=str(m["seed"]),
-            NUM_INFERENCE_STEPS=str(m["steps"]),
-            WIDTH=str(m["width"]),
-            HEIGHT=str(m["height"]),
-            POSE=m["pose"],
-            FULL_HISTORY_ATTENTION="true",
-            APPEND_ONLY_VISION_CACHE="true",
-            KV_CACHE_OFFLOAD="true",
-            KV_CODEC_FRAME_SPATIAL_TOKENS=str(m["spatial_tokens"]),
-            TERMINAL_CACHE_AUDIT="true" if budget is not None else "false",
-            KV_CAPTURE_HISTORY_CALLS=str(c["calibration"]["schedule"]["horizon"]),
-        )
-        if budget is not None:
-            runtime_settings = destination / "runtime_settings.json"
-            write_json(runtime_settings, c)
-            env["SUBITKV_RUNTIME_SETTINGS"] = str(runtime_settings)
-            suffix = label(budget).replace("avg0p2", "avg0p2_alt")
-            env.update(
-                KV_CACHE_CODEC="rvq_ours_" + suffix,
-                KV_CODEC_K_CODEBOOK_DIR=str(run.bundle / "nonorm_k_l16c64_codebooks"),
-                KV_CODEC_V_CODEBOOK_DIR=str(run.bundle / "nonorm_v_l16c64_codebooks"),
-                KV_CODEC_ROUTING_PATH=str(run.bundle / "routing.json"),
-                KV_CODEC_TREE_PATH=str(run.bundle / "tree_params.pt"),
-                KV_CODEC_V_PARAMS_PATH=str(run.bundle / "v_params.pt"),
-                KV_CODEC_TEMPORAL_PROFILE_PATH=str(
-                    run.bundle / "profiles" / (label(budget) + ".json")
-                ),
-            )
-        if capture:
-            env.update(
-                KV_CAPTURE_DIR=str(capture),
-                KV_CAPTURE_PROMPT_INDEX=str(prompt_id),
-                KV_CAPTURE_SAMPLE_TOKENS=str(m["capture_tokens"]),
-                KV_CAPTURE_SEED=str(c["calibration"]["seed"]),
-            )
-        argv = [
-            "bash",
-            REPO / "scripts/HY-WorldPlay/run_hunyuan8b_bf16.sh",
-            "--metrics_path",
-            destination / "runtime.json",
-        ]
+    from subitkv.models import hyworldplay, self_forcing, wan
+
+    adapter = {
+        "wan2_2_5b": wan,
+        "self_forcing": self_forcing,
+        "hyworldplay_8b": hyworldplay,
+    }[c["model"]]
+    argv, env = adapter.build_command(
+        run,
+        prompt_id,
+        prompt,
+        split,
+        destination,
+        prompt_file,
+        env,
+        budget=budget,
+        capture=capture,
+    )
     env.update(extra_env or {})
     video, elapsed = process(argv, env, destination)
     if capture and c["model"] == "wan2_2_5b":
-        diag = load_module("scripts/rvq/diag/run_rvq_diag.py")
+        from . import capture as diag
+
         diag.merge_prompt_spans(
             capture,
             "train",
@@ -385,7 +198,7 @@ def generate(
             temporary.replace(path)
     image_hash = None
     if c["model"] == "hyworldplay_8b":
-        image_hash = digest(image)
+        image_hash = conditioning_hash
     runtime = runtime_metrics(c, destination)
     runtime.update(
         process_seconds=elapsed,
@@ -441,7 +254,7 @@ def runtime_metrics(config, directory):
         ),
         shared_codebook_mib=numeric("shared_codebook_mib"),
         generation_seconds=numeric(
-            "gen_time_s", "e2e_seconds", "mp4_complete_elapsed_seconds"
+            "gen_time_s", "e2e_time_s", "e2e_seconds", "mp4_complete_elapsed_seconds"
         ),
         raw_accounting_path=str(
             directory
@@ -452,7 +265,8 @@ def runtime_metrics(config, directory):
     )
     if config["model"] == "hyworldplay_8b":
         # Use runtime's terminal snapshot for separate K/V accounting.
-        helper = load_module("scripts/HY-WorldPlay/run_moviegen_i2v_job.py")
+        from subitkv.models import accounting as helper
+
         summary = helper.summarize_avg2_accounting(
             raw.get("kv_codec_encode_events", []), None
         )

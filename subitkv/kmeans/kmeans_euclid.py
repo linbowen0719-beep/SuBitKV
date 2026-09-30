@@ -1,7 +1,4 @@
 import torch
-import torch.nn.functional as F
-import triton
-import triton.language as tl
 
 from ..timer import time_logging_decorator
 

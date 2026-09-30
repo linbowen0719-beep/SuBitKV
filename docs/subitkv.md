@@ -4,8 +4,8 @@
 
 SuBitKV compresses the KV cache of Wan2.2 5B, Self-Forcing and HY-WorldPlay
 8B. The public entrypoint has five stages and one configuration file:
-`configs/subitkv.yaml`. Existing research scripts and protocols remain
-available; the public workflow writes new artifacts under `outputs/subitkv`.
+`configs/subitkv.yaml`. The workflow writes artifacts under `outputs/subitkv`.
+See the [code guide](repo_layout.md) for the algorithm and model adapters.
 
 | Step | Command | Produces |
 | --- | --- | --- |
@@ -56,9 +56,7 @@ skipping them. Failed model processes get a new attempt directory; logs remain.
 The `smoke` profile uses `assets/default_prompt.txt` for evaluation:
 "A frog wearing a detective's trench coat and hat, examining clues with a magnifying glass".
 Set `profiles.smoke.eval_prompts` in the YAML to use another prompt file.
-The `full` profile uses `data.eval_prompts`. The native Wan runner
-`scripts/eval/run_small_eval.py` uses the same default sample when neither
-`--prompt` nor `--prompt-file` is supplied; either option overrides it.
+The `full` profile uses `data.eval_prompts`.
 
 ## Generate schedules from saved calibration constants
 
@@ -148,9 +146,8 @@ data/subitkv/images/
 
 Each number identifies the corresponding nonempty line in the configured
 prompt file. Use the intended dataset's conditioning frame, with disjoint
-training/evaluation identities. The existing MovieGen preparation instructions
-are in [hyworldplay_i2v_20_973.md](hyworldplay_i2v_20_973.md). This small public
-example is separate from that frozen 20/10/973 evaluation protocol.
+training/evaluation identities. This small public example is separate from
+the paper's frozen 20/10/973 evaluation protocol.
 For the default smoke prompt, supply a matching frog detective image at
 `eval/0000.png`, or select your own prompt file and corresponding images.
 

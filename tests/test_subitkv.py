@@ -3,12 +3,13 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+from pathlib import Path
 
 import pytest
 
 from subitkv.pipeline.common import (
-    REPO,
     MODELS,
+    REPO,
     load_config,
     seal,
     validate_schedule,
@@ -84,7 +85,7 @@ def test_optimized_schedule_obeys_all_constraints():
 
 def test_twe_static_translation_and_empty_mask():
     torch = pytest.importorskip("torch")
-    from subitkv.pipeline.metrics import twe_pairs, warp, summarize_twe
+    from subitkv.pipeline.metrics import summarize_twe, twe_pairs, warp
 
     cfg = load_config(REPO / "configs/subitkv.yaml", "self_forcing", "smoke")[
         "metrics"
@@ -109,10 +110,9 @@ def test_twe_static_translation_and_empty_mask():
 
 
 @pytest.mark.parametrize("budget", [None, 0, 0.2, 0.5, 1, 2, 3, 4])
-def test_wan_generated_cli_accepted_by_real_parser(tmp_path, monkeypatch, budget):
+def test_wan_generated_job_preserves_config(tmp_path, monkeypatch, budget):
     pytest.importorskip("torch")
     from subitkv.pipeline import adapters
-    from subitkv.pipeline.common import load_module
 
     cfg = load_config(REPO / "configs/subitkv.yaml", "wan2_2_5b", "smoke")
     cfg["runtime"]["root"] = str(tmp_path)
@@ -128,12 +128,16 @@ def test_wan_generated_cli_accepted_by_real_parser(tmp_path, monkeypatch, budget
     monkeypatch.setattr(adapters, "process", process)
     monkeypatch.setattr(adapters, "runtime_metrics", lambda *args: {})
     adapters.generate(run, 0, "sample", "eval", run.root / "job", budget=budget)
-    parser_module = load_module("scripts/eval/run_small_eval.py")
-    monkeypatch.setattr(sys, "argv", [captured[1], *captured[2:]])
-    args = parser_module.parse_args()
-    assert args.seed == cfg["model_config"]["seed"]
+    assert captured[1:3] == ["-m", "subitkv.models.wan"]
+    job = json.loads(Path(captured[-1]).read_text())
+    assert job["model"]["seed"] == cfg["model_config"]["seed"]
     if budget is not None:
-        assert args.temporal_adaptive_allocation_mode == "frozen_joint_schedule"
+        assert (
+            job["quant_config"]["temporal_adaptive_allocation_mode"]
+            == "frozen_joint_schedule"
+        )
+    else:
+        assert job["quant_config"] is None
 
 
 @pytest.mark.parametrize("model", MODELS)

@@ -24,10 +24,26 @@ def _routing() -> dict[str, object]:
 def test_fixed_tree_shapes_and_ordering() -> None:
     tree = codec.build_fixed_gaussian_tree(dtype=torch.float32)
     assert [item.numel() for item in tree["thresholds"]] == [
-        1, 2, 4, 8, 16, 32, 64, 128, 256
+        1,
+        2,
+        4,
+        8,
+        16,
+        32,
+        64,
+        128,
+        256,
     ]
     assert [item.numel() for item in tree["reconstruction"]] == [
-        2, 4, 8, 16, 32, 64, 128, 256, 512
+        2,
+        4,
+        8,
+        16,
+        32,
+        64,
+        128,
+        256,
+        512,
     ]
     for values in tree.values():
         for item in values:
@@ -113,9 +129,7 @@ def test_b8_truncates_bit_exactly_to_historical_b4() -> None:
     assert torch.equal(direct_b4["scale_raw"], prefix_b4["scale_raw"])
     assert all(
         torch.equal(left, right)
-        for left, right in zip(
-            direct_b4["round_segments"], prefix_b4["round_segments"]
-        )
+        for left, right in zip(direct_b4["round_segments"], prefix_b4["round_segments"])
     )
     assert torch.equal(
         codec.decode_routed_gaussian_residual(direct_b4),
@@ -178,16 +192,10 @@ def test_fused_g128_encode_matches_eager() -> None:
         "group_size": 128,
         "hadamard_group_size": 128,
     }
-    eager = codec.encode_routed_gaussian_residual(
-        x, **kwargs, use_fast=False
-    )
-    fast = codec.encode_routed_gaussian_residual(
-        x, **kwargs, use_fast=True
-    )
+    eager = codec.encode_routed_gaussian_residual(x, **kwargs, use_fast=False)
+    fast = codec.encode_routed_gaussian_residual(x, **kwargs, use_fast=True)
     assert torch.equal(fast["scale_raw"], eager["scale_raw"])
-    for actual, expected in zip(
-        fast["round_segments"], eager["round_segments"]
-    ):
+    for actual, expected in zip(fast["round_segments"], eager["round_segments"]):
         assert torch.equal(actual, expected)
     assert codec.payload_nbytes(fast) == codec.payload_nbytes(eager)
 
@@ -213,10 +221,6 @@ def test_fused_g128_decode_matches_eager(bits: int) -> None:
         group_size=128,
         hadamard_group_size=128,
     )
-    eager = codec.decode_routed_gaussian_residual(
-        state, torch.bfloat16, use_fast=False
-    )
-    fused = codec.decode_routed_gaussian_residual(
-        state, torch.bfloat16, use_fast=True
-    )
+    eager = codec.decode_routed_gaussian_residual(state, torch.bfloat16, use_fast=False)
+    fused = codec.decode_routed_gaussian_residual(state, torch.bfloat16, use_fast=True)
     torch.testing.assert_close(fused, eager, rtol=0.0, atol=0.0)

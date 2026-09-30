@@ -39,8 +39,7 @@ conda install -c conda-forge ffmpeg -y
 ```
 
 The `release` extra installs the model integrations and evaluation dependencies.
-Keep running from the checkout: the launchers use code in `experiments/` and
-`scripts/`. For development, add the test tools:
+Keep running from the checkout: the model adapters use the vendored implementations in `third_party/`. For development, add the test tools:
 
 ```bash
 python -m pip install -e '.[release,dev]'
@@ -108,7 +107,3 @@ If an upstream Hugging Face model requires account access, authenticate with
 your usual Hugging Face setup and accept that model's terms. The downloader
 uses `huggingface_hub`; do not put tokens in YAML or command examples.
 The first metrics run may also download RAFT, LPIPS, and VBench weights.
-
-The `SUBITKV_*` variables and `configs/paths.local.yaml` belong to the older
-reproduction tools. See [historical research protocols](research_protocols.md)
-when using those entrypoints.

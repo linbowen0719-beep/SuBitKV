@@ -3,17 +3,16 @@
 from __future__ import annotations
 
 import hashlib
-import importlib.util
 import json
 import os
-from pathlib import Path
 import re
 import subprocess
-import sys
+from pathlib import Path
 
 import yaml
 
 from subitkv.cache_budget import rvq_schedule_budget
+
 from .scheduling import validate_schedule
 
 REPO = Path(__file__).resolve().parents[2]
@@ -47,6 +46,7 @@ def write_json(path: Path, value) -> None:
 def save_tensor(path: Path, value) -> None:
     """Small calibration parameters are atomically published, never overwritten."""
     import io
+
     import torch
 
     buffer = io.BytesIO()
@@ -60,21 +60,6 @@ def save_tensor(path: Path, value) -> None:
     temporary = path.with_suffix(path.suffix + ".tmp")
     temporary.write_bytes(payload)
     temporary.replace(path)
-
-
-def load_module(relative: str):
-    path = REPO / relative
-    name = "_subitkv_" + path.stem
-    if name in sys.modules:
-        return sys.modules[name]
-    for folder in (path.parent, REPO / "scripts", REPO / "scripts/analysis"):
-        if str(folder) not in sys.path:
-            sys.path.insert(0, str(folder))
-    spec = importlib.util.spec_from_file_location(name, path)
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[name] = module
-    spec.loader.exec_module(module)
-    return module
 
 
 def absolute(value: str) -> Path:
