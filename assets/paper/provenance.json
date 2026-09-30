@@ -1,0 +1,36 @@
+{
+  "repository": "https://github.com/linbowen0719-beep/ICLR2027_COMPRESS",
+  "commit": "4c10265a526b76656654b0371958fdab00fc8a76",
+  "rendering": {
+    "tool": "PyMuPDF",
+    "version": "1.28.2",
+    "width_px": 1800,
+    "page": 1,
+    "alpha": false,
+    "content_changes": false
+  },
+  "figures": [
+    {
+      "source": "figs/method_overview.pdf",
+      "pdf": "method_overview.pdf",
+      "png": "method_overview.png",
+      "pdf_sha256": "68dfae319c70db7f1b2fd08259d4c923d3e7a95ed4608fd6ade050914679ac62",
+      "png_sha256": "1bb27b408e5dd823356803c72790a8147d5e00778ce769959ab27d503e42c872"
+    },
+    {
+      "source": "figs/lpips_pareto_v2.pdf",
+      "pdf": "wan_quality_compression.pdf",
+      "png": "wan_quality_compression.png",
+      "pdf_sha256": "143ce649216aacc111b25e6576fa44e8f10d39b71148bec48a9dbc035751eab6",
+      "png_sha256": "b6570f8685b1e9c48989f3260bd914b2c0bab331b485574d9e831afd4629600f"
+    },
+    {
+      "source": "figs/fig2.pdf",
+      "pdf": "wan_temporal_comparison.pdf",
+      "png": "wan_temporal_comparison.png",
+      "pdf_sha256": "ea1a20baaac7f9353a9b3a25be3455144b4247ac1c90cfcd3a5735576849310e",
+      "png_sha256": "eb075745146c7b0a64de5ef87b1b59a16c161373a74a64b186fe03e8bcacf0f1"
+    }
+  ],
+  "results_source": "tables/5_table1.tex"
+}
