@@ -91,11 +91,11 @@ codebooks, metadata, and cache-related workspace. [Manuscript protocol and figur
   <a href="assets/paper/wan_temporal_comparison.pdf"><img src="assets/paper/wan_temporal_comparison.png" width="1100" alt="Wan2.2 frame and temporal-error comparison: BF16, QuantVideo INT2, and SuBitKV Q=0.2."></a>
 </p>
 
-## Citation & acknowledgements
+## Acknowledgements
 
-[Cite this software](CITATION.cff). Built on
+Built on
 [QuantVideoGen](https://github.com/svg-project/Quant-VideoGen),
 [HY-WorldPlay](https://github.com/Tencent-Hunyuan/HY-WorldPlay),
 [Wan](https://github.com/Wan-Video/Wan2.2), and
 [Self-Forcing](https://github.com/guandeh17/Self-Forcing).
-[License](LICENSE) · [Third-party notices](THIRD_PARTY.md) · [Code guide](docs/repo_layout.md)
+[License](LICENSE) · [Third-party notices](subitkv/_vendor/README.md) · [Code guide](docs/repo_layout.md)

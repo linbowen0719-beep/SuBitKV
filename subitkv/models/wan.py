@@ -83,8 +83,8 @@ def run_job(job):
 
     from .wan_accounting import cache_metrics_from_runner, parse_logged_metrics
 
-    sys.path.insert(0, str(REPO / "third_party/HY-WorldPlay/wan"))
-    sys.path.insert(0, str(REPO / "third_party/HY-WorldPlay"))
+    sys.path.insert(0, str(REPO / "subitkv/_vendor/HY-WorldPlay/wan"))
+    sys.path.insert(0, str(REPO / "subitkv/_vendor/HY-WorldPlay"))
     os.environ.setdefault("HYWORLDPLAY_OFFLOAD_FOR_DECODE", "1")
     os.environ.setdefault("RANK", "0")
     os.environ.setdefault("LOCAL_RANK", "0")

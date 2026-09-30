@@ -91,6 +91,8 @@ dev = [
 
 [tool.setuptools.packages.find]
 include = ["subitkv*"]
+# Model integrations run from the checkout through their native import paths.
+exclude = ["subitkv._vendor*"]
 
 [tool.setuptools.package-data]
 "subitkv.pipeline" = ["constants/*.json"]

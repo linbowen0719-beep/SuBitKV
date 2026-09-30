@@ -56,7 +56,7 @@ def test_adapter_launch_is_self_contained(tmp_path, monkeypatch, model, budget):
         start = argv.index(str(native)) + 1
         flags = {v for v in argv[start:] if v.startswith("--")}
         assert flags <= supported
-        assert native.is_relative_to(REPO / "third_party")
+        assert native.is_relative_to(REPO / "subitkv/_vendor")
         if model == "hyworldplay_8b":
             codec = argv[argv.index("--kv_cache_codec") + 1]
             expected = (

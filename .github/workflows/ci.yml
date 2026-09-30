@@ -21,7 +21,7 @@ jobs:
       - name: Validate package and supported configs
         run: |
           python -c "import subitkv"
-          python -m compileall -q subitkv third_party scripts
+          python -m compileall -q subitkv scripts
       - name: Run CPU reproduction tests
         run: pytest -q tests/test_repository_hygiene.py tests/test_subitkv.py tests/test_cache_budget.py tests/test_subitkv_schedule.py tests/test_wan_smoke_compat.py tests/test_model_adapters.py
       - name: Generate a schedule without model dependencies

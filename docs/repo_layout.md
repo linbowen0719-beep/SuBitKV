@@ -8,6 +8,7 @@ configs/subitkv.yaml          Prompts, models, budgets, and hyperparameters
 subitkv/
   pipeline/                  Download → collect → calibrate → infer → metrics
   models/                    Wan, Self-Forcing, and HY-WorldPlay adapters
+  _vendor/                   Required upstream model code and licenses
   compress.py                Encode a persistent base and admit its residual
   temporal_adaptive_residual.py
                              Apply the schedule and truncate old residuals
@@ -18,7 +19,6 @@ subitkv/
                              V residual codec
   cache_budget.py            Subtract accumulated base bytes from capacity
   kernels/                   CUDA/Triton implementations
-third_party/                 Required upstream model code and licenses
 tests/                       Workflow, budget, codec, and numerical tests
 ```
 
@@ -61,7 +61,7 @@ B16 keeps the original BF16 tensor; B0 keeps only the persistent base.
 The shared scalar and Hadamard helpers support the two residual codecs. The
 vendored models contain the hooks that collect KV tensors and apply compressed
 history at the model's attention boundary. Upstream authorship and licenses are
-listed in [third-party notices](../THIRD_PARTY.md).
+listed in [third-party notices](../subitkv/_vendor/README.md).
 
 ## Tests
 

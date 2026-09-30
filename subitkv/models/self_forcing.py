@@ -25,7 +25,7 @@ def build_command(
 
     c, m = run.config, run.config["model_config"]
     base = yaml.safe_load(
-        (REPO / "third_party/Self-Forcing/configs/self_forcing_dmd.yaml").read_text()
+        (REPO / "subitkv/_vendor/Self-Forcing/configs/self_forcing_dmd.yaml").read_text()
     )
     base.update(
         denoising_step_list=m["steps"],
@@ -60,7 +60,7 @@ def build_command(
         "torch.distributed.run",
         "--nproc_per_node=1",
         "--standalone",
-        REPO / "third_party/Self-Forcing/inference.py",
+        REPO / "subitkv/_vendor/Self-Forcing/inference.py",
         "--config_path",
         config_path,
         "--checkpoint_path",
@@ -85,6 +85,6 @@ def build_command(
     env.update(
         SUBITKV_CKPT_ROOT=str(run.models),
         SELF_FORCING_METRICS_PATH=str(destination / "runtime.json"),
-        PYTHONPATH=f"{REPO / 'third_party/Self-Forcing'}:{REPO}",
+        PYTHONPATH=f"{REPO / 'subitkv/_vendor/Self-Forcing'}:{REPO}",
     )
     return argv, env

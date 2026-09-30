@@ -1,7 +1,7 @@
 # Third-Party Software
 
 The top-level Apache-2.0 license applies to original QuantVideoGen code. Code
-under `third_party/` includes modified upstream projects and remains subject to
+in this directory includes modified upstream projects and remains subject to
 the upstream terms below.
 
 | Integration | Upstream | Audited base commit | License |
@@ -15,8 +15,8 @@ storage, quantization, offload, and launch paths. Consult Git history for the ex
 
 Important: the HY-WorldPlay Community License contains territory, use, notice,
 and redistribution restrictions. Anyone sharing or using that integration
-must read `third_party/HY-WorldPlay/License.txt` and preserve
-`third_party/HY-WorldPlay/NOTICE`.
+must read [HY-WorldPlay/License.txt](HY-WorldPlay/License.txt) and preserve
+[HY-WorldPlay/NOTICE](HY-WorldPlay/NOTICE).
 
 Model checkpoints and datasets are not redistributed by this repository. They
 retain their own upstream licenses and terms.

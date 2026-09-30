@@ -83,14 +83,14 @@ def build_command(
             kv_capture_sample_tokens=m["capture_tokens"],
             kv_capture_seed=c["calibration"]["seed"],
         )
-    env["PYTHONPATH"] = f"{REPO}:{REPO / 'third_party/HY-WorldPlay'}"
+    env["PYTHONPATH"] = f"{REPO}:{REPO / 'subitkv/_vendor/HY-WorldPlay'}"
     argv = [
         sys.executable,
         "-m",
         "torch.distributed.run",
         "--nproc_per_node=1",
         "--standalone",
-        REPO / "third_party/HY-WorldPlay/hyvideo/generate.py",
+        REPO / "subitkv/_vendor/HY-WorldPlay/hyvideo/generate.py",
     ]
     for name, value in options.items():
         argv.extend(["--" + name, str(value)])

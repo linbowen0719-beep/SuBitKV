@@ -39,7 +39,7 @@ conda install -c conda-forge ffmpeg -y
 ```
 
 The `release` extra installs the model integrations and evaluation dependencies.
-Keep running from the checkout: the model adapters use the vendored implementations in `third_party/`. For development, add the test tools:
+Keep running from the checkout: the model adapters use the vendored implementations in `subitkv/_vendor/`. For development, add the test tools:
 
 ```bash
 python -m pip install -e '.[release,dev]'
