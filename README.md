@@ -68,12 +68,11 @@ Use the bundled HY constants with Python only:
 python scripts/subbitkv_schedule.py --budget 0.5
 ```
 
-Budgets: `0 / 0.2 / 0.5 / 1 / 2 / 3 / 4`. Sub-bit schedules use an estimated
-B0 loss; [details](docs/subbitkv.md#generate-schedules-from-saved-calibration-constants).
+Budgets: `0 / 0.2 / 0.5 / 1 / 2 / 3 / 4`.
 
 ## Results
 
-**Wan2.2-5B.** Quality: 973 samples. TWE: 10 videos per setting.
+**Wan2.2-5B.** Quality: 973 samples.
 
 | Method | Setting | KV compression ↑ | LPIPS ↓ | TWE ↓ |
 | --- | --- | ---: | ---: | ---: |
