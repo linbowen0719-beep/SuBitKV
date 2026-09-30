@@ -24,15 +24,13 @@
 > Wan2.2 at `Q=0.2`, reaching **30.09×** at `Q=0`. [Results and protocol →](#results)
 
 <p align="center">
-  <a href="assets/paper/wan_temporal_comparison.pdf">
-    <img src="assets/paper/wan_temporal_comparison.png" width="1100" alt="Wan2.2 frog detective example: BF16, QuantVideo INT2 at 4.77 times compression, and SuBitKV Q=0.2 at 21.42 times compression, with frame pairs, error maps, and temporal warping error curves.">
+  <a href="assets/subitkv_teaser.png">
+    <img src="assets/subitkv_teaser.png" width="1100" alt="SuBitKV overview: a growing KV cache is encoded as a persistent RVQ base plus progressive residual refinement. The schematic reserves growing base storage before allocating residual bits. Wan2.2 manuscript results report 21.42 times compression at Q=0.2 and 30.09 times at Q=0.">
   </a>
 </p>
 
-**More compact history, smoother transitions in this example.** The paper's
-Wan2.2 comparison shows frame pairs after chunk boundaries, motion-aligned error
-maps, and temporal warping error (TWE, lower is better). Click any paper figure
-for its original PDF.
+The video thumbnails are illustrative. Compression figures are Wan2.2
+manuscript measurements; see [Results](#results) for the evaluation protocol.
 
 ## Highlights
 
@@ -201,7 +199,19 @@ TWE uses 10 videos per setting. Compression includes shared codebooks, metadata,
 and cache-related workspace. These results use the manuscript's frozen
 protocol. The quick start performs fresh calibration and records its own results.
 
-Figures and table values come from the author's manuscript snapshot
+<p align="center">
+  <a href="assets/paper/wan_temporal_comparison.pdf">
+    <img src="assets/paper/wan_temporal_comparison.png" width="1100" alt="Wan2.2 frog detective example: BF16, QuantVideo INT2 at 4.77 times compression, and SuBitKV Q=0.2 at 21.42 times compression, with frame pairs, error maps, and temporal warping error curves.">
+  </a>
+</p>
+
+**More compact history, smoother transitions in this example.** The paper's
+Wan2.2 comparison shows frame pairs after chunk boundaries, motion-aligned error
+maps, and temporal warping error (TWE, lower is better). Click any paper figure
+for its original PDF.
+
+
+Paper figures and table values come from the author's manuscript snapshot
 `4c10265`. See [figure sources and evaluation notes](assets/paper/README.md)
 for the original PDFs, source paths, and accounting details.
 

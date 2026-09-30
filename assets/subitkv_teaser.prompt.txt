@@ -1,0 +1,28 @@
+Generated with the built-in image_gen tool.
+Reference style: https://github.com/svg-project/Quant-VideoGen/blob/main/assets/qvg_teaser.png
+Benchmark values: assets/paper/README.md (pinned manuscript source).
+Frog storyboard thumbnails are illustrative, not inference samples.
+
+Use case: infographic-diagram
+Asset type: polished English GitHub README hero / research teaser for SuBitKV.
+Create a brand-new finished infographic, landscape aspect ratio approximately 1.6:1, preferably 2880x1792. It should look like a premium machine learning research project README teaser: warm off-white background, extremely subtle dot grid, generous margins, rounded white cards with light soft shadows, two central deep-navy cards, teal-to-periwinkle accent gradients, coral/orange refinement accents, clean bold sans-serif typography, tasteful isometric stacks. A crisp publication website graphic, not a screenshot. ALL text English, exact spelling, clear and legible at GitHub width 1000px. Original layout and graphics for this method.
+
+Top centered header: small teal pill "RVQ + Adaptive Precision". Large wordmark "SuBitKV" (exact capitalization; Su in deep navy, BitKV in a teal-to-blue gradient). Subtitle on one or two balanced lines: "Sub-Bit KV Cache Compression" and "for Autoregressive Video Generation".
+
+Main row: five large evenly spaced rounded cards connected by teal arrows left to right. About half the image height.
+1. White card, title "VIDEO GENERATION". Three small illustrated film frames of the same friendly green frog detective in a tan trench coat and hat holding a magnifying glass, in a garden, as three storyboard moments labeled "t = 1", "t = 2", "t = T". These are tasteful clean illustrative thumbnails, not purported experiment output. Small caption "Illustrative frames".
+2. White card, title "GROWING KV CACHE". Tall isometric stack of blue-violet cache slabs, visually growing, with concise caption "More history, more memory".
+3. Deep navy card, small teal text "STEP 1", title "Persistent Base", simple isometric blue codebook blocks flowing into a short blue block stack. Labels "RVQ codebook indices" and "Keep every retained entry". This represents the persistent low-memory approximation, not stored dense full precision vectors.
+4. Deep navy card, small orange text "STEP 2", title "Progressive Refinement", show blue base blocks with orange residual bit layers, with orange suffix layers progressively removed while blue base remains unchanged. Labels "Allocate residual bits" and "Truncate without re-encoding".
+5. White card, title "COMPACT KV CACHE", much shorter isometric stack made of blue base and orange refinement. Two small color labels "Base" in blue and "+ Refinement" in orange. Bottom caption "Reconstruct for attention". Do not label output as INT2 or claim total precision equals residual budget.
+
+Lower row: three well-aligned cards:
+LEFT, white metric card, heading "WAN2.2 KV COMPRESSION". Two very legible metrics: "21.42×" with smaller "Q = 0.2", and "30.09×" with smaller "Q = 0". Small caption "vs BF16 · manuscript results". These refer only to KV-cache compression; never claim total GPU memory savings or latency gains. No other numerical performance claims.
+MIDDLE, white card, heading "FIXED CACHE BUDGET". Draw a clearly schematic diagram with three outlined containers of equal total height labeled "t = 1", "t = 2", "t = 3". Blue base fills a small, medium, and larger fraction from left to right; orange refinements fill the remaining space and thus shrink. All total heights stay equal. Show legend "Base grows" (blue) and "Refinement shrinks" (orange). Brief caption "Reserve base first; allocate remaining bits". Mark "Schematic" in small quiet type. This diagram conveys growing cumulative base cost, not base shrinking or being deleted.
+RIGHT, white card, heading "MODEL INTEGRATIONS", three neat rows: "Wan2.2 5B", "Self-Forcing", "HY-WorldPlay 8B", with simple original line icons.
+
+Bottom horizontal teal-to-periwinkle ribbon, text "Calibrate once  •  Reuse across prompts  •  No generator fine-tuning".
+Small clean footnote below ribbon: "Q is the residual budget, not the total KV bit rate."
+
+Constraints: no conference acceptance badges, no arXiv number, no author names, no external logos, no QuantVideoGen branding or SAS, no promises of 7x or <4% overhead, no watermarks, no fake charts or unlabeled empirical imagery. Do not redraw a detailed accuracy curve. Avoid clutter and tiny paragraphs. Match the described spacious rounded-card research infographic aesthetic. All content must be entirely inside the canvas with ample breathing room.
+
