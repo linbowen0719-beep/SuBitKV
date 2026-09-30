@@ -1,353 +1,165 @@
-# SubBitKV — ICLR2026_RVQ
+# SuBitKV
 
-**Public workflow:** model download → BF16 samples/KV capture → codebook,
-importance-weight and schedule calibration → SubBitKV inference → metrics,
-including TWE.
+**Sub-bit KV cache compression for autoregressive video generation.**
 
-The five-stage entrypoint supports Wan2.2 5B, Self-Forcing and HY-WorldPlay 8B,
-with nominal residual budgets **0 / 0.2 / 0.5 / 1 / 2 / 3 / 4**. Hyperparameters
-live in [`configs/subbitkv.yaml`](configs/subbitkv.yaml).
-Scheduling reserves RVQ Base storage at each step, converts the remaining bytes
-into residual bit counts, and jointly optimizes all seven budget schedules.
+[Quick start](#quick-start) · [Wan example](#run-wan) · [Configuration](#configuration) · [Workflow guide](docs/subbitkv.md) · [Installation](docs/installation.md)
 
-To generate a schedule directly from the saved HY train4 calibration constants,
-without model downloads, calibration or GPU dependencies:
+SuBitKV combines residual vector quantization (RVQ) with adaptive residual bit
+allocation. Calibrate once, then reuse the codebooks and schedules across
+residual budgets **0, 0.2, 0.5, 1, 2, 3, and 4 bits**.
 
-```bash
-python scripts/subbitkv_schedule.py --budget 0.5 --output outputs/hy_avg0p5_dp.json
-```
+- **Five stages:** download models, collect KV caches, calibrate, generate, and evaluate.
+- **One configuration:** prompts, seeds, GPUs, budgets, and metrics in [`configs/subbitkv.yaml`](configs/subbitkv.yaml).
+- **Saved calibration constants:** generate an HY-WorldPlay schedule using only Python.
+- **Evaluation:** PSNR, SSIM, LPIPS, temporal warping error (TWE), and VBench.
 
-This entrypoint defaults to per-step DP; `--solver milp` selects joint optimization
-(requires SciPy). The saved constants contain measured B1–B8 losses and age weights.
-B0 is unmeasured: sub-bit schedules explicitly mark the `D(0)=4*D(1)` estimate.
+Budget labels describe residual bits per scalar. The RVQ base is retained,
+including at budget `0`. The scheduler deducts the growing base cost at every
+chunk before allocating residual bits.
 
-```bash
-pip install -e '.[release,dev]'
-# Read-only plan; add --execute to run a stage.
-python scripts/subbitkv.py download-models --model wan2_2_5b
-python scripts/subbitkv.py collect         --model wan2_2_5b
-python scripts/subbitkv.py calibrate       --model wan2_2_5b
-python scripts/subbitkv.py infer           --model wan2_2_5b
-python scripts/subbitkv.py metrics         --model wan2_2_5b
-```
+## Quick start
 
-See the **[public setup and reproduction guide](docs/subbitkv.md)** for inputs,
-asset provenance, resumable runs, metric definitions and validation scope.
-Fresh public calibration is separate from the frozen historical protocols below.
-
-## Historical experiment protocols
-
-组内复现仓库：在 **Wan2.2 5B** 和 **Self-Forcing** 上训练 progressive
-RVQ，并运行完整 MovieGenVideoBench 1003-prompt KV-cache 压缩主实验。
-
-> 这是给实验协作者使用的入口。请优先使用 `scripts/main/`，不要从
-> `scripts/` 中随机选择历史研究脚本。
-
-## HY-WorldPlay 8B I2V：20 train / 10 dev / 973 test
-
-HY-WorldPlay 的独立 MovieGen I2V 主协议已经冻结在
-[`configs/main/hyworldplay-moviegen-i2v-20-973.yaml`](configs/main/hyworldplay-moviegen-i2v-20-973.yaml)。
-它按 `dataset_row`（不是 prompt 文本）划分数据，运行 BF16、Ours
-avg1/2/3/4，以及 KIVI、TurboQuant、QuantVideo 的 INT2/INT4，共 11 种方法。
-
-配置好 `.env` 后先检查完整 dry-run：
+Try the scheduler first. This example needs **Python 3.10+** and Git; no package
+installation, model download, or GPU is needed.
 
 ```bash
-python scripts/main/hyworldplay_i2v.py \
-  --run-id hy-main-r1 \
-  --gpus 0,1,2,3,4,5,6,7 \
-  all
+git clone https://github.com/linbowen0719-beep/SuBitKV.git
+cd SuBitKV
+python scripts/subbitkv_schedule.py --budget 0.5 --output outputs/hy_avg0p5.json
 ```
 
-确认计划后，以下命令会依次准备 conditioning images、训练、运行 dev10
-gate，并仅在 gate 通过后启动 973×11 个正式视频及评测：
+You will see K/V bit schedules and the capacity available at each step.
+`outputs/hy_avg0p5.json` contains the runtime profile. Change `--budget` to
+explore another budget; omit `--output` to print the schedule without saving it.
+
+The included constants are **HY-WorldPlay-specific**. They allow scheduling
+without recalibration; video generation still needs model weights and codec
+assets. Below 1 bit, this example uses the recorded, unmeasured `D(0)=4×D(1)`
+estimate and marks the profile as provisional. See the
+[scheduling guide](docs/subbitkv.md#generate-schedules-from-saved-calibration-constants)
+for DP, joint optimization, and custom constants.
+
+## Models and assets
+
+| Model | CLI name | Input | Setup |
+| --- | --- | --- | --- |
+| Wan2.2 5B through HY-WorldPlay | `wan2_2_5b` | Text | Start with the example below |
+| Self-Forcing | `self_forcing` | Text | Use the same stages with this model name |
+| HY-WorldPlay 8B | `hyworldplay_8b` | Text + image | Provide [conditioning images](docs/subbitkv.md#conditioning-images-for-hy-worldplay) |
+
+Model downloads are configured in YAML and fetched from Hugging Face.
+The repository includes prompt files, code, and HY scheduling constants.
+RVQ codebooks, residual codec weights, and captured KV tensors are produced by
+`collect` and `calibrate`; a downloadable pretrained codec bundle is not
+included in this release.
+
+## Installation
+
+For video generation, use **Linux, Python 3.12, PyTorch 2.8.0, an NVIDIA CUDA
+GPU, and FFmpeg**. Existing Wan and HY inference smoke runs used an RTX 6000 Ada
+with 48 GiB of VRAM. Calibration memory requirements depend on the configuration.
+
+From the cloned repository:
 
 ```bash
-python scripts/main/hyworldplay_i2v.py \
-  --run-id hy-main-r1 \
-  --gpus 0,1,2,3,4,5,6,7 \
-  --resume \
-  --execute \
-  all
+conda create -n subbitkv python=3.12 -y
+conda activate subbitkv
+python -m pip install -e '.[release]'
 ```
 
-完整的逐阶段命令、跨机器分片、恢复方式、指标定义和输出布局见
-[`docs/hyworldplay_i2v_20_973.md`](docs/hyworldplay_i2v_20_973.md)。
+Follow the [installation guide](docs/installation.md) for FFmpeg, attention
+backends, GPU checks, and optional local paths. Keep this repository checkout:
+the workflow invokes the model integrations under `experiments/`.
 
-## 实验矩阵
+## Run Wan
 
-两个模型使用相同的 1003 个测试 prompt。每个模型运行以下 11 个配置：
+Run these commands from the repository root. They share the run ID `wan-demo`
+and use the default `smoke` profile: two calibration prompts and one evaluation
+prompt. The example evaluates BF16 and the `0.5` residual budget.
 
-| 方法 | 配置 |
+```bash
+# 0. Download the base model and the HY-WorldPlay Wan checkpoints.
+python scripts/subbitkv.py download-models --model wan2_2_5b --run-id wan-demo --resume --execute
+
+# 1. Generate BF16 calibration samples and capture their KV caches locally.
+python scripts/subbitkv.py collect --model wan2_2_5b --run-id wan-demo --resume --execute
+
+# 2. Fit codebooks, residual codecs, importance weights, and bit schedules.
+python scripts/subbitkv.py calibrate --model wan2_2_5b --run-id wan-demo --resume --execute
+
+# 3. Generate the BF16 reference and a compressed video.
+python scripts/subbitkv.py infer --model wan2_2_5b --run-id wan-demo --budget 0.5 --resume --execute
+
+# 4. Evaluate the generated videos, including TWE.
+python scripts/subbitkv.py metrics --model wan2_2_5b --run-id wan-demo --resume --execute
+```
+
+**Preview any command by removing `--execute`.** `--resume` verifies and skips
+completed work. Keep the same configuration and run ID across stages; choose a
+new run ID after changing prompts or hyperparameters. The smoke profile uses
+fewer prompts but retains the model's full video length.
+
+Want to check generation before calibrating? After step 0, run:
+
+```bash
+python scripts/subbitkv.py infer --model wan2_2_5b --run-id wan-demo --reference-only --resume --execute
+```
+
+The default evaluation prompt is:
+
+> A frog wearing a detective's trench coat and hat, examining clues with a magnifying glass
+
+### Find your results
+
+Everything is written under `outputs/subbitkv/wan2_2_5b/wan-demo/`:
+
+| Location | Contents |
 | --- | --- |
-| BF16 | generation-time KV CPU offloading |
-| RVQ (Ours) | average residual budget 1 / 2 / 3 / 4 bit |
-| TurboQuant | K2/V2、K4/V4 |
-| KIVI | INT2、INT4 |
-| QuantVideo | pre-RoPE INT2、INT4 |
+| `models/` | Downloaded checkpoints and pinned revisions |
+| `capture/` | Calibration KV tensors and sample records |
+| `bundle/` | Codebooks, codec weights, and frozen schedules |
+| `videos/bf16/`, `videos/avg0p5/` | Reference and compressed generation attempts |
+| `videos.json` | Exact video paths and file hashes |
+| `metrics/attempt_01/summary.csv` | Summary metrics for the first evaluation attempt |
+| `metrics/attempt_01/per_video.csv` | Per-video measurements |
 
-RVQ 1/2/3/4 共用一套 progressive L16C64 K/V codebook，只改变运行时
-bit budget，不需要分别训练四套 codebook。
+Each model attempt has a `run.log`. More output details and troubleshooting are
+in the [workflow guide](docs/subbitkv.md#outputs-and-troubleshooting).
 
-主协议位于 [`configs/main/moviegen-1003.yaml`](configs/main/moviegen-1003.yaml)，
-prompt 固定为 [`assets/MovieGenVideoBench.txt`](assets/MovieGenVideoBench.txt)。
+## Configuration
 
-## 1. 克隆和安装
+Edit [`configs/subbitkv.yaml`](configs/subbitkv.yaml) before starting a run.
+Paths are relative to the repository root.
 
-```bash
-git clone https://github.com/linbowen0719-beep/ICLR2026_RVQ.git
-cd ICLR2026_RVQ
+| Change | Where |
+| --- | --- |
+| Demo prompt | Edit [`assets/default_prompt.txt`](assets/default_prompt.txt), or set `profiles.smoke.eval_prompts` to another text file |
+| Calibration prompts | `data.train_prompts` and `profiles.smoke.train_count` |
+| GPU | `runtime.gpus` for generation/training; `runtime.device` for codec fitting and metrics |
+| Seed | `models.wan2_2_5b.seed` (or the corresponding model section) |
+| One inference budget | Pass `--budget 0.5` to `infer`; omit it to run all configured budgets |
+| Larger evaluation | Pass `--profile full` to every stage: 20 calibration and 10 evaluation prompts |
+| Metrics | `metrics.enabled` |
+| Output directory | `runtime.root`, or the `SUBBITKV_ROOT` environment variable |
 
-conda create -n iclr2026-rvq python=3.12 -y
-conda activate iclr2026-rvq
+For another GPU, for example, set `runtime.gpus: [1]` and
+`runtime.device: cuda:1`. Prompt files contain one prompt per nonempty line.
+Changing the demo prompt does not change the full profile's evaluation dataset.
 
-pip install -e ".[all]"
-pip install vbench
-```
+## Documentation
 
-建议使用 Linux、CUDA GPU、PyTorch 2.8。单个生成任务使用一张 GPU；正式
-配置在 RTX 6000 Ada 48 GiB 上验证。Flash Attention 和 CUDA 版本说明见
-[`docs/installation.md`](docs/installation.md)。VBench 安装方式来自
-[VBench 官方仓库](https://github.com/Vchitect/VBench)。
+- [Installation](docs/installation.md): environment setup and attention dependencies.
+- [Workflow guide](docs/subbitkv.md): all five stages, scheduling, metrics, and troubleshooting.
+- [Historical research protocols](docs/research_protocols.md): the frozen MovieGen experiments and their separate asset bundles.
+- [Third-party software](THIRD_PARTY.md): upstream projects and licenses.
 
-## 2. 配置本机路径
+Native Wan and HY inference have completed local smoke runs. CPU tests cover
+scheduling, configuration, and runtime compatibility. A fresh run of all five
+stages on all three models has not yet been validated end to end.
 
-```bash
-cp .env.example .env
-```
+## Citation and acknowledgements
 
-编辑 `.env`，全部使用绝对路径：
-
-```bash
-QVG_CKPT_ROOT=/shared/checkpoints/iclr2026-rvq
-QVG_DATA_ROOT=/shared/data/iclr2026-rvq
-QVG_CODEBOOK_ROOT=/shared/codebooks/iclr2026-rvq
-QVG_OUTPUT_ROOT=/shared/results/iclr2026-rvq
-QVG_CACHE_ROOT=/shared/cache/iclr2026-rvq
-HF_HOME=/shared/cache/iclr2026-rvq/huggingface
-```
-
-`.env`、checkpoint、codebook、视频和结果都不会进入 Git。
-
-## 3. 下载模型
-
-```bash
-bash scripts/HY-WorldPlay/download_models.sh
-bash scripts/Self-Forcing/download_models.sh
-```
-
-下载后应满足：
-
-```text
-${QVG_CKPT_ROOT}/
-├── HY-WorldPlay/
-│   ├── wan_transformer/config.json
-│   ├── wan_transformer/diffusion_pytorch_model.safetensors
-│   └── wan_distilled_model/model.pt
-└── Self-Forcing/
-    ├── Wan2.1-T2V-1.3B/
-    └── self_forcing_dmd.pt
-```
-
-## 4. 训练 RVQ
-
-RVQ 训练是正式运行流程的一部分。它使用冻结的 20 条 calibration prompt；
-RVQ 1/2/3/4 共用训练得到的 progressive L16C64 codebook。先准备逐层 KV dump：
-
-```text
-<work-root>/kv_dump/train/<prompt-index>/layer_<layer>.pt
-```
-
-然后先 dry-run，再执行 K/V 训练：
-
-```bash
-python scripts/main/train_rvq.py \
-  --model wan2_2_5b \
-  --work-root /shared/calibration/wan2_2_5b \
-  --gpus 0,1,2,3,4,5,6,7
-
-python scripts/main/train_rvq.py \
-  --model wan2_2_5b \
-  --work-root /shared/calibration/wan2_2_5b \
-  --gpus 0,1,2,3,4,5,6,7 \
-  --execute
-```
-
-Self-Forcing 将 `--model` 改为 `self_forcing` 并使用独立 work-root。训练入口
-依次训练 K/V，记录 hash 与 `run_info.json`，且不会覆盖已有 codebook。当前入口
-从已采集 KV dump 开始；KV dump 不进入 Git。
-
-## 5. 组装运行资产
-
-训练后的 codebook、routing、tree 和 temporal profile 约 1.1 GB，不保存在
-GitHub。训练完成后将 codebook 与固定 routing/tree/temporal profile 组装为
-`paper_main_v1`；只负责生成的协作者也可直接获取该 bundle，并放到：
-
-```text
-${QVG_DATA_ROOT}/paper_main_v1/
-├── manifest.json
-├── shared/
-│   ├── tree_params.pt
-│   ├── progressive_v_params.pt
-│   └── temporal_profile.json
-├── wan2_2_5b/
-│   ├── routing.json
-│   ├── nonorm_k_l16c64_codebooks/
-│   └── nonorm_v_l16c64_codebooks/
-└── self_forcing/
-    ├── routing.json
-    ├── nonorm_k_l16c64_codebooks/
-    └── nonorm_v_l16c64_codebooks/
-```
-
-不要修改 bundle 内的文件名。`doctor` 会验证 prompt、文件数量和 SHA-256。
-
-## 6. 运行环境检查
-
-```bash
-python scripts/run_paper_main.py doctor --full-hash
-```
-
-只有看到：
-
-```json
-{"status": "pass"}
-```
-
-才开始正式生成。如果检查失败，根据 `errors` 中给出的具体路径补齐文件。
-
-## 7. 先检查运行计划
-
-下面的命令只打印任务，不创建输出，也不加载模型：
-
-```bash
-python scripts/main/run_moviegen.py \
-  --run-id main-YYYYMMDD-r1 \
-  --gpus 0,1,2,3,4,5,6,7
-```
-
-正式矩阵共有 2 个模型 × 11 个方法 × 1003 个 prompt，即 22,066 个视频任务。
-每个任务使用一张 GPU，调度器会自动填满 `--gpus` 指定的设备。
-
-## 8. 正式生成 MovieGenVideoBench-1003
-
-```bash
-python scripts/main/run_moviegen.py \
-  --run-id main-YYYYMMDD-r1 \
-  --gpus 0,1,2,3,4,5,6,7 \
-  --execute
-```
-
-只运行一个模型：
-
-```bash
-python scripts/main/run_moviegen.py \
-  --run-id main-YYYYMMDD-r1 \
-  --model wan2_2_5b \
-  --gpus 0,1,2,3,4,5,6,7 \
-  --execute
-```
-
-`--model` 也可以设置为 `self_forcing`。相同 `run-id` 可以安全续跑：已有
-`completed.json` 的任务会跳过。改变 prompt、seed、方法或配置时必须换一个
-新的 `run-id`。
-
-## 9. Benchmark 和论文表格
-
-两套模型的 BF16 和压缩视频全部完成后运行：
-
-```bash
-# 先 dry-run
-python scripts/main/run_benchmark.py \
-  --run-id main-YYYYMMDD-r1 \
-  --gpus 0,1,2,3,4,5,6,7
-
-# 确认后正式执行
-python scripts/main/run_benchmark.py \
-  --run-id main-YYYYMMDD-r1 \
-  --gpus 0,1,2,3,4,5,6,7 \
-  --execute
-```
-
-Benchmark 按顺序执行：
-
-1. 同 prompt、同 seed BF16 reference 的 PSNR / SSIM / LPIPS；
-2. VBench-10；
-3. 完整物理 KV 压缩率；
-4. E2E、encode、decode 时间；
-5. peak GPU memory 和 KV payload MiB；
-6. 完整性校验与 CSV/LaTeX 汇总。
-
-聚合器缺少任何一个 method、prompt、quality 文件或 VBench dimension 时都会
-失败，不会对不完整结果静默取平均。
-
-## 10. 输出位置
-
-```text
-${QVG_OUTPUT_ROOT}/main-YYYYMMDD-r1/
-├── pipeline_run_info.json
-├── wan2_2_5b/
-│   ├── videos/<method>/...
-│   ├── similarity_postcompression/...
-│   ├── vbench_flat_v2/...
-│   └── summary.csv
-├── self_forcing/
-│   ├── <method>/prompt_####_seed_0/
-│   │   ├── 0-0_ema.mp4
-│   │   ├── metrics.json
-│   │   ├── quality_cross_model.json
-│   │   ├── resolved_config.json
-│   │   └── run_info.json
-│   └── vbench10/...
-└── aggregate/
-    ├── main_results.csv
-    ├── per_prompt.csv
-    ├── main_results.tex
-    └── run_info.json
-```
-
-最终论文表格是 `aggregate/main_results.tex`，机器可读主结果是
-`aggregate/main_results.csv`。
-
-## 主要代码结构
-
-```text
-scripts/main/
-├── train_rvq.py                  # RVQ K/V codebook 训练
-├── run_moviegen.py               # 11-method MovieGen 生成矩阵
-├── run_benchmark.py              # quality、VBench、runtime、memory
-├── export_main_table_bundle.py   # 导出非 Git 资产
-└── aggregate_paper_main.py       # 完整性检查和论文表格
-
-quant_videogen/                   # RVQ、KIVI、TurboQuant、QuantVideo codec
-experiments/HY-WorldPlay/         # Wan2.2 5B 集成
-experiments/Self-Forcing/         # Self-Forcing 集成
-configs/main/                     # 冻结实验协议
-assets/                           # 固定 20 条训练 prompts 与 1003 条生成 prompts
-tests/                            # CPU 和可选 CUDA tests
-```
-
-更详细的逐阶段说明见
-[`docs/main_table_reproduction.md`](docs/main_table_reproduction.md)。
-
-## 测试
-
-```bash
-pytest -q \
-  tests/test_paper_main.py \
-  tests/test_reproduce.py \
-  tests/test_repository_hygiene.py
-```
-
-修改 quantize / encode / decode / restore 路径后，还必须执行对应 CUDA smoke 和
-round-trip test。
-
-## 数据与安全约定
-
-- 不提交 checkpoint、KV dump、codebook、视频、完整结果或日志。
-- 不覆盖旧的 `run-id`。
-- 内存统一报告 MiB；压缩率必须包含完整压缩表示和共享 codebook。
-- reconstruction metric 必须保持 K/V accounting 和 prompt/seed 一致。
-- 每次运行必须保留 `run_info.json`。
-
-第三方模型代码和许可证说明见 [`THIRD_PARTY.md`](THIRD_PARTY.md)。
+Use [`CITATION.cff`](CITATION.cff) to cite this software. It also records the
+upstream QuantVideoGen reference. This project builds on QuantVideoGen,
+HY-WorldPlay, Wan, and Self-Forcing; upstream model code and checkpoints retain
+their respective licenses. See [LICENSE](LICENSE) and [THIRD_PARTY.md](THIRD_PARTY.md).

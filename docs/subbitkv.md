@@ -1,20 +1,34 @@
-# Public SubBitKV workflow
+# SuBitKV workflow guide
 
-SubBitKV compresses the KV cache of Wan2.2 5B, Self-Forcing and HY-WorldPlay
+[Back to README](../README.md) · [Installation](installation.md) · [Troubleshooting](#outputs-and-troubleshooting)
+
+SuBitKV compresses the KV cache of Wan2.2 5B, Self-Forcing and HY-WorldPlay
 8B. The public entrypoint has five stages and one configuration file:
 `configs/subbitkv.yaml`. Existing research scripts and protocols remain
 available; the public workflow writes new artifacts under `outputs/subbitkv`.
+
+| Step | Command | Produces |
+| --- | --- | --- |
+| 0 | `download-models` | Model checkpoints and revision hashes |
+| 1 | `collect` | BF16 samples and local KV captures |
+| 2 | `calibrate` | Codebooks, residual codecs, importance weights, and schedules |
+| 3 | `infer` | BF16 references and compressed videos |
+| 4 | `metrics` | PSNR, SSIM, LPIPS, TWE, and VBench reports |
+
+For a complete copyable Wan example, start with [Run Wan](../README.md#run-wan).
+For schedule generation alone, skip installation and use the
+[saved constants](#generate-schedules-from-saved-calibration-constants).
 
 ## Installation
 
 Use Linux, Python 3.12 and a CUDA environment compatible with PyTorch 2.8:
 
 ```bash
-git clone https://github.com/linbowen0719-beep/ICLR2026_RVQ.git
-cd ICLR2026_RVQ
+git clone https://github.com/linbowen0719-beep/SuBitKV.git
+cd SuBitKV
 conda create -n subbitkv python=3.12 -y
 conda activate subbitkv
-pip install -e '.[release,dev]'
+python -m pip install -e '.[release]'
 ```
 
 Install the model-specific attention dependencies described in
@@ -111,6 +125,8 @@ This runs BF16 samples on the configured training prompts and saves videos and
 model-native K/V captures. Wan also captures Q. The public workflow collects
 caches locally; it does not require a downloadable cache dataset.
 
+### Conditioning images for HY-WorldPlay
+
 For HY-WorldPlay I2V, provide conditioning PNGs before collecting or inferring:
 
 ```text
@@ -124,6 +140,8 @@ prompt file. Use the intended dataset's conditioning frame, with disjoint
 training/evaluation identities. The existing MovieGen preparation instructions
 are in [hyworldplay_i2v_20_973.md](hyworldplay_i2v_20_973.md). This small public
 example is separate from that frozen 20/10/973 evaluation protocol.
+For the default smoke prompt, supply a matching frog detective image at
+`eval/0000.png`, or select your own prompt file and corresponding images.
 
 ## 2. Calibrate codebooks, weights and schedules
 
@@ -179,7 +197,7 @@ self-contained and can be distributed separately from Git.
 paper table.** Historical experiments may use shared or differently calibrated
 assets. Keep old and new artifact hashes and results separate.
 
-## 3. SubBitKV inference
+## 3. SuBitKV inference
 
 ```bash
 python scripts/subbitkv.py infer --model wan2_2_5b --run-id demo --resume --execute
@@ -244,3 +262,59 @@ residual codecs on small CPU/CUDA tensors. They do not substitute for a complete
 checkpoint-backed generation run. Check `run.log` and run metadata when bringing
 up a new machine. Do not publish benchmark claims until that model's complete
 generation and evaluation pipeline has passed.
+
+## Outputs and troubleshooting
+
+Each run is stored at `<runtime.root>/<model>/<run-id>/`. With the README's
+example, this is `outputs/subbitkv/wan2_2_5b/wan-demo/`:
+
+```text
+wan-demo/
+├── resolved_config.json      # Configuration snapshot
+├── run_info.json             # Prompts, seed, Git commit, and configuration hash
+├── models/                   # Checkpoints, revision lock, and manifest
+├── capture/                  # Calibration KV captures
+├── bundle/                   # Trained codec assets and profiles/
+├── videos/
+│   ├── bf16/prompt_0000/attempt_01/
+│   └── avg0p5/prompt_0000/attempt_01/
+├── videos.json               # Exact video paths and hashes
+├── metrics/attempt_01/
+│   ├── summary.csv
+│   ├── summary.json
+│   ├── per_video.csv
+│   └── twe_per_pair.csv
+└── status/                   # Completed-task records
+```
+
+Model attempts retain `command.json`, `run.log`, and output artifacts. Failed
+attempts are kept; retries use a new attempt number. Metrics also retain
+separate attempt directories. To locate generated videos:
+
+```bash
+python - <<'PY'
+import json
+from pathlib import Path
+index = Path('outputs/subbitkv/wan2_2_5b/wan-demo/videos.json')
+for record in json.loads(index.read_text()):
+    print(record['video'])
+PY
+```
+
+| Symptom | What to do |
+| --- | --- |
+| The command prints JSON but creates no video | Add `--execute`; the default is a dry-run. |
+| `already completed; use --resume` | Rerun the same command with `--resume`. |
+| `Run configuration changed` | Use a new `--run-id`, or restore the original configuration and prompt files. |
+| Missing model, capture, or bundle manifest | Complete the preceding stages using the same model and run ID. BF16-only inference can use `--reference-only` after downloading. |
+| `requires PyTorch >=2.8` or no CUDA device | Activate the environment from the installation guide and check `torch.cuda.is_available()`. |
+| Model process failed | Open the `run.log` path printed in the error; it contains the underlying model traceback. |
+| Missing HY conditioning image | Supply `train/0000.png`, etc., and `eval/0000.png`, etc., under `data.conditioning_images`. |
+| CUDA out of memory | Check for other GPU processes and review the selected GPU and workload. `smoke` reduces prompt count, not video length or model size. |
+| First metrics run needs network access | RAFT, LPIPS, and VBench may need to download evaluation weights. |
+| A schedule file already exists with different contents | Choose another `--output` filename to retain both schedules. |
+
+The configuration can be copied for another experiment and selected with
+`--config configs/my_experiment.yaml` on every stage. Both configuration values
+and prompt-file contents contribute to run identity, so edit them before
+starting the first stage.

@@ -1,70 +1,114 @@
 # Installation
 
-## Supported baseline
+[Back to README](../README.md) · [Workflow guide](subbitkv.md)
 
-- Linux with an NVIDIA CUDA GPU
-- Python 3.12 for the documented environment
-- PyTorch 2.8.0 and Triton
-- `ffmpeg`, Git, and the Hugging Face CLI
+## Schedule generation only
 
-Create one environment for all three supported integrations:
+Use Python 3.10 or newer. The standalone DP scheduler uses the standard library;
+you can run it directly from the checkout without installing the package:
 
 ```bash
-git clone https://github.com/svg-project/Quant-VideoGen.git
-cd Quant-VideoGen
-
-conda create -n qvg python=3.12 -y
-conda activate qvg
-pip install uv
-uv pip install -e ".[all]"
+git clone https://github.com/linbowen0719-beep/SuBitKV.git
+cd SuBitKV
+python scripts/subbitkv_schedule.py --budget 0.5
 ```
 
-For development tools:
+To use joint MILP optimization, install SciPy in your environment:
 
 ```bash
-uv pip install -e ".[all,dev]"
+python -m pip install 'scipy>=1.11'
+python scripts/subbitkv_schedule.py --budget 0.5 --solver milp
 ```
 
-Install only the integration you need when disk space is constrained:
+## Video generation and calibration
+
+The documented environment is Linux with Python 3.12, PyTorch 2.8.0, Triton,
+and an NVIDIA CUDA GPU. The five-stage workflow requires PyTorch 2.8 or newer;
+the package pins 2.8.0. Existing Wan and HY native inference smoke runs used an
+RTX 6000 Ada with 48 GiB of VRAM. That is a tested inference configuration,
+not a guarantee that every calibration workload fits in the same memory.
+
+From the cloned repository:
 
 ```bash
-uv pip install -e ".[longcat]"
-uv pip install -e ".[selfforcing]"
-uv pip install -e ".[hyworldplay]"
+conda create -n subbitkv python=3.12 -y
+conda activate subbitkv
+python -m pip install --upgrade pip
+python -m pip install -e '.[release]'
+conda install -c conda-forge ffmpeg -y
 ```
 
-## Flash Attention
-
-Use a wheel matching Python, CUDA, PyTorch, and the C++ ABI of the environment.
-The environment used for the public setup was Python 3.12, CUDA 12, and PyTorch
-2.8:
+The `release` extra installs the model integrations and evaluation dependencies.
+Keep running from the checkout: the launchers use code in `experiments/` and
+`scripts/`. For development, add the test tools:
 
 ```bash
-uv pip install https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.3/flash_attn-2.8.3+cu12torch2.8cxx11abiFALSE-cp312-cp312-linux_x86_64.whl
+python -m pip install -e '.[release,dev]'
 ```
 
-Do not reuse this URL for a different Python or PyTorch version. Verify the
-environment before downloading checkpoints:
+### Check your environment
 
 ```bash
+ffmpeg -version
 python - <<'PY'
 import torch
 import triton
-print("torch", torch.__version__)
-print("triton", triton.__version__)
-print("cuda available", torch.cuda.is_available())
+print('PyTorch:', torch.__version__)
+print('Triton:', triton.__version__)
+print('CUDA:', torch.version.cuda)
+print('CUDA available:', torch.cuda.is_available())
 if torch.cuda.is_available():
-    print("gpu", torch.cuda.get_device_name(0))
+    print('GPU:', torch.cuda.get_device_name(0))
 PY
 ```
 
-## Local configuration
+`CUDA available` must be `True` for collection, calibration, and generation.
+Then preview the Wan workflow without loading a model:
 
 ```bash
-cp .env.example .env
-cp configs/paths.example.yaml configs/paths.local.yaml
+python scripts/subbitkv.py infer --model wan2_2_5b --run-id wan-demo --budget 0.5
 ```
 
-Environment variables override YAML values. Relative paths are resolved from
-the repository root. Run `python scripts/reproduce.py doctor` after every
-machine or environment change.
+### Attention backends
+
+The model integrations use different attention backends. The Wan runner can
+fall back to PyTorch SDPA when SageAttention is unavailable. HY-WorldPlay's
+configured flash attention path needs a compatible FlashAttention installation.
+Self-Forcing also has an SDPA fallback, intended for local smoke tests; it does
+not preserve every padded or sliding-window attention mode.
+
+For FlashAttention, use the [upstream installation instructions](https://github.com/Dao-AILab/flash-attention#installation-and-features).
+If installing a prebuilt wheel, match its Python, PyTorch, CUDA, platform, and
+C++ ABI tags to your environment. To inspect the latter:
+
+```bash
+python -c "import torch; print(torch.__version__, torch.version.cuda, torch._C._GLIBCXX_USE_CXX11_ABI)"
+```
+
+Check the chosen backend with `python -c "import flash_attn"` or
+`python -c "import sageattention"`. Retain the same backend when comparing
+quality, timing, and memory across runs.
+
+## Paths and model access
+
+The five-stage workflow works with the paths in
+[`configs/subbitkv.yaml`](../configs/subbitkv.yaml); `.env` is optional.
+Its checkpoints and outputs live under `outputs/subbitkv` by default.
+
+To use another disk, set this before the first stage and keep it set for the run:
+
+```bash
+export SUBBITKV_ROOT=/path/to/your/storage/subbitkv
+```
+
+For HY-WorldPlay image inputs, set `SUBBITKV_IMAGES` or edit
+`data.conditioning_images`. See [conditioning images](subbitkv.md#conditioning-images-for-hy-worldplay).
+
+If an upstream Hugging Face model requires account access, authenticate with
+your usual Hugging Face setup and accept that model's terms. The downloader
+uses `huggingface_hub`; do not put tokens in YAML or command examples.
+The first metrics run may also download RAFT, LPIPS, and VBench weights.
+
+The `QVG_*` variables and `configs/paths.local.yaml` belong to the older
+reproduction tools. See [historical research protocols](research_protocols.md)
+when using those entrypoints.

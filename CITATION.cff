@@ -1,13 +1,13 @@
 cff-version: 1.2.0
-message: Cite the SubBitKV software repository for this release. The reference below
-  credits the upstream QuantVideoGen work; it is not the SubBitKV paper.
-title: SubBitKV
+message: Cite the SuBitKV software repository for this release. The reference below
+  credits the upstream QuantVideoGen work; it is not the SuBitKV paper.
+title: SuBitKV
 type: software
 version: 0.1.0
 license: Apache-2.0
 authors:
-- name: SubBitKV contributors
-repository-code: https://github.com/linbowen0719-beep/ICLR2026_RVQ
+- name: SuBitKV contributors
+repository-code: https://github.com/linbowen0719-beep/SuBitKV
 references:
 - type: article
   title: 'Quant VideoGen: Auto-Regressive Long Video Generation via 2-Bit KV-Cache
