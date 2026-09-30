@@ -15,9 +15,20 @@ available; the public workflow writes new artifacts under `outputs/subbitkv`.
 | 3 | `infer` | BF16 references and compressed videos |
 | 4 | `metrics` | PSNR, SSIM, LPIPS, TWE, and VBench reports |
 
-For a complete copyable Wan example, start with [Run Wan](../README.md#run-wan).
+For a complete copyable Wan example, start with [Quick start](../README.md#quick-start).
 For schedule generation alone, skip installation and use the
 [saved constants](#generate-schedules-from-saved-calibration-constants).
+
+## Models
+
+| Model | `--model` | Input |
+| --- | --- | --- |
+| Wan2.2 5B through HY-WorldPlay | `wan2_2_5b` | Text |
+| Self-Forcing | `self_forcing` | Text |
+| HY-WorldPlay 8B | `hyworldplay_8b` | Text + [conditioning images](#conditioning-images-for-hy-worldplay) |
+
+The workflow downloads model checkpoints from Hugging Face and fits its own
+codec assets. A pretrained inference codec bundle is not included.
 
 ## Installation
 
@@ -242,6 +253,28 @@ and cause the stage to fail; incomplete results never become a successful run.
 
 ## Configuration and validation
 
+### Common settings
+
+Edit [`configs/subbitkv.yaml`](../configs/subbitkv.yaml) before starting a run.
+Paths are relative to the repository root.
+
+| Change | Where |
+| --- | --- |
+| Demo prompt | [`assets/default_prompt.txt`](../assets/default_prompt.txt), or `profiles.smoke.eval_prompts` |
+| Calibration prompts | `data.train_prompts` and `profiles.smoke.train_count` |
+| GPU | `runtime.gpus` for generation/training; `runtime.device` for codec fitting and metrics |
+| Seed | `models.wan2_2_5b.seed` (or the corresponding model section) |
+| Inference budget | `infer --budget 0.5`; omit `--budget` to run all configured budgets |
+| Larger evaluation | `--profile full` on every stage: 20 calibration and 10 evaluation prompts |
+| Metrics | `metrics.enabled` |
+| Output directory | `runtime.root`, or the `SUBBITKV_ROOT` environment variable |
+
+For GPU 1, set `runtime.gpus: [1]` and `runtime.device: cuda:1`. Prompt files
+contain one prompt per nonempty line. The full profile has its own evaluation
+prompt file, separate from the demo.
+
+
+
 `--profile smoke` uses two calibration prompts and one evaluation prompt.
 `--profile full` uses 20 calibration and 10 evaluation prompts by default.
 It is a configurable public example, not an alias for the full 1003-prompt
@@ -255,6 +288,9 @@ architecture changes fail validation instead of being silently ignored.
 ```bash
 python -m pytest -q tests/test_subbitkv.py tests/test_subbitkv_calibration.py
 ```
+
+Native Wan and HY inference have completed local smoke runs. A fresh run of
+all five stages on all three models has not yet been validated end to end.
 
 These tests exercise dry-runs, artifact integrity, actual parser compatibility,
 runtime profile loading, numerical TWE and teacher calibration, and real
