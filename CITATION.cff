@@ -1,12 +1,21 @@
 cff-version: 1.2.0
-message: "If you use QuantVideoGen, please cite the paper below."
-title: "QuantVideoGen"
+message: Cite the SubBitKV software repository for this release. The reference below
+  credits the upstream QuantVideoGen work; it is not the SubBitKV paper.
+title: SubBitKV
 type: software
 version: 0.1.0
 license: Apache-2.0
-repository-code: "https://github.com/svg-project/Quant-VideoGen"
-url: "https://svg-project.github.io/qvg/"
 authors:
+- name: SubBitKV contributors
+repository-code: https://github.com/linbowen0719-beep/ICLR2026_RVQ
+references:
+- type: article
+  title: 'Quant VideoGen: Auto-Regressive Long Video Generation via 2-Bit KV-Cache
+    Quantization'
+  year: 2026
+  journal: arXiv preprint arXiv:2602.02958
+  url: https://arxiv.org/abs/2602.02958
+  authors:
   - family-names: Xi
     given-names: Haocheng
   - family-names: Yang
@@ -15,18 +24,3 @@ authors:
     given-names: Yilong
   - family-names: Li
     given-names: Muyang
-preferred-citation:
-  type: article
-  title: "Quant VideoGen: Auto-Regressive Long Video Generation via 2-Bit KV-Cache Quantization"
-  year: 2026
-  journal: "arXiv preprint arXiv:2602.02958"
-  url: "https://arxiv.org/abs/2602.02958"
-  authors:
-    - family-names: Xi
-      given-names: Haocheng
-    - family-names: Yang
-      given-names: Shuo
-    - family-names: Zhao
-      given-names: Yilong
-    - family-names: Li
-      given-names: Muyang

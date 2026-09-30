@@ -76,6 +76,7 @@ from quant_videogen.temporal_structured_residual import (
 from quant_videogen.temporal_adaptive_residual import (
     QUANT_METHOD as TEMPORAL_ADAPTIVE_RESIDUAL_METHOD,
     load_profile as load_temporal_adaptive_profile,
+    payload_nbytes as temporal_payload_nbytes,
     rvq_identity_hash,
     rvq_identity_is_valid,
     schedule_precisions as schedule_temporal_precisions,
@@ -2427,7 +2428,11 @@ class WanPipeline(DiffusionPipeline, WanLoraLoaderMixin):
             "kv_quant_temporal_adaptive_audit",
             {
                 "schema_version": "wan5b_temporal_adaptive_residual.audit.v1",
-                "budget_definition": "residual_nominal_bits_only",
+                "budget_definition": (
+                    "rvq_base_reservation_plus_nominal_residual"
+                    if profile.residual_capacity_by_step is not None
+                    else "residual_nominal_bits_only"
+                ),
                 "capacity_bit_chunks": capacity,
                 "allocation_mode": str(
                     getattr(
@@ -2437,7 +2442,7 @@ class WanPipeline(DiffusionPipeline, WanLoraLoaderMixin):
                     )
                     or "optimal"
                 ),
-                "allowed_bits": [16, 8, 4, 3, 2, 1],
+                "allowed_bits": [16, 8, 4, 3, 2, 1, 0],
                 "events": [],
                 "transitions": [],
             },
@@ -2453,16 +2458,46 @@ class WanPipeline(DiffusionPipeline, WanLoraLoaderMixin):
             "token_start": int(token_start),
             "token_end": int(end_index),
         }
+        if profile.residual_capacity_by_step is not None:
+            event["residual_capacity_after_base"] = profile.residual_capacity_by_step[step - 1]
+            event["cache_accounting"] = []
+            for name, layer, cache in caches:
+                states = [packed_state(cache, i) for i in range(step)]
+                if [int(state["bits"]) for state in states] != target:
+                    raise RuntimeError("actual K/V cache precision differs from the schedule")
+                shape = states[0]["shape"]
+                event["cache_accounting"].append({
+                    "tensor": name,
+                    "layer": layer,
+                    "elements_per_chunk": int(shape[0] * shape[1] * shape[2] * shape[3]),
+                    "rvq_base_bytes": sum(
+                        temporal_payload_nbytes(state) - temporal_payload_nbytes(state, include_rvq=False)
+                        for state in states
+                    ),
+                    "physical_payload_bytes": sum(temporal_payload_nbytes(state) for state in states),
+                    "selected_bits": list(target),
+                })
         audit["events"].append(event)
         audit["transitions"].extend(transition_rows)
         audit["final"] = event
-        if step == 10 and int(sum(target)) != capacity:
+        terminal_capacity = (
+            profile.joint_schedule_terminal_bit_chunks
+            if profile.joint_schedule_terminal_bit_chunks is not None
+            and (
+                str(getattr(self._quant_config, "temporal_adaptive_allocation_mode", "optimal"))
+                == "frozen_joint_schedule"
+                or profile.residual_capacity_by_step is not None
+            )
+            else capacity
+        )
+        if step == 10 and int(sum(target)) != terminal_capacity:
             raise RuntimeError(
-                f"terminal temporal budget is {sum(target)}/{capacity}, expected exact"
+                f"terminal temporal budget is {sum(target)}/{terminal_capacity}, expected exact"
             )
         cprint(
             f"temporal adaptive residual step {step}: {target}, "
-            f"nominal={sum(target)}/{capacity}",
+            f"nominal={sum(target)}/{event.get('residual_capacity_after_base', capacity)}, "
+            f"peak_capacity={capacity}, terminal_target={terminal_capacity}",
             "light_green",
         )
         torch.cuda.synchronize()

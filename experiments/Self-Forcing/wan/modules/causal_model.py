@@ -328,6 +328,18 @@ class CausalWanSelfAttention(nn.Module):
             k_all, grid_sizes, freqs
         ).type_as(v)
 
+        if os.getenv("SUBBITKV_CALIBRATION_SETTINGS") and current_start > 0:
+            from quant_videogen.subbitkv.live_calibration import observe
+            def positioned(history_k, history_v):
+                whole_k = torch.cat((history_k.permute(0, 2, 1, 3), k_all[:, current_start:]), dim=1)
+                whole_v = torch.cat((history_v.permute(0, 2, 1, 3), v_all[:, current_start:]), dim=1)
+                return (causal_rope_apply_long_input(whole_k, grid_sizes, freqs).type_as(v).permute(0, 2, 1, 3),
+                        whole_v.permute(0, 2, 1, 3))
+            observe(roped_query.permute(0, 2, 1, 3),
+                    k_all[:, :current_start].permute(0, 2, 1, 3),
+                    v_all[:, :current_start].permute(0, 2, 1, 3),
+                    layer=kv_cache["subbitkv_layer"], transform=positioned)
+
         x = attention(roped_query, k_input, v_all)
         
         kv_cache["global_end_index"].fill_(current_end)

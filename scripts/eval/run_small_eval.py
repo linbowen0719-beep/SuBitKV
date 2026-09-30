@@ -458,7 +458,14 @@ def parse_args() -> argparse.Namespace:
 
     parser.add_argument("--num-prompts", type=positive_int, default=1)
     parser.add_argument("--prompt-start", type=int, default=0)
-    parser.add_argument("--prompt-file", type=str, required=True)
+    prompt_source = parser.add_mutually_exclusive_group()
+    prompt_source.add_argument("--prompt", type=str, help="Text for a single prompt.")
+    prompt_source.add_argument(
+        "--prompt-file",
+        type=str,
+        default=str(REPO_ROOT / "assets/default_prompt.txt"),
+        help="Prompt file; defaults to the frog detective sample.",
+    )
     parser.add_argument("--output-dir", type=str, required=True)
     parser.add_argument("--metrics-name", type=str, default="metrics.csv")
     parser.add_argument("--config-name", type=str, default="config.json")
@@ -1252,7 +1259,7 @@ def parse_args() -> argparse.Namespace:
         "--temporal_adaptive_capacity_bit_chunks",
         type=positive_int,
         default=40,
-        help="Residual-label-only capacity; overhead is excluded by definition.",
+        help="Peak residual bit-count capacity; base-aware profiles enforce lower per-step limits.",
     )
     parser.add_argument(
         "--temporal_adaptive_allocation_mode",
@@ -3043,7 +3050,16 @@ def main() -> None:
             raise FileNotFoundError("K routed Gaussian routing table is required")
         if not Path(args.progressive_v_absmax_params_path).is_file():
             raise FileNotFoundError("V progressive absmax params are required")
-        if args.temporal_adaptive_capacity_bit_chunks not in {
+        from quant_videogen.temporal_adaptive_residual import load_profile
+
+        temporal_profile = load_profile(profile_path)
+        if temporal_profile.residual_capacity_by_step is not None:
+            if (
+                args.temporal_adaptive_capacity_bit_chunks
+                != temporal_profile.joint_schedule_capacity_bit_chunks
+            ):
+                raise ValueError("runtime capacity disagrees with RVQ Base budget profile")
+        elif args.temporal_adaptive_capacity_bit_chunks not in {
             10,
             20,
             30,
@@ -3278,13 +3294,20 @@ def main() -> None:
             "--rvq_codebook_storage_dtype int4 (or an i4 RVQ setting)"
         )
 
-    all_prompts = load_prompt_file(args.prompt_file)
+    if args.prompt is not None:
+        args.prompt_file = None
+        if not args.prompt.strip():
+            raise ValueError("--prompt must not be empty")
+        all_prompts = [parse_prompt_text(args.prompt.strip())]
+    else:
+        all_prompts = load_prompt_file(args.prompt_file)
     if args.prompt_start < 0:
         raise ValueError("--prompt-start must be >= 0")
     prompts = all_prompts[args.prompt_start : args.prompt_start + args.num_prompts]
     if not prompts:
         raise ValueError(
-            f"No prompts found in {args.prompt_file} at --prompt-start={args.prompt_start}"
+            f"No prompts found in {args.prompt_file or '--prompt'} "
+            f"at --prompt-start={args.prompt_start}"
         )
 
     if rank == 0:
@@ -3692,11 +3715,17 @@ def main() -> None:
                     )
                 final_event = adaptive_audit.get("final", {})
                 capacity = int(args.temporal_adaptive_capacity_bit_chunks)
+                terminal = (
+                    temporal_profile.joint_schedule_terminal_bit_chunks
+                    if args.temporal_adaptive_allocation_mode == "frozen_joint_schedule"
+                    or temporal_profile.residual_capacity_by_step is not None
+                    else capacity
+                )
                 final_sum = int(final_event.get("nominal_bits_sum", -1))
-                if final_sum != capacity:
+                if final_sum != terminal:
                     raise RuntimeError(
                         "terminal nominal residual budget is not "
-                        f"{capacity}/{capacity}"
+                        f"{terminal}/{terminal}"
                     )
                 prompt_dir = output_dir / f"prompt_{int(prompt_id):02d}"
                 prompt_dir.mkdir(parents=True, exist_ok=False)
@@ -3770,7 +3799,7 @@ def main() -> None:
                             "prompt": prompt,
                             "seed": args.seed,
                             "terminal_budget_utilization": (
-                                f"{capacity}/{capacity}"
+                                f"{final_sum}/{terminal}"
                             ),
                             "pipeline_audit": adaptive_audit,
                         },

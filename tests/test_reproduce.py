@@ -6,6 +6,7 @@ from pathlib import Path
 import sys
 
 import yaml
+import pytest
 
 
 REPO_ROOT = Path(__file__).parents[1]
@@ -14,6 +15,14 @@ SPEC = importlib.util.spec_from_file_location("qvg_reproduce", SCRIPT_PATH)
 assert SPEC is not None and SPEC.loader is not None
 reproduce = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(reproduce)
+
+
+@pytest.fixture(autouse=True)
+def isolate_machine_paths(monkeypatch):
+    """Tests must never pick up real experiment output roots from a local .env."""
+    monkeypatch.setattr(reproduce, "_load_dotenv", lambda path: None)
+    for key in reproduce.PATH_ENV_KEYS.values():
+        monkeypatch.delenv(key, raising=False)
 
 
 def write_paths(path: Path, root: Path) -> None:

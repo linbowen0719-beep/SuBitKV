@@ -21,6 +21,22 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+metrics = [
+    "numpy>=1.24",
+    "opencv-python>=4.8",
+    "scikit-image>=0.22",
+    "scipy>=1.11",
+    "torchvision==0.23.0",
+    "lpips>=0.1.4",
+    "vbench>=0.1.5",
+]
+
+release = [
+    "quant-videogen[all,metrics]",
+    "scikit-learn>=1.3",
+    "matplotlib>=3.7",
+]
+
 longcat = [
     "numpy>=1.24",
     "Pillow>=10.0",
@@ -92,3 +108,9 @@ dev = [
 
 [tool.setuptools.packages.find]
 include = ["quant_videogen*"]
+
+[tool.setuptools.package-data]
+"quant_videogen.subbitkv" = ["constants/*.json"]
+
+[project.scripts]
+subbitkv-schedule = "quant_videogen.subbitkv.schedule:main"

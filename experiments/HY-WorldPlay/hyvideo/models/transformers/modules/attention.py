@@ -47,6 +47,7 @@ from hyvideo.models.transformers.modules.ssta_attention import ssta_3d_attention
 from hyvideo.commons.infer_state import get_infer_state
 from quant_videogen.hyworldplay_attention_calibration import calibrate_attention_once
 from quant_videogen.hyworldplay_append_only import append_vision_kv
+from quant_videogen.subbitkv.live_calibration import enabled as subbitkv_calibrating
 
 
 @torch.compiler.disable
@@ -329,6 +330,16 @@ def sequence_parallel_attention_vision(
     encoder_value = kv_cache[block_idx]["v_txt"]
     encoder_key = repeat(encoder_key, "B H S D->(B R) H S D", R=2)
     encoder_value = repeat(encoder_value, "B H S D->(B R) H S D", R=2)
+
+    if subbitkv_calibrating() and not cache_vision and history_key is not None:
+        from quant_videogen.subbitkv.live_calibration import observe
+        history_length = int(history_key.shape[2])
+        current_key, current_value = key[:, :, history_length:], value[:, :, history_length:]
+        def positioned(history_k, history_v):
+            return (torch.cat((encoder_key, history_k, current_key), dim=2),
+                    torch.cat((encoder_value, history_v, current_value), dim=2))
+        observe(query, history_key, history_value, layer=int(block_idx),
+                transform=positioned, prefix_tokens=int(encoder_key.shape[2]))
 
     if (
         not cache_vision

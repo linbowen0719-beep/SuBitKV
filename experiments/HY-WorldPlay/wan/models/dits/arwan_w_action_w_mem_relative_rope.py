@@ -53,7 +53,19 @@ from diffusers.models.modeling_outputs import Transformer2DModelOutput
 from diffusers.models.modeling_utils import ModelMixin
 from diffusers.models.normalization import FP32LayerNorm
 
-from sageattention import sageattn
+try:
+    from sageattention import sageattn
+except ImportError:
+    import warnings
+
+    warnings.warn("SageAttention is unavailable; Wan uses PyTorch SDPA.", stacklevel=2)
+
+    def sageattn(query, key, value, *, tensor_layout="HND", is_causal=False):
+        if tensor_layout != "HND":
+            raise ValueError("Wan SDPA compatibility path requires HND tensors")
+        return F.scaled_dot_product_attention(
+            query, key, value, dropout_p=0.0, is_causal=is_causal
+        )
 from quant_videogen.rvq import q_rvq_enabled, rvq_reconstruct_query
 
 
@@ -910,6 +922,22 @@ class CausalCameraPRopeWanAttnProcessor2_0:
                 call_idx=paired_call_idx,
             )
             del key_pre_all, value_pre_all
+
+        if os.getenv("SUBBITKV_CALIBRATION_SETTINGS") and not is_cache and cache_key is not None:
+            if not pre_kv_reconstruct:
+                raise ValueError("SubBitKV teacher calibration requires pre-RoPE cache")
+            from quant_videogen.subbitkv.live_calibration import observe
+            def positioned(history_k, history_v):
+                hkr = apply_rotary_emb(history_k, *cache_rotary_emb)
+                _, hkp, hvp, _ = prope_qkv(history_k, history_k, history_v,
+                    viewmats=cache_viewmats, Ks=cache_Ks, patches_x=40, patches_y=22)
+                kr = torch.cat((hkr, key_rope[:, :, end_index:]), dim=2)
+                vr = torch.cat((history_v, value_rope[:, :, end_index:]), dim=2)
+                kp = torch.cat((hkp, key_prope[:, :, end_index:]), dim=2)
+                vp = torch.cat((hvp, value_prope[:, :, end_index:]), dim=2)
+                return torch.cat((kr, kp), dim=0), torch.cat((vr, vp), dim=0)
+            observe(torch.cat((query_rope, query_prope), dim=0), cache_key, cache_value,
+                    layer=int(idx), transform=positioned)
 
         query_all = torch.cat([query_rope, query_prope], dim=0)
         key_all = torch.cat([key_rope, key_prope], dim=0)

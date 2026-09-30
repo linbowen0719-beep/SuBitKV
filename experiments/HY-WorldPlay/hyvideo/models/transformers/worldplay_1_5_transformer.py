@@ -78,6 +78,10 @@ def _cache_layer_nbytes(layer: dict, device_type: str | None = None) -> int:
 
 def _move_cache_layer(layer: dict, device: torch.device) -> None:
     """Move one cache layer in place so callers never retain the old tensor."""
+    if os.getenv('QVG_HY_MEASURE_KV_TRANSFER') == '1':
+        from quant_videogen.hy_kv_transfer_timer import move_and_measure
+        move_and_measure(layer, device, get_infer_state())
+        return
     for name, value in layer.items():
         if isinstance(value, torch.Tensor) and value.device != device:
             layer[name] = value.to(device)
@@ -239,9 +243,14 @@ def finalize_kv_capture() -> dict | None:
 def _retain_compressed_vision_on_gpu(state) -> bool:
     return bool(
         state is not None
-        and state.kv_cache_offload
         and getattr(state, "kv_cache_gpu_resident_compressed", False)
         and state.kv_cache_codec != "none"
+    )
+
+
+def _managed_vision_cache(state) -> bool:
+    return state is not None and (
+        state.kv_cache_offload or _retain_compressed_vision_on_gpu(state)
     )
 
 
@@ -338,7 +347,7 @@ def _adopt_prefetched_cache_layer(
 
 def _onload_cache_layer(layer: dict, device: torch.device, layer_idx: int | None = None) -> None:
     state = get_infer_state()
-    if state is None or not state.kv_cache_offload:
+    if not _managed_vision_cache(state):
         return
     if isinstance(layer.get("k_vision"), dict):
         packed = (layer["k_vision"], layer["v_vision"])
@@ -504,7 +513,7 @@ def _offload_appended_cache_layer(
     previous_packed = previous_layer.get("_qvg_packed_vision_gpu")
     if (
         state is None
-        or not state.kv_cache_offload
+        or not _managed_vision_cache(state)
         or not state.append_only_vision_cache
         or settings is None
         or previous_packed is None
@@ -558,7 +567,7 @@ def _offload_appended_cache_layer(
     layer["k_vision"], layer["v_vision"] = stored_k, stored_v
     for name in ("k_txt", "v_txt"):
         value = layer.get(name)
-        if torch.is_tensor(value) and value.device.type != "cpu":
+        if state.kv_cache_offload and torch.is_tensor(value) and value.device.type != "cpu":
             layer[name] = value.to("cpu")
     payload_bytes = tensor_tree_nbytes((stored_k, stored_v))
     accounting = packed_k.get("qvg_accounting")
@@ -604,7 +613,7 @@ def _offload_appended_cache_layer(
 
 def _offload_cache_layer(layer: dict, layer_idx: int | None = None) -> None:
     state = get_infer_state()
-    if state is None or not state.kv_cache_offload:
+    if not _managed_vision_cache(state):
         return
     layer.pop("_qvg_attention_buffer", None)
     packed = layer.pop("_qvg_packed_vision", None)
@@ -616,7 +625,7 @@ def _offload_cache_layer(layer: dict, layer_idx: int | None = None) -> None:
             layer["k_vision"], layer["v_vision"] = packed
         for name in ("k_txt", "v_txt"):
             value = layer.get(name)
-            if torch.is_tensor(value) and value.device.type != "cpu":
+            if state.kv_cache_offload and torch.is_tensor(value) and value.device.type != "cpu":
                 layer[name] = value.to("cpu")
     else:
         settings = _codec_settings()
@@ -685,7 +694,7 @@ def _offload_cache_layer(layer: dict, layer_idx: int | None = None) -> None:
             layer["v_vision"] = stored_v
             for name in ("k_txt", "v_txt"):
                 value = layer.get(name)
-                if torch.is_tensor(value) and value.device.type != "cpu":
+                if state.kv_cache_offload and torch.is_tensor(value) and value.device.type != "cpu":
                     layer[name] = value.to("cpu")
             payload_bytes = tensor_tree_nbytes((stored_k, stored_v))
             accounting = packed_k.get("qvg_accounting") if isinstance(packed_k, dict) else None
@@ -725,7 +734,9 @@ def _offload_cache_layer(layer: dict, layer_idx: int | None = None) -> None:
                 state.kv_cache_compressed_vision_bytes_peak,
                 tensor_tree_nbytes((layer["k_vision"], layer["v_vision"])),
             )
-        else:
+        elif state.kv_cache_offload:
+            # Text-only initialization has no vision payload to encode yet.
+            # In GPU-resident mode it must not fall through to CPU offload.
             if torch.is_tensor(k_vision) and torch.is_tensor(v_vision):
                 _capture_vision_kv(k_vision, v_vision, int(layer_idx))
                 bf16_bytes = k_vision.numel() * k_vision.element_size() + v_vision.numel() * v_vision.element_size()
@@ -747,7 +758,7 @@ def _offload_cache_layer(layer: dict, layer_idx: int | None = None) -> None:
 def record_cpu_cache_peak(*caches: list[dict]) -> None:
     """Record aggregate CPU and compressed-CUDA KV residency."""
     state = get_infer_state()
-    if state is None or not state.kv_cache_offload:
+    if not _managed_vision_cache(state):
         return
     cpu_bytes = sum(
         _cache_layer_nbytes(layer, "cpu")

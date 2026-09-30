@@ -1135,6 +1135,7 @@ class CausalInferencePipeline(torch.nn.Module):
 
         for _ in range(self.num_transformer_blocks):
             kv_cache1.append({
+                "subbitkv_layer": _,
                 "k": ChunkedKVCache(batch_size, self.frame_seq_length, 12, 128, max_num_chunks, dtype, device, layout="BSHD"),
                 "v": ChunkedKVCache(batch_size, self.frame_seq_length, 12, 128, max_num_chunks, dtype, device, layout="BSHD"),
                 "global_end_index": torch.tensor([0], dtype=torch.long, device=device),

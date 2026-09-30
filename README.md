@@ -1,4 +1,41 @@
-# ICLR2026_RVQ
+# SubBitKV — ICLR2026_RVQ
+
+**Public workflow:** model download → BF16 samples/KV capture → codebook,
+importance-weight and schedule calibration → SubBitKV inference → metrics,
+including TWE.
+
+The five-stage entrypoint supports Wan2.2 5B, Self-Forcing and HY-WorldPlay 8B,
+with nominal residual budgets **0 / 0.2 / 0.5 / 1 / 2 / 3 / 4**. Hyperparameters
+live in [`configs/subbitkv.yaml`](configs/subbitkv.yaml).
+Scheduling reserves RVQ Base storage at each step, converts the remaining bytes
+into residual bit counts, and jointly optimizes all seven budget schedules.
+
+To generate a schedule directly from the saved HY train4 calibration constants,
+without model downloads, calibration or GPU dependencies:
+
+```bash
+python scripts/subbitkv_schedule.py --budget 0.5 --output outputs/hy_avg0p5_dp.json
+```
+
+This entrypoint defaults to per-step DP; `--solver milp` selects joint optimization
+(requires SciPy). The saved constants contain measured B1–B8 losses and age weights.
+B0 is unmeasured: sub-bit schedules explicitly mark the `D(0)=4*D(1)` estimate.
+
+```bash
+pip install -e '.[release,dev]'
+# Read-only plan; add --execute to run a stage.
+python scripts/subbitkv.py download-models --model wan2_2_5b
+python scripts/subbitkv.py collect         --model wan2_2_5b
+python scripts/subbitkv.py calibrate       --model wan2_2_5b
+python scripts/subbitkv.py infer           --model wan2_2_5b
+python scripts/subbitkv.py metrics         --model wan2_2_5b
+```
+
+See the **[public setup and reproduction guide](docs/subbitkv.md)** for inputs,
+asset provenance, resumable runs, metric definitions and validation scope.
+Fresh public calibration is separate from the frozen historical protocols below.
+
+## Historical experiment protocols
 
 组内复现仓库：在 **Wan2.2 5B** 和 **Self-Forcing** 上训练 progressive
 RVQ，并运行完整 MovieGenVideoBench 1003-prompt KV-cache 压缩主实验。

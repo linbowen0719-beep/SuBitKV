@@ -33,7 +33,9 @@ from quant_videogen.hyworldplay8b_cache_codec import (  # noqa: E402
 
 
 CALIBRATION_SCHEMA = "hyworldplay_rvq_attention_calibration.v2"
-SCHEDULE_BITS = AVG2_SCHEDULE_BITS
+# B0 is supported by the codec for frozen sub-bit schedules, but this train-only
+# calibration contains no D(0). Never invent its utility for avg1/2/3/4 fitting.
+SCHEDULE_BITS = tuple(bits for bits in AVG2_SCHEDULE_BITS if bits != 0)
 
 
 def sha256_file(path: Path) -> str:

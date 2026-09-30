@@ -700,6 +700,13 @@ def add_keyboard_overlay_to_video(video_path, output_path, actions_timeline):
         return False
 
 
+def _validate_gpu_resident_codec(args):
+    # Compressed storage is independent of CPU offload.  A codec remains
+    # mandatory, but all text/vision KV may stay on GPU throughout generation.
+    if args.kv_cache_gpu_resident_compressed and args.kv_cache_codec == "none":
+        raise ValueError("GPU-resident compressed KV requires a non-none --kv_cache_codec")
+
+
 def generate_video(args):
     metrics_started = time.perf_counter()
     reset_encode_breakdown_stats()
@@ -714,13 +721,7 @@ def generate_video(args):
     assert (
         (args.video_length - 1) // 4 + 1
     ) % 4 == 0, "number of latents must be divisible by 4"
-    if args.kv_cache_gpu_resident_compressed and (
-        not args.kv_cache_offload or args.kv_cache_codec == "none"
-    ):
-        raise ValueError(
-            "GPU-resident compressed KV requires --kv_cache_offload and a "
-            "non-none --kv_cache_codec"
-        )
+    _validate_gpu_resident_codec(args)
     initialize_infer_state(args)
 
     task = "i2v" if args.image_path else "t2v"
@@ -909,6 +910,7 @@ def generate_video(args):
                 "terminal_cache_audit": terminal_cache_audit,
                 "video_path": os.path.abspath(final_video_path),
                 "part_timing_seconds": dict(infer_state.part_seconds),
+                "kv_transfer_subtraction_events": getattr(infer_state, "kv_transfer_subtraction_events", []),
                 "chunk_timing_events": list(infer_state.chunk_timing_events),
                 "top_level_unattributed_seconds": max(0.0, total_generate_seconds - top_level_accounted),
                 "codec_encode_cuda_breakdown": get_encode_breakdown_stats(),

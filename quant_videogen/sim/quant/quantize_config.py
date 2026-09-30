@@ -113,7 +113,7 @@ class QuantizeConfig:
     """Frozen train-only time/rate-distortion profile for residual scheduling."""
 
     temporal_adaptive_capacity_bit_chunks: int = 40
-    """Nominal residual-only cache budget; overhead is audited separately."""
+    """Peak residual bit count; base-aware profiles impose per-step byte-derived limits."""
 
     temporal_adaptive_allocation_mode: str = "optimal"
     """Residual scheduler: optimal, or force_recent_b16 counterfactual."""

@@ -376,6 +376,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--record-latent-hashes", action="store_true")
     parser.add_argument("--append-only-vision-cache", action="store_true")
     parser.add_argument("--gpu-resident-compressed-kv", action="store_true")
+    parser.add_argument("--no-kv-offload", action="store_true", help="Keep text and vision KV on GPU, including VAE decode")
     parser.add_argument("--terminal-cache-audit", action="store_true")
     parser.add_argument(
         "--segmented-decode-backend",
@@ -425,7 +426,7 @@ def main() -> int:
         "append_only_vision_cache": args.append_only_vision_cache,
         "gpu_resident_compressed_kv": args.gpu_resident_compressed_kv,
         "segmented_decode_backend": args.segmented_decode_backend,
-        "kv_cpu_offload": True,
+        "kv_cpu_offload": not args.no_kv_offload,
         "component_offload": True,
         "sr": False,
         "rewrite": False,
@@ -541,7 +542,7 @@ def main() -> int:
         "HEIGHT": "464",
         "WIDTH": "848",
         "OFFLOADING": "true",
-        "KV_CACHE_OFFLOAD": "true",
+        "KV_CACHE_OFFLOAD": "false" if args.no_kv_offload else "true",
         "KV_CACHE_GPU_RESIDENT_COMPRESSED": (
             "true" if args.gpu_resident_compressed_kv else "false"
         ),
@@ -635,6 +636,14 @@ def main() -> int:
             if video_info != {"width": 848, "height": 464, "fps": 24.0, "frames": args.frames}:
                 raise RuntimeError(f"unexpected video properties: {video_info}")
             metrics = json.loads((args.output_dir / "generation_metrics.json").read_text(encoding="utf-8"))
+            if args.no_kv_offload:
+                if metrics['kv_cache_offload'] or metrics['kv_cache_cpu_peak_mib'] != 0:
+                    raise RuntimeError('GPU-resident KV audit failed: CPU cache detected')
+                events = metrics.get('kv_codec_encode_events', [])
+                if args.method.startswith('ours_') and (not args.gpu_resident_compressed_kv or not events):
+                    raise RuntimeError('GPU-resident RVQ path did not encode cache')
+                if any(e.get('d2h_seconds',0) != 0 for e in events):
+                    raise RuntimeError('Unexpected KV D2H transfer')
     except Exception as exc:
         status = "failed"
         error = f"{type(exc).__name__}: {exc}"

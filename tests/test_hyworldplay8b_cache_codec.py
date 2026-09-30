@@ -28,6 +28,7 @@ def test_codec_settings_are_fixed_and_rvq_requires_codebooks() -> None:
     assert set(CODEC_QUANT_TYPES) == {
         "rvq_full", "rvq_ours_int2",
         "rvq_ours_avg1", "rvq_ours_avg2", "rvq_ours_avg3", "rvq_ours_avg4",
+        "rvq_ours_avg0", "rvq_ours_avg0p2_alt", "rvq_ours_avg0p5",
         "kivi", "kivi_int2", "kivi_int4",
         "turboquant", "turboquant_int2", "turboquant_int4",
         "quantvideo", "quantvideo_int2", "quantvideo_int4",
@@ -199,6 +200,9 @@ def test_terminal_avg2_budget_uses_shared_model_wide_ownership() -> None:
         "nominal_residual_avg_bits": 2.0,
         "K_capacity_bit_chunks": 20,
         "V_capacity_bit_chunks": 20,
+        "K_terminal_bit_chunks": 20,
+        "V_terminal_bit_chunks": 20,
+        "profile_horizon": 10,
     }
 
     shared[1]["selected_v_bit_sum"] = 20

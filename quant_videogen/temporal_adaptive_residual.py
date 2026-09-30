@@ -5,9 +5,9 @@ RVQ base.  The first downgrade materializes the current K/V B8 residual codec;
 later B8->B4->B3->B2->B1 transitions only discard physical prefix planes.  No
 transition re-runs RVQ assignment or changes its depth map.
 
-The scheduling budget is deliberately *nominal*: only the state labels
-16/8/4/3/2/1 are counted.  RVQ, predictors, scales, routing tables, and all other
-payload are audited separately and never enter the dynamic-program constraint.
+Legacy profiles constrain nominal state labels only. Base-aware profiles first
+reserve RVQ payload bytes and convert the remainder into a per-step nominal
+residual budget. Residual metadata and shared tables are audited separately.
 """
 
 from __future__ import annotations
@@ -34,6 +34,7 @@ from .progressive_sign_adaptive_absmax_scalar import (
     truncate_progressive_sign_adaptive_absmax_state,
 )
 from .rvq import prepare_fused_dense_rvq_decode, rvq_dequantize_tensor_cache
+from .cache_budget import ResidualBudget
 
 
 STATE_SCHEMA = "rvq_temporal_adaptive_residual.state.v1"
@@ -731,6 +732,8 @@ class DistortionProfile:
     first_anchor_weight: float | None = None
     joint_schedule: tuple[tuple[int, ...], ...] | None = None
     joint_schedule_capacity_bit_chunks: int = 40
+    joint_schedule_terminal_bit_chunks: int | None = None
+    residual_capacity_by_step: tuple[int, ...] | None = None
 
     def distortion(self, bits: int) -> float:
         selected = int(bits)
@@ -806,6 +809,13 @@ def load_profile(path: str | Path | Mapping[str, Any]) -> DistortionProfile:
         raise ValueError(
             "joint_schedule_terminal_bit_chunks must lie within [0, capacity]"
         )
+    limits = None
+    if "memory_budget" in raw:
+        limits = ResidualBudget.from_dict(raw["memory_budget"]).capacities
+        if len(limits) != 10 or max(limits) != joint_capacity:
+            raise ValueError("RVQ Base budget horizon/capacity does not match profile")
+        if joint_terminal > limits[-1]:
+            raise ValueError("terminal budget exceeds capacity after RVQ Base")
     joint_schedule = None
     if joint_schedule_raw is not None:
         joint_schedule = tuple(
@@ -817,7 +827,7 @@ def load_profile(path: str | Path | Mapping[str, Any]) -> DistortionProfile:
         for step, row in enumerate(joint_schedule, start=1):
             if len(row) != step or any(bits not in ALLOWED_BITS for bits in row):
                 raise ValueError(f"invalid joint_schedule row {step}")
-            if sum(row) > joint_capacity:
+            if sum(row) > (limits[step - 1] if limits is not None else joint_capacity):
                 raise ValueError(
                     f"joint_schedule row {step} exceeds capacity {joint_capacity}"
                 )
@@ -841,6 +851,8 @@ def load_profile(path: str | Path | Mapping[str, Any]) -> DistortionProfile:
         ),
         joint_schedule=joint_schedule,
         joint_schedule_capacity_bit_chunks=joint_capacity,
+        joint_schedule_terminal_bit_chunks=joint_terminal,
+        residual_capacity_by_step=limits,
     )
 
 
@@ -871,6 +883,13 @@ def schedule_precisions(
         )
     if mode == "force_recent_b16" and current and current[-1] != 16:
         raise ValueError("force_recent_b16 requires the newest admission at B16")
+    step_capacity = int(capacity_bit_chunks)
+    if profile.residual_capacity_by_step is not None:
+        if not 1 <= len(current) <= len(profile.residual_capacity_by_step):
+            raise ValueError("current_bits length is outside the RVQ Base budget horizon")
+        step_capacity = min(
+            step_capacity, profile.residual_capacity_by_step[len(current) - 1]
+        )
     if mode == "frozen_joint_schedule":
         if profile.joint_schedule is None:
             raise ValueError(
@@ -888,7 +907,7 @@ def schedule_precisions(
         target = profile.joint_schedule[len(current) - 1]
         if len(target) != len(current):
             raise RuntimeError("joint schedule row length mismatch")
-        if sum(target) > int(capacity_bit_chunks):
+        if sum(target) > step_capacity:
             raise ValueError("joint schedule exceeds the configured capacity")
         if any(
             ALLOWED_BITS.index(new) < ALLOWED_BITS.index(old)
@@ -898,7 +917,7 @@ def schedule_precisions(
                 f"joint schedule requested a precision increase: {current}->{target}"
             )
         return tuple(target)
-    if sum(current) <= int(capacity_bit_chunks):
+    if sum(current) <= step_capacity:
         return current
     count = len(current)
     # sum -> (objective, assignment).  Tie order is objective, more budget,
@@ -927,7 +946,7 @@ def schedule_precisions(
                 choices = tuple(bits for bits in choices if bits == 16)
             for bits in choices:
                 new_used = used + bits
-                if new_used > int(capacity_bit_chunks):
+                if new_used > step_capacity:
                     continue
                 candidate = (
                     objective + weights[index] * profile.distortion(bits),
@@ -950,11 +969,11 @@ def schedule_precisions(
             tuple(-value for value in assignment_key(item[1][1])),
         ),
     )
-    if best_sum != int(capacity_bit_chunks):
-        feasible_exact = states.get(int(capacity_bit_chunks))
+    if best_sum != step_capacity:
+        feasible_exact = states.get(step_capacity)
         if feasible_exact is not None:
             best = feasible_exact[1]
-            best_sum = int(capacity_bit_chunks)
+            best_sum = step_capacity
     return tuple(best)
 
 

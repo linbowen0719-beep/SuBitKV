@@ -17,6 +17,7 @@ from quant_videogen.compress import compress_kv_cache, get_quantize_fn
 from quant_videogen.sim.quant.quantize_config import QuantizeConfig
 from quant_videogen.rng import preserve_torch_rng_state
 from quant_videogen.uncompress import uncompress_kv_cache
+from quant_videogen.cache_budget import ResidualBudget
 from quant_videogen.temporal_adaptive_residual import (
     DistortionProfile,
     load_profile,
@@ -56,6 +57,8 @@ CODEC_QUANT_TYPES = {
 OURS_BITS = (0, 1, 2, 3, 4)
 AVG2_PROFILE_SCHEMA = "hyworldplay_rvq_temporal_avg2.profile.v2"
 TEMPORAL_PROFILE_SCHEMA = "hyworldplay_rvq_temporal.profile.v3"
+FIXED_TWO_PROFILE_SCHEMA = "hyworldplay_rvq_fixed_two_recent.profile.v1"
+QZERO_LONG_PROFILE_SCHEMA = "hyworldplay_rvq_qzero_long.profile.v1"
 AVG2_RESIDUAL_BITS = (8, 4, 3, 2, 1)
 # B16 is a lossless BF16 bypass used only while early cache headroom permits.
 # It has no learned residual distortion entry; compressed residual candidates
@@ -73,6 +76,7 @@ class Avg2TensorProfile:
     joint_schedule: tuple[tuple[int, ...], ...]
     capacity_bit_chunks: int
     terminal_bit_chunks: int
+    residual_capacity_by_step: tuple[int, ...] | None = None
 
 
 @dataclass(frozen=True)
@@ -127,12 +131,25 @@ class Avg2Profile:
             raise ValueError(f"avg2 profile has no {name} tensor section")
         if not 1 <= count <= self.horizon:
             raise ValueError(f"span_count must be in [1,{self.horizon}], got {count}")
-        return self.tensors[name].joint_schedule[count - 1]
+        tensor = self.tensors[name]
+        row = tensor.joint_schedule[count - 1]
+        if tensor.residual_capacity_by_step is not None:
+            if sum(row) > tensor.residual_capacity_by_step[count - 1]:
+                raise ValueError("schedule exceeds capacity after RVQ Base")
+        return row
 
 
-def _validate_avg2_tensor_profile(name: str, raw: Mapping[str, Any]) -> Avg2TensorProfile:
+def _validate_avg2_tensor_profile(
+    name: str, raw: Mapping[str, Any], *, horizon: int = AVG2_HORIZON,
+    fixed_two: bool = False,
+) -> Avg2TensorProfile:
     capacity = int(raw.get("capacity_bit_chunks", -1))
-    if capacity not in TEMPORAL_CAPACITIES:
+    limits = None
+    if "memory_budget" in raw:
+        limits = ResidualBudget.from_dict(raw["memory_budget"]).capacities
+        if len(limits) != horizon or max(limits) != capacity:
+            raise ValueError(f"{name} RVQ Base budget horizon/capacity mismatch")
+    elif capacity not in TEMPORAL_CAPACITIES:
         raise ValueError(
             f"{name} capacity must be one of {TEMPORAL_CAPACITIES}, got {capacity}"
         )
@@ -152,13 +169,19 @@ def _validate_avg2_tensor_profile(name: str, raw: Mapping[str, Any]) -> Avg2Tens
         tuple(int(bits) for bits in row)
         for row in raw.get("joint_schedule", ())
     )
-    if len(schedule) != AVG2_HORIZON:
-        raise ValueError(f"{name} joint_schedule must contain {AVG2_HORIZON} rows")
+    if len(schedule) != horizon:
+        raise ValueError(f"{name} joint_schedule must contain {horizon} rows")
+    if fixed_two:
+        if capacity != 6 or terminal != 2:
+            raise ValueError("fixed-two profile requires peak budget 6 and terminal budget 2")
+        for step, row in enumerate(schedule[9:], start=10):
+            if row != (0,) * (step - 2) + (1, 1):
+                raise ValueError(f"{name} fixed-two row {step} must keep only the newest two B1 spans")
     previous: tuple[int, ...] = ()
     for step, row in enumerate(schedule, start=1):
         if len(row) != step or any(bits not in AVG2_SCHEDULE_BITS for bits in row):
             raise ValueError(f"{name} has invalid schedule row {step}: {row}")
-        if sum(row) > capacity:
+        if sum(row) > (limits[step - 1] if limits is not None else capacity):
             raise ValueError(f"{name} schedule row {step} exceeds capacity {capacity}")
         if previous and any(
             AVG2_SCHEDULE_BITS.index(new) < AVG2_SCHEDULE_BITS.index(old)
@@ -174,6 +197,7 @@ def _validate_avg2_tensor_profile(name: str, raw: Mapping[str, Any]) -> Avg2Tens
         joint_schedule=schedule,
         capacity_bit_chunks=capacity,
         terminal_bit_chunks=terminal,
+        residual_capacity_by_step=limits,
     )
 
 
@@ -195,7 +219,7 @@ def load_avg2_profile(path: str | Path | Mapping[str, Any]) -> Avg2Profile:
             shared=shared,
         )
     schema = raw.get("schema_version")
-    if schema not in {AVG2_PROFILE_SCHEMA, TEMPORAL_PROFILE_SCHEMA}:
+    if schema not in {AVG2_PROFILE_SCHEMA, TEMPORAL_PROFILE_SCHEMA, FIXED_TWO_PROFILE_SCHEMA, QZERO_LONG_PROFILE_SCHEMA}:
         raise ValueError(
             "expected temporal profile schema "
             f"{TEMPORAL_PROFILE_SCHEMA} (or legacy {AVG2_PROFILE_SCHEMA})"
@@ -204,19 +228,32 @@ def load_avg2_profile(path: str | Path | Mapping[str, Any]) -> Avg2Profile:
     # Continue accepting the first fast-validation profiles, which omitted
     # B16 from the declaration, while new profiles expose the full schedule
     # domain explicitly.
-    if allowed not in {AVG2_RESIDUAL_BITS, AVG2_SCHEDULE_BITS}:
+    if allowed not in {AVG2_RESIDUAL_BITS, (16, *AVG2_RESIDUAL_BITS), AVG2_SCHEDULE_BITS}:
         raise ValueError(
             f"allowed_bits must be {list(AVG2_SCHEDULE_BITS)} "
             f"(or legacy {list(AVG2_RESIDUAL_BITS)})"
         )
     horizon = int(raw.get("horizon", -1))
-    if horizon != AVG2_HORIZON:
+    fixed_two = schema == FIXED_TWO_PROFILE_SCHEMA
+    if fixed_two and (horizon < AVG2_HORIZON or allowed != AVG2_SCHEDULE_BITS):
+        raise ValueError("fixed-two profile requires horizon >=10 and the B0 schedule domain")
+    qzero_long = schema == QZERO_LONG_PROFILE_SCHEMA
+    if qzero_long:
+        prefix = ((4,), (0,4), (0,1,2), (0,0,1,2), (0,0,0,0,2),
+                  (0,0,0,0,0,2), (0,0,0,0,0,0,1), (0,0,0,0,0,0,0,1), (0,)*9, (0,)*10)
+        if not 10 <= horizon <= 4096 or allowed != AVG2_SCHEDULE_BITS:
+            raise ValueError("Qzero long profile requires 10..4096 spans and B0 domain")
+        expected = prefix + tuple((0,)*n for n in range(11,horizon+1))
+        for tensor in raw['tensor_profiles'].values():
+            if tensor.get('capacity_bit_chunks') != 4 or tensor.get('terminal_bit_chunks') != 0 or tuple(map(tuple,tensor['joint_schedule'])) != expected:
+                raise ValueError("Qzero long profile must preserve published frozen prefix and all-B0 extension")
+    if not fixed_two and not qzero_long and horizon != AVG2_HORIZON:
         raise ValueError(f"avg2 horizon must be {AVG2_HORIZON}")
     tensor_raw = raw.get("tensor_profiles")
     if not isinstance(tensor_raw, Mapping) or set(tensor_raw) != {"K", "V"}:
         raise ValueError("avg2 profile must contain independent K and V sections")
     tensors = {
-        name: _validate_avg2_tensor_profile(name, tensor_raw[name])
+        name: _validate_avg2_tensor_profile(name, tensor_raw[name], horizon=horizon, fixed_two=fixed_two)
         for name in ("K", "V")
     }
     return Avg2Profile(
@@ -399,6 +436,9 @@ def make_codec_settings(
         config.progressive_v_absmax_method = "midpoint_msb"
         config.progressive_v_absmax_params_path = progressive_v_absmax_params_path
         config.frame_mean_spatial_tokens = int(frame_spatial_tokens)
+    if advanced_rvq and os.getenv("SUBBITKV_RUNTIME_SETTINGS"):
+        from .subbitkv.common import apply_runtime_settings
+        apply_runtime_settings(config)
     return CodecSettings(
         name=name,
         quant_type=quant_type,
@@ -619,8 +659,8 @@ def _avg2_accounting(
     shared_k = _shared_bytes_from_states(admitted_k)
     shared_v = _shared_bytes_from_states(admitted_v)
     physical_without_codebooks = int(local_k + local_v + shared_k + shared_v)
-    terminal_k = profile.schedule("K", AVG2_HORIZON, layer_idx=layer_idx)
-    terminal_v = profile.schedule("V", AVG2_HORIZON, layer_idx=layer_idx)
+    terminal_k = profile.schedule("K", profile.horizon, layer_idx=layer_idx)
+    terminal_v = profile.schedule("V", profile.horizon, layer_idx=layer_idx)
     capacity_k = profile.capacity("K")
     capacity_v = profile.capacity("V")
     terminal_budget_k = profile.terminal("K")
@@ -638,6 +678,7 @@ def _avg2_accounting(
         ),
         "kv_shared_budget": bool(profile.is_kv_shared),
         "layer": int(layer_idx),
+        "profile_horizon": int(profile.horizon),
         "nominal_capacity_k_bit_chunks": int(capacity_k),
         "nominal_capacity_v_bit_chunks": int(capacity_v),
         "nominal_terminal_k_bit_chunks": int(terminal_budget_k),
@@ -754,6 +795,14 @@ def validate_avg2_terminal_budget(
         raise RuntimeError("terminal audit mixed nominal K/V terminal budgets")
     terminal_k = k_terminals.pop()
     terminal_v = v_terminals.pop()
+    horizons = {int(row.get("profile_horizon", AVG2_HORIZON)) for row in accounting_rows}
+    if len(horizons) != 1 or min(horizons) <= 0:
+        raise RuntimeError("terminal audit mixed or invalid profile horizons")
+    horizon = horizons.pop()
+    for row in accounting_rows:
+        for name in ("selected_k_bits", "selected_v_bits"):
+            if name in row and len(row[name]) != horizon:
+                raise RuntimeError("terminal audit has incomplete history")
     if shared:
         expected_total = (capacity_k + capacity_v) * int(expected_layers)
         if k_sum + v_sum != expected_total:
@@ -780,7 +829,8 @@ def validate_avg2_terminal_budget(
         "V_bit_sum": int(v_sum),
         "combined_bit_sum": int(k_sum + v_sum),
         "nominal_residual_avg_bits": float(k_sum + v_sum)
-        / (2.0 * int(expected_layers) * AVG2_HORIZON),
+        / (2.0 * int(expected_layers) * horizon),
+        "profile_horizon": horizon,
         "K_capacity_bit_chunks": int(capacity_k),
         "V_capacity_bit_chunks": int(capacity_v),
         "K_terminal_bit_chunks": int(terminal_k),
