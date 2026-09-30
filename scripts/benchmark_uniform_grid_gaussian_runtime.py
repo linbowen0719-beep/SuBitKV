@@ -26,13 +26,13 @@ if str(REPO_ROOT) not in sys.path:
 if str(REPO_ROOT / "scripts") not in sys.path:
     sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
-from quant_videogen import routed_gaussian, uniform_grid_gaussian  # noqa: E402
-from quant_videogen.compress import (  # noqa: E402
+from subitkv import routed_gaussian, uniform_grid_gaussian  # noqa: E402
+from subitkv.compress import (  # noqa: E402
     compress_tensor_cache,
     get_quantize_fn,
 )
-from quant_videogen.functions import triton_prq_dequantize_tensor  # noqa: E402
-from quant_videogen.sim.quant.quantize_config import QuantizeConfig  # noqa: E402
+from subitkv.functions import triton_prq_dequantize_tensor  # noqa: E402
+from subitkv.sim.quant.quantize_config import QuantizeConfig  # noqa: E402
 from run_fixed_budget_rvq_screen import layer_path, parse_ints  # noqa: E402
 from run_truncatable_residual_codec_bench import (  # noqa: E402
     deterministic_indices,

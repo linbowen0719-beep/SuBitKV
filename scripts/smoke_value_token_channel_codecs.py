@@ -20,7 +20,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from quant_videogen.rvq import rvq_dequantize_tensor_cache, rvq_encode_tensor_cache  # noqa: E402
+from subitkv.rvq import rvq_dequantize_tensor_cache, rvq_encode_tensor_cache  # noqa: E402
 
 
 def sha256(path: Path) -> str:

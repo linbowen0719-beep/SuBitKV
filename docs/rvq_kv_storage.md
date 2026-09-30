@@ -29,15 +29,15 @@ storage variant, and the 10-prompt benchmark results.
   - `_save_rvq_diag_qkv_span`: around lines 165-240.
   - Hook call after Q/K/V projection/norm and before RoPE/PRoPE: around line 398.
 - Runtime RVQ implementation:
-  - `quant_videogen/rvq.py`
+  - `subitkv/rvq.py`
   - Runtime codebook loading/cache: lines 39-86.
   - int8 resident codebook storage: lines 100-126.
   - uint8 RMS scale packing/unpacking: lines 129-160.
   - Runtime encode: lines 163-250.
   - Runtime dequant: lines 253-287.
 - QuantVideo integration:
-  - `quant_videogen/compress.py`, K/V RVQ branches: lines 349-408.
-  - `quant_videogen/uncompress.py`, RVQ dequant dispatch and dtype handling: lines 124-139.
+  - `subitkv/compress.py`, K/V RVQ branches: lines 349-408.
+  - `subitkv/uncompress.py`, RVQ dequant dispatch and dtype handling: lines 124-139.
 - Small benchmark runner:
   - `scripts/eval/run_small_eval.py`
   - `kvrvq`, `krvq-vrvq`, `kvrvq-i8` settings and args: lines 123-230.

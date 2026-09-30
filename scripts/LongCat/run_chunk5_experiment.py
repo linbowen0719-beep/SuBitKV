@@ -405,7 +405,7 @@ def gpu_name() -> str | None:
 
 
 def make_quant_config(args: argparse.Namespace, method: str) -> Any:
-    from quant_videogen.sim.quant.quantize_config import QuantizeConfig
+    from subitkv.sim.quant.quantize_config import QuantizeConfig
 
     if method == "qvg_int4":
         return QuantizeConfig(
@@ -616,7 +616,7 @@ def compress_layer_range(
     end: int,
     quant_config: Any,
 ) -> tuple[Any, Any]:
-    from quant_videogen.compress import compress_kv_cache, get_quantize_fn
+    from subitkv.compress import compress_kv_cache, get_quantize_fn
 
     if end <= start:
         raise ValueError("empty compression range")
@@ -738,13 +738,13 @@ def move_to_cpu(item: Any) -> Any:
 
 
 def reset_dequant() -> None:
-    from quant_videogen.uncompress import reset_dequant_stats
+    from subitkv.uncompress import reset_dequant_stats
 
     reset_dequant_stats()
 
 
 def get_dequant(reset: bool = True) -> dict[str, Any]:
-    from quant_videogen.uncompress import get_dequant_stats
+    from subitkv.uncompress import get_dequant_stats
 
     return get_dequant_stats(reset=reset)
 

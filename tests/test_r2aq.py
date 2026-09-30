@@ -5,7 +5,7 @@ import copy
 import pytest
 import torch
 
-import quant_videogen.r2aq as codec
+import subitkv.r2aq as codec
 
 
 def _install_predictor(monkeypatch: pytest.MonkeyPatch, *, nonzero: bool = False) -> None:

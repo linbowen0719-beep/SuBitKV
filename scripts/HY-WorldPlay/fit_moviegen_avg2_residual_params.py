@@ -24,10 +24,10 @@ for entry in (REPO_ROOT, REPO_ROOT / "scripts"):
     if str(entry) not in sys.path:
         sys.path.insert(0, str(entry))
 
-from quant_videogen import routed_gaussian  # noqa: E402
-from quant_videogen.hyworldplay_residual_stats import RESIDUAL_STATS_SCHEMA  # noqa: E402
-from quant_videogen.progressive_sign_adaptive_absmax_scalar import PARAMS_SCHEMA  # noqa: E402
-from quant_videogen.sign_adaptive_absmax_scalar import (  # noqa: E402
+from subitkv import routed_gaussian  # noqa: E402
+from subitkv.hyworldplay_residual_stats import RESIDUAL_STATS_SCHEMA  # noqa: E402
+from subitkv.progressive_sign_adaptive_absmax_scalar import PARAMS_SCHEMA  # noqa: E402
+from subitkv.sign_adaptive_absmax_scalar import (  # noqa: E402
     encode_sign_adaptive_absmax_scalar_residual,
 )
 from run_truncatable_residual_codec_bench import fit_gaussian_tree  # noqa: E402

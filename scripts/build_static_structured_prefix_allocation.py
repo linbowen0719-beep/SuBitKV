@@ -46,7 +46,7 @@ REPO_ROOT = SCRIPT_DIR.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from quant_videogen.static_prefix_allocation import (  # noqa: E402
+from subitkv.static_prefix_allocation import (  # noqa: E402
     ALLOCATION_SCHEMA,
     validate_allocation,
 )

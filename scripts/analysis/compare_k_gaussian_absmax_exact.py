@@ -44,8 +44,8 @@ for entry in (REPO_ROOT, SCRIPT_DIR, ANALYSIS_DIR):
 import ablate_frame_mean_hadamard_exact_k as common  # noqa: E402
 import evaluate_r2aq_exact_attention as exact  # noqa: E402
 import evaluate_sfbr_train_marginals as replay  # noqa: E402
-from quant_videogen import routed_gaussian  # noqa: E402
-from quant_videogen.truncatable_residual import groupwise_hadamard  # noqa: E402
+from subitkv import routed_gaussian  # noqa: E402
+from subitkv.truncatable_residual import groupwise_hadamard  # noqa: E402
 from run_fixed_budget_rvq_screen import parse_ints  # noqa: E402
 from run_truncatable_residual_codec_bench import stable_directory_hash  # noqa: E402
 

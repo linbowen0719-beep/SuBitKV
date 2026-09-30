@@ -5,7 +5,7 @@ import hashlib
 import pytest
 import torch
 
-from quant_videogen import selective_rank1_gaussian as codec
+from subitkv import selective_rank1_gaussian as codec
 
 
 def _hash(value: torch.Tensor) -> str:

@@ -103,8 +103,8 @@ head增加第二plane能补回的损失。即使用最高1000的MSE Lagrangian�
 - 训练边际：`results/analysis/sfbr_r2aq_train_marginals_exact20x30_20260725/`
 - 拒绝路由与五折结果：
   `results/analysis/sfbr_r2aq_routing_fit_rejected_exact20x30_20260725/`
-- 核心codec：`quant_videogen/sfbr_r2aq.py`
-- Triton恢复：`quant_videogen/kernels/triton/sfbr_r2aq.py`
+- 核心codec：`subitkv/sfbr_r2aq.py`
+- Triton恢复：`subitkv/kernels/triton/sfbr_r2aq.py`
 - 训练重放：`scripts/evaluate_sfbr_train_marginals.py`
 - 路由拟合：`scripts/fit_sfbr_routing.py`
 - exact gate分析：`scripts/analyze_sfbr_exact_gate.py`

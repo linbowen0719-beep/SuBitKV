@@ -58,7 +58,7 @@ for _path in (REPO_ROOT, SCRIPT_DIR):
         sys.path.insert(0, str(_path))
 
 import evaluate_structured_truncatable_exact_attention as uniform  # noqa: E402
-from quant_videogen.static_prefix_allocation import (  # noqa: E402
+from subitkv.static_prefix_allocation import (  # noqa: E402
     decode_static_allocated_structured_residual,
     encode_static_allocated_structured_residual,
     payload_nbytes as static_payload_nbytes,

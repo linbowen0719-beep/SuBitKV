@@ -7,7 +7,7 @@ import sys
 import torch
 import pytest
 
-from quant_videogen.rvq import (
+from subitkv.rvq import (
     rvq_codebook_directory_metadata,
     rvq_dequantize_tensor_cache,
     rvq_encode_tensor_cache,

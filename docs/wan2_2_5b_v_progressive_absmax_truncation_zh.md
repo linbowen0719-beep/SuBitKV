@@ -222,7 +222,7 @@ B1–B3 是从已测 B4 physical payload 中严格减去 V 的 1-bit planes 得�
 
 ## 8. 产物
 
-- codec：`quant_videogen/progressive_sign_adaptive_absmax_scalar.py`
+- codec：`subitkv/progressive_sign_adaptive_absmax_scalar.py`
 - 训练拟合：`scripts/fit_progressive_v_absmax_prefix.py`
 - exact 评估：`scripts/analysis/compare_v_progressive_absmax_exact.py`
 - 训练参数：`results/analysis/progressive_v_absmax_prefix_fit_train20x30_v2_20260730/params.pt`

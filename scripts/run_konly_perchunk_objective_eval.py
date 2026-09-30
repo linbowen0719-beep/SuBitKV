@@ -339,7 +339,7 @@ def run_videos(args: argparse.Namespace, gpu_ids: list[int]) -> None:
 
 @torch.no_grad()
 def reconstruct_layer(target: torch.Tensor, layer: int, codebook_dir: Path, storage: str, device: torch.device) -> torch.Tensor:
-    from quant_videogen.rvq import rvq_dequantize_tensor_cache, rvq_encode_tensor_cache
+    from subitkv.rvq import rvq_dequantize_tensor_cache, rvq_encode_tensor_cache
 
     codebook_dtype = "int4" if storage == "int4" else "int8" if storage == "int8" else "bf16"
     scale_dtype = "uint4" if storage == "int4" else "uint8" if storage == "int8" else "bf16"

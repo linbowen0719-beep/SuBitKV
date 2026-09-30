@@ -36,18 +36,18 @@ from models.utils import (
     shard_latents_dim_across_sp,
     select_mem_frames_wan,
 )
-from quant_videogen.compress import get_quantize_fn, compress_kv_cache
-from quant_videogen.sim.quant.quantize_config import (
+from subitkv.compress import get_quantize_fn, compress_kv_cache
+from subitkv.sim.quant.quantize_config import (
     parse_residual_codec_span_schedule,
 )
-from quant_videogen.uncompress import (
+from subitkv.uncompress import (
     get_dequant_stats,
     reset_dequant_stats,
     uncompress_kv_cache,
     uncompress_single_kv_cache,
 )
-from quant_videogen.kv_cache import ChunkedKVCache, offload_kv_cache_layer, onload_kv_cache_layer
-from quant_videogen.temporal_tiered_rvq import (
+from subitkv.kv_cache import ChunkedKVCache, offload_kv_cache_layer, onload_kv_cache_layer
+from subitkv.temporal_tiered_rvq import (
     AGE_RAMP16_TIERED_POLICY,
     H7_TIERED_POLICY,
     apply_tiered_cache_updates,
@@ -57,7 +57,7 @@ from quant_videogen.temporal_tiered_rvq import (
     tiered_depth_policy_spec,
     tiered_index_storage_audit,
 )
-from quant_videogen.temporal_structured_residual import (
+from subitkv.temporal_structured_residual import (
     FORMAL_PENDING_BF16_BYTES,
     FORMAL_UNIFORM_COMPRESSED_SPAN_BYTES,
     FORMAL_V_PLANE_ACROSS_30_LAYERS_BYTES,
@@ -73,7 +73,7 @@ from quant_videogen.temporal_structured_residual import (
     structured_temporal_formal_payload_timeline,
     structured_temporal_storage_audit,
 )
-from quant_videogen.temporal_adaptive_residual import (
+from subitkv.temporal_adaptive_residual import (
     QUANT_METHOD as TEMPORAL_ADAPTIVE_RESIDUAL_METHOD,
     load_profile as load_temporal_adaptive_profile,
     payload_nbytes as temporal_payload_nbytes,

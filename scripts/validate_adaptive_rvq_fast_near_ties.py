@@ -16,7 +16,7 @@ from typing import Any
 
 import torch
 
-from quant_videogen.temporal_adaptive_residual import (
+from subitkv.temporal_adaptive_residual import (
     create_b16_state,
     decode_state,
     transition_state,

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Stable entrypoint for supported Quant-VideoGen reproductions.
+"""Stable entrypoint for supported SuBitKV reproductions.
 
 The runner intentionally executes argv lists without a shell. Canonical YAML
 files therefore remain inspectable, dry-runnable, and safe to share.
@@ -28,11 +28,11 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CONFIG_ROOT = REPO_ROOT / "configs"
 PATH_ENV_KEYS = {
-    "checkpoint_root": "QVG_CKPT_ROOT",
-    "data_root": "QVG_DATA_ROOT",
-    "codebook_root": "QVG_CODEBOOK_ROOT",
-    "output_root": "QVG_OUTPUT_ROOT",
-    "cache_root": "QVG_CACHE_ROOT",
+    "checkpoint_root": "SUBITKV_CKPT_ROOT",
+    "data_root": "SUBITKV_DATA_ROOT",
+    "codebook_root": "SUBITKV_CODEBOOK_ROOT",
+    "output_root": "SUBITKV_OUTPUT_ROOT",
+    "cache_root": "SUBITKV_CACHE_ROOT",
 }
 SUPPORTED_SUITES = ("smoke", "main")
 RUN_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
@@ -113,7 +113,7 @@ def _resolve_root(value: str) -> str:
 
 
 def load_path_variables(config_path: Path) -> tuple[dict[str, str], dict[str, Any]]:
-    variables = {"QVG_REPO_ROOT": str(REPO_ROOT)}
+    variables = {"SUBITKV_REPO_ROOT": str(REPO_ROOT)}
     raw = _read_yaml(config_path)
     if raw.get("schema_version") != 1 or not isinstance(raw.get("paths"), dict):
         raise ReproductionError(f"{config_path}: expected schema_version: 1 and paths mapping")
@@ -210,7 +210,7 @@ def load_experiment(
     source: Path, variables: dict[str, str], run_dir: Path
 ) -> dict[str, Any]:
     scoped = dict(variables)
-    scoped["QVG_RUN_DIR"] = str(run_dir)
+    scoped["SUBITKV_RUN_DIR"] = str(run_dir)
     config = expand(_read_yaml(source), scoped)
     validate_experiment_config(config, source)
     return config
@@ -396,7 +396,7 @@ def command_doctor(args: argparse.Namespace) -> int:
 
     failures = 0
     for source, raw in discover_configs("smoke"):
-        run_dir = Path(variables["QVG_OUTPUT_ROOT"]) / "smoke" / str(raw["model"]) / "doctor"
+        run_dir = Path(variables["SUBITKV_OUTPUT_ROOT"]) / "smoke" / str(raw["model"]) / "doctor"
         config = load_experiment(source, variables, run_dir)
         errors = check_requirements(config)
         if errors:
@@ -427,7 +427,7 @@ def command_run(args: argparse.Namespace) -> int:
             "run-id must start with an alphanumeric character and contain only "
             "letters, numbers, dot, underscore, or hyphen"
         )
-    run_dir = Path(variables["QVG_OUTPUT_ROOT"]) / args.suite / identifier / run_id
+    run_dir = Path(variables["SUBITKV_OUTPUT_ROOT"]) / args.suite / identifier / run_id
     config = load_experiment(source, variables, run_dir)
     errors = check_requirements(config)
     print_plan(config, run_dir, errors)

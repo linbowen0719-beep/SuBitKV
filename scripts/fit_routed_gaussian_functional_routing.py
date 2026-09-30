@@ -26,8 +26,8 @@ if str(REPO_ROOT) not in sys.path:
 if str(REPO_ROOT / "scripts") not in sys.path:
     sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
-from quant_videogen import routed_gaussian as codec  # noqa: E402
-from quant_videogen import routed_midrange_scalar as midrange_codec  # noqa: E402
+from subitkv import routed_gaussian as codec  # noqa: E402
+from subitkv import routed_midrange_scalar as midrange_codec  # noqa: E402
 from fit_routed_gaussian_routing import (  # noqa: E402
     fit_routing,
     sha256_file,
@@ -584,11 +584,11 @@ def main() -> None:
                 "marginals_hash": sha256_file(marginals_path),
                 "implementation_path": str(
                     REPO_ROOT
-                    / "quant_videogen/routed_midrange_scalar.py"
+                    / "subitkv/routed_midrange_scalar.py"
                 ),
                 "implementation_hash": sha256_file(
                     REPO_ROOT
-                    / "quant_videogen/routed_midrange_scalar.py"
+                    / "subitkv/routed_midrange_scalar.py"
                 ),
             },
         )

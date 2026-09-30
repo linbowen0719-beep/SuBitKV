@@ -5,7 +5,7 @@ import copy
 import pytest
 import torch
 
-from quant_videogen.truncatable_residual import (
+from subitkv.truncatable_residual import (
     decode_residual,
     encode_residual,
     groupwise_hadamard,

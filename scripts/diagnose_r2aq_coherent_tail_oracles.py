@@ -710,8 +710,8 @@ def run(args: argparse.Namespace) -> None:
         "timestamp": utc_now(),
         "source_hashes": {
             str(SCRIPT): sha256_file(SCRIPT),
-            str(REPO_ROOT / "quant_videogen" / "r2aq.py"): sha256_file(
-                REPO_ROOT / "quant_videogen" / "r2aq.py"
+            str(REPO_ROOT / "subitkv" / "r2aq.py"): sha256_file(
+                REPO_ROOT / "subitkv" / "r2aq.py"
             ),
             str(SCRIPT_DIR / "evaluate_r2aq_exact_attention.py"): sha256_file(
                 SCRIPT_DIR / "evaluate_r2aq_exact_attention.py"

@@ -22,11 +22,11 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from quant_videogen.rvq import rvq_codebook_directory_metadata  # noqa: E402
+from subitkv.rvq import rvq_codebook_directory_metadata  # noqa: E402
 
-DEFAULT_MODEL = Path(os.environ["QVG_HY8B_MODEL"]) if os.environ.get("QVG_HY8B_MODEL") else None
-DEFAULT_ACTION = Path(os.environ["QVG_HY_ACTION_CKPT"]) if os.environ.get("QVG_HY_ACTION_CKPT") else None
-DEFAULT_PYTHON = Path(os.environ.get("QVG_PYTHON", sys.executable))
+DEFAULT_MODEL = Path(os.environ["SUBITKV_HY8B_MODEL"]) if os.environ.get("SUBITKV_HY8B_MODEL") else None
+DEFAULT_ACTION = Path(os.environ["SUBITKV_HY_ACTION_CKPT"]) if os.environ.get("SUBITKV_HY_ACTION_CKPT") else None
+DEFAULT_PYTHON = Path(os.environ.get("SUBITKV_PYTHON", sys.executable))
 METHOD_CODEC = {
     "collect": "none",
     "collect_residual": "none",
@@ -364,7 +364,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--model-hash", default="96463403384b8194729d0de04424a7f2538c8694b030d54c259a44202c1d3464")
     parser.add_argument("--action-ckpt", type=Path, default=DEFAULT_ACTION)
     parser.add_argument("--python", type=Path, default=DEFAULT_PYTHON)
-    parser.add_argument("--ffprobe", default=os.environ.get("QVG_FFPROBE", "ffprobe"))
+    parser.add_argument("--ffprobe", default=os.environ.get("SUBITKV_FFPROBE", "ffprobe"))
     parser.add_argument("--codebook-root", type=Path)
     parser.add_argument("--routing-path", type=Path)
     parser.add_argument("--tree-path", type=Path)
@@ -389,9 +389,9 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     if args.model_path is None:
-        raise ValueError("--model-path or QVG_HY8B_MODEL is required")
+        raise ValueError("--model-path or SUBITKV_HY8B_MODEL is required")
     if args.action_ckpt is None:
-        raise ValueError("--action-ckpt or QVG_HY_ACTION_CKPT is required")
+        raise ValueError("--action-ckpt or SUBITKV_HY_ACTION_CKPT is required")
     if args.output_dir.exists():
         raise FileExistsError(f"create-only output exists: {args.output_dir}")
     initial_gpu = query_gpu(args.gpu)
@@ -442,7 +442,7 @@ def main() -> int:
             "HYWORLDPLAY_RVQ_RELATIVE_STOP_MONOLITHIC_EXACT", "0"
         ),
         "cache_decode_prefetch": os.getenv(
-            "QVG_HY_CACHE_DECODE_PREFETCH", "0"
+            "SUBITKV_HY_CACHE_DECODE_PREFETCH", "0"
         ),
         "rvq_monolithic_exact_audit": os.getenv(
             "HYWORLDPLAY_RVQ_MONOLITHIC_EXACT_AUDIT", "0"
@@ -503,18 +503,18 @@ def main() -> int:
         "source_hashes": {
             str(path.relative_to(REPO_ROOT)): sha256_file(path)
             for path in (
-                REPO_ROOT / "quant_videogen/hyworldplay8b_cache_codec.py",
-                REPO_ROOT / "quant_videogen/compress.py",
-                REPO_ROOT / "quant_videogen/kv_shared_budget.py",
-                REPO_ROOT / "quant_videogen/hyworldplay_capture.py",
-                REPO_ROOT / "quant_videogen/hyworldplay_residual_stats.py",
-                REPO_ROOT / "quant_videogen/hyworldplay_attention_calibration.py",
-                REPO_ROOT / "quant_videogen/hyworldplay_append_only.py",
-                REPO_ROOT / "quant_videogen/rvq.py",
-                REPO_ROOT / "quant_videogen/kernels/triton/rvq.py",
-                REPO_ROOT / "quant_videogen/sim/quant/quantize_config.py",
-                REPO_ROOT / "quant_videogen/temporal_adaptive_residual.py",
-                REPO_ROOT / "quant_videogen/uncompress.py",
+                REPO_ROOT / "subitkv/hyworldplay8b_cache_codec.py",
+                REPO_ROOT / "subitkv/compress.py",
+                REPO_ROOT / "subitkv/kv_shared_budget.py",
+                REPO_ROOT / "subitkv/hyworldplay_capture.py",
+                REPO_ROOT / "subitkv/hyworldplay_residual_stats.py",
+                REPO_ROOT / "subitkv/hyworldplay_attention_calibration.py",
+                REPO_ROOT / "subitkv/hyworldplay_append_only.py",
+                REPO_ROOT / "subitkv/rvq.py",
+                REPO_ROOT / "subitkv/kernels/triton/rvq.py",
+                REPO_ROOT / "subitkv/sim/quant/quantize_config.py",
+                REPO_ROOT / "subitkv/temporal_adaptive_residual.py",
+                REPO_ROOT / "subitkv/uncompress.py",
                 REPO_ROOT / "experiments/HY-WorldPlay/hyvideo/commons/infer_state.py",
                 REPO_ROOT / "experiments/HY-WorldPlay/hyvideo/models/transformers/worldplay_1_5_transformer.py",
                 REPO_ROOT / "experiments/HY-WorldPlay/hyvideo/models/transformers/modules/attention.py",
@@ -554,8 +554,8 @@ def main() -> int:
         "REWRITE": "false",
         "FEW_STEP": "true",
         "MASTER_PORT": str(31000 + args.gpu * 100 + (os.getpid() % 97)),
-        "QVG_CODEC_BREAKDOWN": "1",
-        "QVG_HY_SEGMENTED_DECODE_BACKEND": args.segmented_decode_backend,
+        "SUBITKV_CODEC_BREAKDOWN": "1",
+        "SUBITKV_HY_SEGMENTED_DECODE_BACKEND": args.segmented_decode_backend,
         "RECORD_LATENT_HASHES": "true" if args.record_latent_hashes else "false",
         "TERMINAL_CACHE_AUDIT": "true" if args.terminal_cache_audit else "false",
     })

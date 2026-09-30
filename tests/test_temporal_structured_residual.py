@@ -6,8 +6,8 @@ from pathlib import Path
 import pytest
 import torch
 
-import quant_videogen.structured_truncatable as structured
-from quant_videogen.temporal_structured_residual import (
+import subitkv.structured_truncatable as structured
+from subitkv.temporal_structured_residual import (
     FORMAL_PENDING_BF16_BYTES,
     FORMAL_PHYSICAL_D128_SHARED_CODEBOOK_BYTES,
     FORMAL_UNIFORM_COMPRESSED_SPAN_BYTES,
@@ -407,7 +407,7 @@ def test_eval_and_wan_plumbing_defaults_off() -> None:
 
 def test_launcher_freezes_formal_video_axis() -> None:
     from scripts import run_wan5b_structured_temporal_video_smoke as launch
-    from quant_videogen.sim.quant.quantize_config import QuantizeConfig
+    from subitkv.sim.quant.quantize_config import QuantizeConfig
 
     args = launch.parse_args([])
     command = launch.generation_command(args, Path("/tmp/unused"))
@@ -430,12 +430,12 @@ def test_launcher_freezes_formal_video_axis() -> None:
         for path in launch.SOURCE_FILES
     }
     assert {
-        "quant_videogen/structured_truncatable.py",
-        "quant_videogen/kernels/triton/structured_truncatable.py",
-        "quant_videogen/truncatable_residual.py",
-        "quant_videogen/rvq.py",
-        "quant_videogen/kv_cache.py",
-        "quant_videogen/uncompress.py",
+        "subitkv/structured_truncatable.py",
+        "subitkv/kernels/triton/structured_truncatable.py",
+        "subitkv/truncatable_residual.py",
+        "subitkv/rvq.py",
+        "subitkv/kv_cache.py",
+        "subitkv/uncompress.py",
     }.issubset(source_names)
     eval_source = (
         launch.REPO_ROOT / "scripts" / "eval" / "run_small_eval.py"

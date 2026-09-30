@@ -1,0 +1,63 @@
+schema_version: 1
+name: LongCat INT2 baseline run
+experiment_id: longcat-subitkv-int2
+suite: main
+model: longcat
+description: Reproduce the public ten-segment LongCat INT2 integration run.
+resources:
+  gpus: 1
+  min_vram_gib: 80
+  estimated_time: 2-6 hours
+inputs:
+  checkpoint: ${SUBITKV_CKPT_ROOT}/LongCat-Video
+  prompt_file: ${SUBITKV_REPO_ROOT}/assets/t2v.txt
+required_commands: [torchrun]
+required_paths:
+  - ${SUBITKV_CKPT_ROOT}/LongCat-Video
+  - ${SUBITKV_REPO_ROOT}/assets/t2v.txt
+prepare_hint: hf download meituan-longcat/LongCat-Video --local-dir "$SUBITKV_CKPT_ROOT/LongCat-Video"
+environment:
+  PYTHONPATH: ${SUBITKV_REPO_ROOT}/experiments/LongCat:${SUBITKV_REPO_ROOT}
+steps:
+  - name: initial_clip
+    command:
+      - torchrun
+      - --nproc_per_node=1
+      - --standalone
+      - ${SUBITKV_REPO_ROOT}/experiments/LongCat/run_long_t2v.py
+      - --checkpoint_dir=${SUBITKV_CKPT_ROOT}/LongCat-Video
+      - --workload=480p_init
+      - --output_dir=${SUBITKV_RUN_DIR}/base
+      - --seed=0
+      - --prompt_source=text_to_video_from_file
+      - --prompt=${SUBITKV_REPO_ROOT}/assets/t2v.txt
+      - --prompt_idx=1
+  - name: quantized_continuation
+    command:
+      - torchrun
+      - --nproc_per_node=1
+      - --standalone
+      - ${SUBITKV_REPO_ROOT}/experiments/LongCat/run_long_t2v.py
+      - --checkpoint_dir=${SUBITKV_CKPT_ROOT}/LongCat-Video
+      - --workload=480p_long_gen
+      - --init_video_path=${SUBITKV_RUN_DIR}/base/1-0.mp4
+      - --output_dir=${SUBITKV_RUN_DIR}/qvg
+      - --num_segments=10
+      - --num_cond_frames=73
+      - --seed=0
+      - --prompt_source=text_to_video_from_file
+      - --prompt=${SUBITKV_REPO_ROOT}/assets/t2v.txt
+      - --prompt_idx=1
+      - --quant_type=triton-nstages-kmeans-int2
+      - --quant_block_size=64
+      - --cache_num_k_centroids=256
+      - --cache_num_v_centroids=256
+      - --kmeans_max_iters=100
+      - --num_prq_stages=1
+expected_artifacts:
+  - base/1-0.mp4
+  - qvg/segment_10.mp4
+provenance:
+  seed: 0
+  prompt_list:
+    - assets/t2v.txt:1

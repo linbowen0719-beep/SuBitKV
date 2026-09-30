@@ -24,22 +24,22 @@ REPO = Path(__file__).resolve().parents[2]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
-from quant_videogen.frame_mean_gaussian import (
+from subitkv.frame_mean_gaussian import (
     decode_frame_mean_gaussian_residual,
     encode_frame_mean_gaussian_residual,
     payload_nbytes as k_payload_nbytes,
 )
-from quant_videogen.kivi import decode_kivi_tensor, encode_kivi_tensor, payload_nbytes as kivi_payload_nbytes
-from quant_videogen.compress import compress_tensor_cache, get_quantize_fn
-from quant_videogen.functions import triton_prq_dequantize_tensor
-from quant_videogen.rvq import rvq_dequantize_tensor_cache
-from quant_videogen.progressive_sign_adaptive_absmax_scalar import (
+from subitkv.kivi import decode_kivi_tensor, encode_kivi_tensor, payload_nbytes as kivi_payload_nbytes
+from subitkv.compress import compress_tensor_cache, get_quantize_fn
+from subitkv.functions import triton_prq_dequantize_tensor
+from subitkv.rvq import rvq_dequantize_tensor_cache
+from subitkv.progressive_sign_adaptive_absmax_scalar import (
     decode_progressive_sign_adaptive_absmax_scalar_residual,
     encode_progressive_sign_adaptive_absmax_scalar_residual,
     payload_nbytes as v_payload_nbytes,
 )
-from quant_videogen.sim.quant.quantize_config import QuantizeConfig
-from quant_videogen.temporal_adaptive_residual import (
+from subitkv.sim.quant.quantize_config import QuantizeConfig
+from subitkv.temporal_adaptive_residual import (
     create_b16_state,
     decode_state,
     payload_nbytes as current_payload_nbytes,

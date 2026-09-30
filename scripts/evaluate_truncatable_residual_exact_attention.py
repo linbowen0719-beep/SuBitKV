@@ -60,7 +60,7 @@ if str(SCRIPT_DIR) not in sys.path:
 
 import analyze_wan5b_p1_exact_replay as exact  # noqa: E402
 import analyze_wan5b_rvq_mechanisms as p0  # noqa: E402
-from quant_videogen import truncatable_residual as codec  # noqa: E402
+from subitkv import truncatable_residual as codec  # noqa: E402
 
 
 DEFAULT_DATA = Path("/data/bowen/t2v_kv_bench_moviegen_20train_10test")

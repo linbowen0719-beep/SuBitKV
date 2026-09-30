@@ -4,8 +4,8 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 PYTHON="${PYTHON:-python}"
-: "${MODEL_PATH:?set MODEL_PATH or QVG_HY8B_MODEL}"
-: "${ACTION_CKPT:?set ACTION_CKPT or QVG_HY_ACTION_CKPT}"
+: "${MODEL_PATH:?set MODEL_PATH or SUBITKV_HY8B_MODEL}"
+: "${ACTION_CKPT:?set ACTION_CKPT or SUBITKV_HY_ACTION_CKPT}"
 IMAGE_PATH="${IMAGE_PATH:-$REPO_ROOT/assets/hyworld.png}"
 OUTPUT_PATH="${OUTPUT_PATH:-$REPO_ROOT/results/hunyuan8b_hyvideo_bf16_61f}"
 

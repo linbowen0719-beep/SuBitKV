@@ -39,9 +39,9 @@ CSV/LaTeX output contract.
 
 | Experiment | Config | Dry-run command | Resources | Result context |
 | --- | --- | --- | --- | --- |
-| `longcat-qvg-int2` | `configs/main/longcat-qvg-int2.yaml` | `python scripts/reproduce.py run --suite main --experiment longcat-qvg-int2 --dry-run` | 1 GPU, ≥80 GiB, 2–6 h | LongCat public INT2 integration |
-| `selfforcing-qvg-int2` | `configs/main/selfforcing-qvg-int2.yaml` | `python scripts/reproduce.py run --suite main --experiment selfforcing-qvg-int2 --dry-run` | 1 GPU, ≥40 GiB, 1–4 h/prompt | Self-Forcing public INT2 integration |
-| `hyworldplay-qvg-int2` | `configs/main/hyworldplay-qvg-int2.yaml` | `python scripts/reproduce.py run --suite main --experiment hyworldplay-qvg-int2 --dry-run` | 1 GPU, ≥48 GiB, 2–6 h | HY-WorldPlay public INT2 integration |
+| `longcat-subitkv-int2` | `configs/main/longcat-subitkv-int2.yaml` | `python scripts/reproduce.py run --suite main --experiment longcat-subitkv-int2 --dry-run` | 1 GPU, ≥80 GiB, 2–6 h | LongCat public INT2 integration |
+| `selfforcing-subitkv-int2` | `configs/main/selfforcing-subitkv-int2.yaml` | `python scripts/reproduce.py run --suite main --experiment selfforcing-subitkv-int2 --dry-run` | 1 GPU, ≥40 GiB, 1–4 h/prompt | Self-Forcing public INT2 integration |
+| `hyworldplay-subitkv-int2` | `configs/main/hyworldplay-subitkv-int2.yaml` | `python scripts/reproduce.py run --suite main --experiment hyworldplay-subitkv-int2 --dry-run` | 1 GPU, ≥48 GiB, 2–6 h | HY-WorldPlay public INT2 integration |
 
 The main configurations correspond to the integration-level claims summarized
 in `README.md` and the cross-model analysis in
@@ -55,7 +55,7 @@ are never started implicitly.
 Each execution creates:
 
 ```text
-${QVG_OUTPUT_ROOT}/{suite}/{experiment}/{run_id}/
+${SUBITKV_OUTPUT_ROOT}/{suite}/{experiment}/{run_id}/
 ├── resolved_config.json
 ├── run_info.json
 ├── logs/

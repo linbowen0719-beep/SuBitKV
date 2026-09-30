@@ -14,9 +14,9 @@ from typing import Any
 
 import torch
 
-from quant_videogen.compress import compress_kv_cache, get_quantize_fn
-from quant_videogen.functions import triton_prq_dequantize_tensor
-from quant_videogen.sim.quant.quantize_config import QuantizeConfig
+from subitkv.compress import compress_kv_cache, get_quantize_fn
+from subitkv.functions import triton_prq_dequantize_tensor
+from subitkv.sim.quant.quantize_config import QuantizeConfig
 
 
 def parse_num_bits(quant_type: str) -> int:

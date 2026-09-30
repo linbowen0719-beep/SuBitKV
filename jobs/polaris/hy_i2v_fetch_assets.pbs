@@ -54,14 +54,14 @@ mkdir -p "${HF_HOME}"
 echo "job: ${PBS_JOBID}  host: $(hostname -s)  $(date)"
 df -h /lus/grand | tail -1
 
-"${QVG_PYTHON}" - <<'PYEOF'
+"${SUBITKV_PYTHON}" - <<'PYEOF'
 import os, sys
 from pathlib import Path
 from huggingface_hub import hf_hub_download
 
-CK = Path(os.environ["QVG_CKPT_ROOT"])
-HY8B = Path(os.environ["QVG_HY8B_MODEL"])
-MG = Path(os.environ["QVG_MOVIEGEN_ROOT"])
+CK = Path(os.environ["SUBITKV_CKPT_ROOT"])
+HY8B = Path(os.environ["SUBITKV_HY8B_MODEL"])
+MG = Path(os.environ["SUBITKV_MOVIEGEN_ROOT"])
 
 def grab(repo, files, dest, repo_type="model"):
     dest.mkdir(parents=True, exist_ok=True)
@@ -98,13 +98,13 @@ PYEOF
 rc=$?
 
 echo "=== verify  $(date) ==="
-for p in "${QVG_HY8B_MODEL}/transformer/480p_i2v/diffusion_pytorch_model.safetensors" \
-         "${QVG_HY8B_MODEL}/vae/diffusion_pytorch_model.safetensors" \
-         "${QVG_HY_ACTION_CKPT}" \
-         "${QVG_MOVIEGEN_ROOT}/data/test-00000-of-00001.parquet"; do
+for p in "${SUBITKV_HY8B_MODEL}/transformer/480p_i2v/diffusion_pytorch_model.safetensors" \
+         "${SUBITKV_HY8B_MODEL}/vae/diffusion_pytorch_model.safetensors" \
+         "${SUBITKV_HY_ACTION_CKPT}" \
+         "${SUBITKV_MOVIEGEN_ROOT}/data/test-00000-of-00001.parquet"; do
   if [ -s "$p" ]; then echo "  ok   $(du -h "$p" | cut -f1)  ${p##*/}"; else echo "  MISS $p"; rc=1; fi
 done
-n=$(ls "${QVG_MOVIEGEN_ROOT}/data"/test_with_generations-*.parquet 2>/dev/null | wc -l)
+n=$(ls "${SUBITKV_MOVIEGEN_ROOT}/data"/test_with_generations-*.parquet 2>/dev/null | wc -l)
 echo "  shards ${n}/33"
 [ "${n}" -eq 33 ] || rc=1
 [ "${rc}" -eq 0 ] && echo "ASSETS READY" || echo "INCOMPLETE — resubmit resumes"

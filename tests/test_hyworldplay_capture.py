@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import torch
 
-from quant_videogen.hyworldplay_capture import (
+from subitkv.hyworldplay_capture import (
     append_span_quotas,
     finalize_append_rows,
     finalize_history_rows,

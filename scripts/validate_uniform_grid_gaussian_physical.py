@@ -26,7 +26,7 @@ if str(REPO_ROOT / "scripts") not in sys.path:
     sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
 from diagnose_uniform_gaussian_k import load_k_residual, load_queries  # noqa: E402
-from quant_videogen import uniform_grid_gaussian  # noqa: E402
+from subitkv import uniform_grid_gaussian  # noqa: E402
 from run_truncatable_residual_codec_bench import (  # noqa: E402
     load_int4_base_codebook,
 )

@@ -6,7 +6,7 @@ video evaluation.
 ## CPU checks
 
 ```bash
-python -m compileall -q quant_videogen scripts/reproduce.py
+python -m compileall -q subitkv scripts/reproduce.py
 pytest -q tests/test_reproduce.py
 ```
 

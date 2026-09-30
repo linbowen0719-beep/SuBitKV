@@ -20,7 +20,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from quant_videogen.rvq import (  # noqa: E402
+from subitkv.rvq import (  # noqa: E402
     _load_layer_codebooks_cached,
     rvq_dequantize_tensor_cache,
     rvq_encode_tensor_cache,

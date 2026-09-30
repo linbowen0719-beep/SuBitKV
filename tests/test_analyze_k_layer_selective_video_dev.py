@@ -139,7 +139,7 @@ def _write_runtime(
         f"Generate time for chunk {chunk} is 1.0 seconds" for chunk in range(11)
     )
     log_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    source_hashes = {"quant_videogen/compress.py": "a" * 64}
+    source_hashes = {"subitkv/compress.py": "a" * 64}
     _json(
         run_root / "run_info.json",
         {
@@ -261,7 +261,7 @@ def _write_design(root: Path, baseline_prereg: Path) -> Path:
             },
             "correction": {
                 "source_sha256": {
-                    "quant_videogen/compress.py": "a" * 64
+                    "subitkv/compress.py": "a" * 64
                 }
             },
         },

@@ -189,7 +189,7 @@ def encode_chunk(
     guidance: torch.Tensor | None = None,
     curvature: torch.Tensor | None = None,
 ) -> torch.Tensor:
-    from quant_videogen.rvq import rvq_dequantize_tensor_cache, rvq_encode_tensor_cache
+    from subitkv.rvq import rvq_dequantize_tensor_cache, rvq_encode_tensor_cache
 
     codebook_dtype, scale_dtype = codebook_storage(RVQ_STORAGE)
     active = scope_enabled(setting, tensor_name)

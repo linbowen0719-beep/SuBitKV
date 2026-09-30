@@ -37,7 +37,7 @@ def main() -> None:
     parser.add_argument("--output-root", type=Path, required=True)
     parser.add_argument("--methods", required=True)
     parser.add_argument("--gpus", default="0,1,2,3,4,5,6,7")
-    parser.add_argument("--vbench", default=os.environ.get("QVG_VBENCH", "vbench"))
+    parser.add_argument("--vbench", default=os.environ.get("SUBITKV_VBENCH", "vbench"))
     parser.add_argument("--poll-seconds", type=float, default=5.0)
     parser.add_argument("--prompt-start", type=int, default=0)
     parser.add_argument("--prompt-count", type=int, default=10)

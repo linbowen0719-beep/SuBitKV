@@ -2,7 +2,7 @@
 """Fit shared R²AQ scalar trees and utility weights on the fixed 20-train split.
 
 The script only trains the small globally shared parameters used by
-``quant_videogen.r2aq``.  It does not generate videos or run VBench.  Its
+``subitkv.r2aq``.  It does not generate videos or run VBench.  Its
 training source is the decoded-INT4-predictor suffix
 
     e = (x - RVQ_L8C64_INT4(x)) - decoded_INT4_C256_predictor.
@@ -731,7 +731,7 @@ def online_int4_predictor_suffix(
     seed: int,
     group_size: int = 128,
 ) -> torch.Tensor:
-    from quant_videogen import structured_truncatable
+    from subitkv import structured_truncatable
 
     if residual.ndim != 2 or residual.shape[-1] != DIM:
         raise ValueError("residual must be [tokens,128]")
@@ -960,7 +960,7 @@ def fit_from_units(
                 for key, value in tree["thresholds_by_depth"].items()
             },
             "reconstruction_by_depth": physical_reconstruction,
-            # ``levels`` is the direct quant_videogen.r2aq loader alias.
+            # ``levels`` is the direct subitkv.r2aq loader alias.
             "levels": physical_reconstruction,
             "fixed_anchor_depths": list(FIXED_DEPTHS),
             "normalization": tree["normalization"],
@@ -973,7 +973,7 @@ def fit_from_units(
         "training_protocol_version": PROTOCOL_VERSION,
         "trees": compact_trees,
         "utility_weights": utility.to(torch.float16).contiguous(),
-        # Direct loader alias used by quant_videogen.r2aq._utility_table.
+        # Direct loader alias used by subitkv.r2aq._utility_table.
         "weights": utility.to(torch.float16).contiguous(),
         "utility_sample_counts": utility_counts,
         "utility_axes": {
@@ -1267,7 +1267,7 @@ def write_training_artifacts(
     prompts_full = prompt_payload(Path(args.data_root), prompts)
     implementation_paths = {
         "trainer": SCRIPT_PATH,
-        "codec": REPO_ROOT / "quant_videogen" / "r2aq.py",
+        "codec": REPO_ROOT / "subitkv" / "r2aq.py",
         "static_benchmark": REPO_ROOT / "scripts" / "run_r2aq_static_bench.py",
     }
     run_info = {

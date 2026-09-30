@@ -13,7 +13,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Iterable, Mapping
 
-from quant_videogen.temporal_prefix_policy import (
+from subitkv.temporal_prefix_policy import (
     InfeasiblePrefixPolicyError,
     StructuredPayloadSpec,
     audit_schedule_history,
@@ -465,7 +465,7 @@ def main() -> None:
     (output / "README.md").write_text(report, encoding="utf-8")
 
     source_paths = [
-        REPO / "quant_videogen/temporal_prefix_policy.py",
+        REPO / "subitkv/temporal_prefix_policy.py",
         REPO / "tests/test_temporal_prefix_policy.py",
         Path(__file__).resolve(),
         config_path,

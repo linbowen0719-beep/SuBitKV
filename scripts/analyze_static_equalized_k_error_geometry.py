@@ -30,16 +30,16 @@ if str(REPO_ROOT) not in sys.path:
 if str(REPO_ROOT / "scripts") not in sys.path:
     sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
-from quant_videogen.centered_absmax_scalar import (  # noqa: E402
+from subitkv.centered_absmax_scalar import (  # noqa: E402
     decode_centered_absmax_scalar_residual,
     encode_centered_absmax_scalar_residual,
 )
-from quant_videogen.static_equalized_midrange import (  # noqa: E402
+from subitkv.static_equalized_midrange import (  # noqa: E402
     decode_static_equalized_midrange_residual,
     encode_static_equalized_midrange_residual,
     validate_params,
 )
-from quant_videogen.truncatable_residual import groupwise_hadamard  # noqa: E402
+from subitkv.truncatable_residual import groupwise_hadamard  # noqa: E402
 from run_fixed_budget_rvq_screen import layer_path, parse_ints  # noqa: E402
 from run_truncatable_residual_codec_bench import (  # noqa: E402
     deterministic_indices,

@@ -178,7 +178,7 @@ def nearest_torch(x: torch.Tensor, centroids: torch.Tensor, batch_size: int) -> 
 
 
 def int4_dequant_codebooks(codebooks: torch.Tensor) -> torch.Tensor:
-    """Match quant_videogen.rvq per-vector symmetric INT4 codebook storage."""
+    """Match subitkv.rvq per-vector symmetric INT4 codebook storage."""
     max_abs = codebooks.float().abs().amax(dim=-1, keepdim=True).clamp_min(1e-8)
     scale = max_abs / 7.0
     q = torch.round(codebooks.float() / scale).clamp(-7, 7)

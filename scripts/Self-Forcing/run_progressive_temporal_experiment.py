@@ -28,7 +28,7 @@ if str(REPO) not in sys.path:
 INFERENCE = REPO / "experiments/Self-Forcing/inference.py"
 CONFIG = REPO / "experiments/Self-Forcing/configs/self_forcing_dmd.yaml"
 CHECKPOINT = Path(os.environ.get(
-    "QVG_SELF_FORCING_CHECKPOINT",
+    "SUBITKV_SELF_FORCING_CHECKPOINT",
     REPO / "ckpts/Self-Forcing/self_forcing_dmd.pt",
 ))
 TEST_PROMPTS = REPO / "assets/paper_main_10prompts.txt"
@@ -412,7 +412,7 @@ def main() -> None:
         "method": args.method, "video": str(video), "metrics_path": str(metrics_path),
     }
     if args.method.startswith("turboquant_"):
-        from quant_videogen.turboquant import shared_parameter_manifest
+        from subitkv.turboquant import shared_parameter_manifest
         run_info["turboquant_shared_parameters"] = shared_parameter_manifest(
             dim=128, seed=int(quant["turboquant_seed"])
         )

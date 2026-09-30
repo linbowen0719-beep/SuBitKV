@@ -15,7 +15,7 @@ from typing import Any
 
 import torch
 
-from quant_videogen.selective_rank1_gaussian import PARAM_SCHEMA
+from subitkv.selective_rank1_gaussian import PARAM_SCHEMA
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]

@@ -20,13 +20,13 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from quant_videogen.hyworldplay8b_cache_codec import (  # noqa: E402
+from subitkv.hyworldplay8b_cache_codec import (  # noqa: E402
     AVG2_RESIDUAL_BITS,
     encode_avg2_prefix_candidates,
     make_codec_settings,
     tensor_tree_nbytes,
 )
-from quant_videogen.uncompress import uncompress_kv_cache  # noqa: E402
+from subitkv.uncompress import uncompress_kv_cache  # noqa: E402
 
 
 def sha256_file(path: Path) -> str:

@@ -28,7 +28,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from quant_videogen.kernels.triton.r2aq import decode_r2aq_g64  # noqa: E402
+from subitkv.kernels.triton.r2aq import decode_r2aq_g64  # noqa: E402
 
 
 DIM = 128

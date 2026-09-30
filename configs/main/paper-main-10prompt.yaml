@@ -6,7 +6,7 @@ description: >-
   physical KV payload accounting, and VBench-10 for the paper main table.
 
 protocol:
-  prompt_file: ${QVG_REPO_ROOT}/assets/paper_main_10prompts.txt
+  prompt_file: ${SUBITKV_REPO_ROOT}/assets/paper_main_10prompts.txt
   prompt_sha256: 875762aa06d8a4e15a25e831c4c60bfa2c1b04e70b26362873d01821ad64bc77
   prompt_count: 10
   bf16_kv_cpu_offload: true
@@ -49,7 +49,7 @@ methods:
     - adaptive_temporal_avg1
 
 rvq_training:
-  prompt_file: ${QVG_REPO_ROOT}/assets/moviegen_train20.txt
+  prompt_file: ${SUBITKV_REPO_ROOT}/assets/moviegen_train20.txt
   prompt_sha256: e7a4ad6f324a3671b4205f8c2c9ff3c487370d8ea7089836556ec4b3b3b6cdc0
   prompt_count: 20
   levels: 16
@@ -65,30 +65,30 @@ models:
   wan2_2_5b:
     seed: 42
     resources: 1 GPU per job; validated on RTX 6000 Ada 48 GiB
-    checkpoint_root: ${QVG_CKPT_ROOT}/HY-WorldPlay
-    output_root: ${QVG_OUTPUT_ROOT}/paper-main-10prompt/wan2_2_5b
+    checkpoint_root: ${SUBITKV_CKPT_ROOT}/HY-WorldPlay
+    output_root: ${SUBITKV_OUTPUT_ROOT}/paper-main-10prompt/wan2_2_5b
   self_forcing:
     seed: 0
     resources: 1 GPU per job; validated on RTX 6000 Ada 48 GiB
-    base_model: ${QVG_CKPT_ROOT}/Self-Forcing/Wan2.1-T2V-1.3B
-    checkpoint: ${QVG_CKPT_ROOT}/Self-Forcing/self_forcing_dmd.pt
-    output_root: ${QVG_OUTPUT_ROOT}/paper-main-10prompt/self_forcing
+    base_model: ${SUBITKV_CKPT_ROOT}/Self-Forcing/Wan2.1-T2V-1.3B
+    checkpoint: ${SUBITKV_CKPT_ROOT}/Self-Forcing/self_forcing_dmd.pt
+    output_root: ${SUBITKV_OUTPUT_ROOT}/paper-main-10prompt/self_forcing
 
 bundle:
-  root: ${QVG_DATA_ROOT}/paper_main_v1
-  manifest: ${QVG_DATA_ROOT}/paper_main_v1/manifest.json
+  root: ${SUBITKV_DATA_ROOT}/paper_main_v1
+  manifest: ${SUBITKV_DATA_ROOT}/paper_main_v1/manifest.json
   shared:
-    tree: ${QVG_DATA_ROOT}/paper_main_v1/shared/tree_params.pt
-    progressive_v: ${QVG_DATA_ROOT}/paper_main_v1/shared/progressive_v_params.pt
-    temporal_profile: ${QVG_DATA_ROOT}/paper_main_v1/shared/temporal_profile.json
+    tree: ${SUBITKV_DATA_ROOT}/paper_main_v1/shared/tree_params.pt
+    progressive_v: ${SUBITKV_DATA_ROOT}/paper_main_v1/shared/progressive_v_params.pt
+    temporal_profile: ${SUBITKV_DATA_ROOT}/paper_main_v1/shared/temporal_profile.json
   wan2_2_5b:
-    routing: ${QVG_DATA_ROOT}/paper_main_v1/wan2_2_5b/routing.json
-    k_codebooks: ${QVG_DATA_ROOT}/paper_main_v1/wan2_2_5b/nonorm_k_l16c64_codebooks
-    v_codebooks: ${QVG_DATA_ROOT}/paper_main_v1/wan2_2_5b/nonorm_v_l16c64_codebooks
+    routing: ${SUBITKV_DATA_ROOT}/paper_main_v1/wan2_2_5b/routing.json
+    k_codebooks: ${SUBITKV_DATA_ROOT}/paper_main_v1/wan2_2_5b/nonorm_k_l16c64_codebooks
+    v_codebooks: ${SUBITKV_DATA_ROOT}/paper_main_v1/wan2_2_5b/nonorm_v_l16c64_codebooks
   self_forcing:
-    routing: ${QVG_DATA_ROOT}/paper_main_v1/self_forcing/routing.json
-    k_codebooks: ${QVG_DATA_ROOT}/paper_main_v1/self_forcing/nonorm_k_l16c64_codebooks
-    v_codebooks: ${QVG_DATA_ROOT}/paper_main_v1/self_forcing/nonorm_v_l16c64_codebooks
+    routing: ${SUBITKV_DATA_ROOT}/paper_main_v1/self_forcing/routing.json
+    k_codebooks: ${SUBITKV_DATA_ROOT}/paper_main_v1/self_forcing/nonorm_k_l16c64_codebooks
+    v_codebooks: ${SUBITKV_DATA_ROOT}/paper_main_v1/self_forcing/nonorm_v_l16c64_codebooks
 
 expected_hashes:
   shared/tree_params.pt: 0ae63a0ab385105c0296c96dfcefb86b02d48ac14eeec4013581ad62c8742a6c
@@ -102,7 +102,7 @@ expected_hashes:
   self_forcing/nonorm_v_l16c64_codebooks: 874e6ed8139c76ff6ed1460c9826a9f5f7191db09b1d9af7abcb6c6f0efa1c24
 
 output:
-  aggregate_root: ${QVG_OUTPUT_ROOT}/paper-main-10prompt/aggregate
+  aggregate_root: ${SUBITKV_OUTPUT_ROOT}/paper-main-10prompt/aggregate
   required_files:
     - main_results.csv
     - main_results.tex

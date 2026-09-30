@@ -35,10 +35,10 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from quant_videogen.kernels.triton.structured_truncatable import (  # noqa: E402
+from subitkv.kernels.triton.structured_truncatable import (  # noqa: E402
     decode_gaussian_g128_hadamard,
 )
-from quant_videogen.structured_truncatable import (  # noqa: E402
+from subitkv.structured_truncatable import (  # noqa: E402
     decode_structured_residual,
 )
 
@@ -342,9 +342,9 @@ def main() -> None:
     config_bytes = stable_bytes(config)
     config_hash = hashlib.sha256(config_bytes).hexdigest()
     source_paths = (
-        REPO_ROOT / "quant_videogen" / "structured_truncatable.py",
+        REPO_ROOT / "subitkv" / "structured_truncatable.py",
         REPO_ROOT
-        / "quant_videogen"
+        / "subitkv"
         / "kernels"
         / "triton"
         / "structured_truncatable.py",

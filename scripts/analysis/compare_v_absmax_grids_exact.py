@@ -46,7 +46,7 @@ import ablate_frame_mean_hadamard_exact_k as common  # noqa: E402
 import compare_k_gaussian_absmax_exact as infra  # noqa: E402
 import evaluate_r2aq_exact_attention as exact  # noqa: E402
 import evaluate_sfbr_train_marginals as replay  # noqa: E402
-from quant_videogen.absmax_scalar import (  # noqa: E402
+from subitkv.absmax_scalar import (  # noqa: E402
     decode_absmax_scalar_residual,
     encode_absmax_scalar_residual,
 )

@@ -5,8 +5,8 @@ import math
 import pytest
 import torch
 
-import quant_videogen.r2aq as codec
-from quant_videogen.kernels.triton.r2aq import decode_r2aq_g64
+import subitkv.r2aq as codec
+from subitkv.kernels.triton.r2aq import decode_r2aq_g64
 
 
 DIM = 128

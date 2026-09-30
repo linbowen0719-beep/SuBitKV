@@ -209,7 +209,7 @@ def free_gpus() -> list[int]:
 def try_acquire_gpu_leases(gpus: list[int], lease_dir: Path = Path("/tmp")) -> dict[int, Any]:
     leases: dict[int, Any] = {}
     for gpu in gpus:
-        path = lease_dir / f"quant_videogen_longcat_gpu_{gpu}.lock"
+        path = lease_dir / f"subitkv_longcat_gpu_{gpu}.lock"
         lease = path.open("a+", encoding="utf-8")
         try:
             fcntl.flock(lease.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)

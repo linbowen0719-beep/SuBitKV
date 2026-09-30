@@ -13,7 +13,7 @@ from typing import Any
 
 import torch
 
-from quant_videogen.functions import triton_prq_dequantize_tensor
+from subitkv.functions import triton_prq_dequantize_tensor
 
 
 def parse_num_bits(quant_type: str) -> int:

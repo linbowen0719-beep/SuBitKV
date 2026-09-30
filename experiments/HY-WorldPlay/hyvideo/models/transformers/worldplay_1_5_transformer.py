@@ -51,22 +51,22 @@ from hyvideo.models.text_encoders.byT5 import ByT5Mapper
 from hyvideo.commons.parallel_states import get_parallel_state
 from hyvideo.commons.infer_state import get_infer_state
 
-from quant_videogen.hyworldplay8b_cache_codec import (
+from subitkv.hyworldplay8b_cache_codec import (
     append_encoded_vision_kv,
     encode_vision_kv,
     make_codec_settings,
     tensor_tree_nbytes,
     tensor_tree_to,
 )
-from quant_videogen.uncompress import uncompress_kv_cache
-from quant_videogen.hyworldplay_capture import (
+from subitkv.uncompress import uncompress_kv_cache
+from subitkv.hyworldplay_capture import (
     CAPTURE_SCHEMA,
     finalize_append_rows,
     finalize_history_rows,
     sample_append_span,
     sample_history_call,
 )
-from quant_videogen.hyworldplay_residual_stats import collect_terminal_residual_stats
+from subitkv.hyworldplay_residual_stats import collect_terminal_residual_stats
 
 from hyvideo.prope.camera_rope import prope_qkv
 
@@ -78,8 +78,8 @@ def _cache_layer_nbytes(layer: dict, device_type: str | None = None) -> int:
 
 def _move_cache_layer(layer: dict, device: torch.device) -> None:
     """Move one cache layer in place so callers never retain the old tensor."""
-    if os.getenv('QVG_HY_MEASURE_KV_TRANSFER') == '1':
-        from quant_videogen.hy_kv_transfer_timer import move_and_measure
+    if os.getenv('SUBITKV_HY_MEASURE_KV_TRANSFER') == '1':
+        from subitkv.hy_kv_transfer_timer import move_and_measure
         move_and_measure(layer, device, get_infer_state())
         return
     for name, value in layer.items():
@@ -256,7 +256,7 @@ def _managed_vision_cache(state) -> bool:
 
 def _begin_deferred_codec_timer(state, device: torch.device):
     async_enabled = os.getenv(
-        "QVG_HY_ASYNC_CODEC_TIMING", "1"
+        "SUBITKV_HY_ASYNC_CODEC_TIMING", "1"
     ).strip().lower() not in {"", "0", "false", "no", "off"}
     if not (
         async_enabled
@@ -289,7 +289,7 @@ def _supports_reserved_temporal_decode(cache: dict) -> bool:
     )
 
 
-_QVG_CACHE_DECODE_PREFETCH_STREAMS: dict[int, torch.cuda.Stream] = {}
+_SUBITKV_CACHE_DECODE_PREFETCH_STREAMS: dict[int, torch.cuda.Stream] = {}
 
 
 def _cache_decode_prefetch_enabled(device: torch.device) -> bool:
@@ -297,7 +297,7 @@ def _cache_decode_prefetch_enabled(device: torch.device) -> bool:
 
     return bool(
         device.type == "cuda"
-        and os.getenv("QVG_HY_CACHE_DECODE_PREFETCH", "0")
+        and os.getenv("SUBITKV_HY_CACHE_DECODE_PREFETCH", "0")
         .strip()
         .lower()
         not in {"", "0", "false", "no", "off"}
@@ -310,11 +310,11 @@ def _cache_decode_prefetch_stream(device: torch.device) -> torch.cuda.Stream:
         if device.index is not None
         else torch.cuda.current_device()
     )
-    stream = _QVG_CACHE_DECODE_PREFETCH_STREAMS.get(index)
+    stream = _SUBITKV_CACHE_DECODE_PREFETCH_STREAMS.get(index)
     if stream is None:
         with torch.cuda.device(index):
             stream = torch.cuda.Stream()
-        _QVG_CACHE_DECODE_PREFETCH_STREAMS[index] = stream
+        _SUBITKV_CACHE_DECODE_PREFETCH_STREAMS[index] = stream
     return stream
 
 
@@ -370,7 +370,7 @@ def _onload_cache_layer(layer: dict, device: torch.device, layer_idx: int | None
             if _retain_compressed_vision_on_gpu(state):
                 state.kv_cache_gpu_resident_promotions += 1
         segmented_backend = os.getenv(
-            "QVG_HY_SEGMENTED_DECODE_BACKEND", "legacy"
+            "SUBITKV_HY_SEGMENTED_DECODE_BACKEND", "legacy"
         ).strip().lower()
         reserve_attention_buffer = bool(
             segmented_backend == "preallocated"

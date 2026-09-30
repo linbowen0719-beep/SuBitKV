@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 import torch
 
-import quant_videogen.structured_truncatable as codec
+import subitkv.structured_truncatable as codec
 
 
 def _gaussian_params() -> dict:

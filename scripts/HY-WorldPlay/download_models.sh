@@ -4,8 +4,8 @@ set -euo pipefail
 BASE=https://huggingface.co/tencent/HY-WorldPlay/resolve/main
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-QVG_CKPT_ROOT="${QVG_CKPT_ROOT:-$REPO_ROOT/ckpts}"
-HYWORLDPLAY_CKPT_ROOT="${HYWORLDPLAY_CKPT_ROOT:-$QVG_CKPT_ROOT/HY-WorldPlay}"
+SUBITKV_CKPT_ROOT="${SUBITKV_CKPT_ROOT:-$REPO_ROOT/ckpts}"
+HYWORLDPLAY_CKPT_ROOT="${HYWORLDPLAY_CKPT_ROOT:-$SUBITKV_CKPT_ROOT/HY-WorldPlay}"
 
 mkdir -p "$HYWORLDPLAY_CKPT_ROOT/wan_transformer" "$HYWORLDPLAY_CKPT_ROOT/wan_distilled_model"
 

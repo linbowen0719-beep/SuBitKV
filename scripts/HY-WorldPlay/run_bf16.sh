@@ -5,10 +5,10 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 PROMPT='A paved pathway leads towards a stone arch bridge spanning a calm body of water.  Lush green trees and foliage line the path and the far bank of the water. A traditional-style pavilion with a tiered, reddish-brown roof sits on the far shore. The water reflects the surrounding greenery and the sky.  The scene is bathed in soft, natural light, creating a tranquil and serene atmosphere. The pathway is composed of large, rectangular stones, and the bridge is constructed of light gray stone.  The overall composition emphasizes the peaceful and harmonious nature of the landscape.'
 
 IMAGE_PATH=assets/hyworld.png
-QVG_CKPT_ROOT="${QVG_CKPT_ROOT:-$REPO_ROOT/ckpts}"
-QVG_CACHE_ROOT="${QVG_CACHE_ROOT:-$REPO_ROOT/.cache}"
-HYWORLDPLAY_CKPT_ROOT="${HYWORLDPLAY_CKPT_ROOT:-$QVG_CKPT_ROOT/HY-WorldPlay}"
-export HF_HOME="${HF_HOME:-$QVG_CACHE_ROOT/huggingface}"
+SUBITKV_CKPT_ROOT="${SUBITKV_CKPT_ROOT:-$REPO_ROOT/ckpts}"
+SUBITKV_CACHE_ROOT="${SUBITKV_CACHE_ROOT:-$REPO_ROOT/.cache}"
+HYWORLDPLAY_CKPT_ROOT="${HYWORLDPLAY_CKPT_ROOT:-$SUBITKV_CKPT_ROOT/HY-WorldPlay}"
+export HF_HOME="${HF_HOME:-$SUBITKV_CACHE_ROOT/huggingface}"
 export HUGGINGFACE_HUB_CACHE="${HUGGINGFACE_HUB_CACHE:-$HF_HOME/hub}"
 NPROC_PER_NODE="${NPROC_PER_NODE:-1}"
 : "${PYTORCH_ALLOC_CONF:=expandable_segments:True}"

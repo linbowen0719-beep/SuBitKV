@@ -69,7 +69,7 @@ for _path in (REPO_ROOT, SCRIPT_DIR):
         sys.path.insert(0, str(_path))
 
 import evaluate_structured_truncatable_exact_attention as exact  # noqa: E402
-from quant_videogen.structured_truncatable import (  # noqa: E402
+from subitkv.structured_truncatable import (  # noqa: E402
     decode_structured_residual,
     encode_structured_residual,
     payload_nbytes as structured_payload_nbytes,

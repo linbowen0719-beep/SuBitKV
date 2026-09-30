@@ -446,7 +446,7 @@ def generate_tasks(
         job = attempt_root / "job"
         method = str(task["method"])
         command = [
-            os.environ.get("QVG_PYTHON", sys.executable),
+            os.environ.get("SUBITKV_PYTHON", sys.executable),
             str(REPO_ROOT / "scripts/HY-WorldPlay/run_moviegen_i2v_job.py"),
             "--method", method,
             "--manifest", str(manifest),
@@ -506,9 +506,9 @@ def command_prepare(args: argparse.Namespace) -> int:
 def doctor_report(config: dict[str, Any], gpus: tuple[int, ...]) -> dict[str, Any]:
     checks: dict[str, Any] = {}
     for executable in ("ffmpeg", "ffprobe", "nvidia-smi"):
-        checks[executable] = shutil.which(os.environ.get(f"QVG_{executable.upper()}", executable))
-    checks["python"] = os.environ.get("QVG_PYTHON", sys.executable)
-    checks["vbench"] = shutil.which(os.environ.get("QVG_VBENCH", "vbench"))
+        checks[executable] = shutil.which(os.environ.get(f"SUBITKV_{executable.upper()}", executable))
+    checks["python"] = os.environ.get("SUBITKV_PYTHON", sys.executable)
+    checks["vbench"] = shutil.which(os.environ.get("SUBITKV_VBENCH", "vbench"))
     for name, value in {
         "moviegen_root": config["protocol"]["moviegen_root"],
         "model": config["paths"]["model"],
@@ -569,7 +569,7 @@ def collect_training_kv(
     def command_for(task: dict[str, Any], gpu: int, attempt: int):
         attempt_root = Path(task["parent"]) / f"attempt_{attempt:02d}"
         command = [
-            os.environ.get("QVG_PYTHON", sys.executable),
+            os.environ.get("SUBITKV_PYTHON", sys.executable),
             str(REPO_ROOT / "scripts/HY-WorldPlay/run_moviegen_i2v_job.py"),
             "--method", "collect",
             "--manifest", str(manifest),
@@ -631,7 +631,7 @@ def command_train(args: argparse.Namespace) -> int:
     if not (args.resume and codebook_status.is_file() and json.loads(codebook_status.read_text()).get("stage") == "complete"):
         run_checked_stage(
             [
-                os.environ.get("QVG_PYTHON", sys.executable),
+                os.environ.get("SUBITKV_PYTHON", sys.executable),
                 str(REPO_ROOT / "scripts/HY-WorldPlay/supervise_moviegen_rvq_codebooks.py"),
                 "--root", str(artifact_root), "--gpus", args.gpus,
                 "--idle-seconds", "0", "--train-prompts", "20", "--skip-collect-wait",
@@ -642,7 +642,7 @@ def command_train(args: argparse.Namespace) -> int:
     if not (args.resume and residual_status.is_file() and json.loads(residual_status.read_text()).get("stage") == "complete"):
         run_checked_stage(
             [
-                os.environ.get("QVG_PYTHON", sys.executable),
+                os.environ.get("SUBITKV_PYTHON", sys.executable),
                 str(REPO_ROOT / "scripts/HY-WorldPlay/supervise_moviegen_avg2_residual_params.py"),
                 "--root", str(artifact_root), "--gpus", args.gpus,
                 "--idle-seconds", "0", "--train-prompts", "20",
@@ -656,7 +656,7 @@ def command_train(args: argparse.Namespace) -> int:
         params = artifact_root / "advanced_avg2_params"
         return (
             [
-                os.environ.get("QVG_PYTHON", sys.executable),
+                os.environ.get("SUBITKV_PYTHON", sys.executable),
                 str(REPO_ROOT / "scripts/HY-WorldPlay/smoke_moviegen_avg2_codec.py"),
                 "--root", str(artifact_root),
                 "--output-dir", str(attempt_root / "job"),
@@ -734,7 +734,7 @@ def run_similarity(
     def command_for(task: dict[str, Any], gpu: int, attempt: int):
         attempt_root = Path(task["parent"]) / f"attempt_{attempt:02d}"
         command = [
-            os.environ.get("QVG_PYTHON", sys.executable),
+            os.environ.get("SUBITKV_PYTHON", sys.executable),
             str(REPO_ROOT / "scripts/HY-WorldPlay/evaluate_moviegen_i2v_dataset.py"),
             "--generation-root", str(run_dir / "generation"),
             "--manifest", str(manifest),
@@ -790,7 +790,7 @@ def run_short_model_gate(
             attempt_root = Path(task["parent"]) / f"attempt_{attempt:02d}"
             method = str(task["method"])
             command = [
-                os.environ.get("QVG_PYTHON", sys.executable),
+                os.environ.get("SUBITKV_PYTHON", sys.executable),
                 str(REPO_ROOT / "scripts/HY-WorldPlay/run_moviegen_i2v_job.py"),
                 "--method", method,
                 "--manifest", str(manifest),
@@ -964,7 +964,7 @@ def trim_vbench_input(source: Path, target: Path) -> None:
         return
     subprocess.run(
         [
-            os.environ.get("QVG_FFMPEG", "ffmpeg"), "-hide_banner", "-loglevel", "error", "-nostdin",
+            os.environ.get("SUBITKV_FFMPEG", "ffmpeg"), "-hide_banner", "-loglevel", "error", "-nostdin",
             "-i", str(source), "-vf", "select=gt(n\\,0),setpts=N/(24*TB)",
             "-r", "24", "-c:v", "libx264", "-qp", "0", "-pix_fmt", "yuv444p",
             "-an", str(target),
@@ -1014,9 +1014,9 @@ def run_vbench(
     resume: bool,
 ) -> None:
     tasks = prepare_vbench_inputs(config, run_dir, split, methods, records, shard_index)
-    vbench = shutil.which(os.environ.get("QVG_VBENCH", "vbench"))
+    vbench = shutil.which(os.environ.get("SUBITKV_VBENCH", "vbench"))
     if not vbench:
-        raise FileNotFoundError("VBench executable not found; set QVG_VBENCH")
+        raise FileNotFoundError("VBench executable not found; set SUBITKV_VBENCH")
 
     def command_for(task: dict[str, Any], gpu: int, attempt: int):
         attempt_root = Path(task["parent"]) / f"attempt_{attempt:02d}"

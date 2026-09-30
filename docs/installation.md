@@ -1,6 +1,6 @@
 # Installation
 
-[Back to README](../README.md) · [Workflow guide](subbitkv.md)
+[Back to README](../README.md) · [Workflow guide](subitkv.md)
 
 ## Schedule generation only
 
@@ -10,14 +10,14 @@ you can run it directly from the checkout without installing the package:
 ```bash
 git clone https://github.com/linbowen0719-beep/SuBitKV.git
 cd SuBitKV
-python scripts/subbitkv_schedule.py --budget 0.5
+python scripts/subitkv_schedule.py --budget 0.5
 ```
 
 To use joint MILP optimization, install SciPy in your environment:
 
 ```bash
 python -m pip install 'scipy>=1.11'
-python scripts/subbitkv_schedule.py --budget 0.5 --solver milp
+python scripts/subitkv_schedule.py --budget 0.5 --solver milp
 ```
 
 ## Video generation and calibration
@@ -31,8 +31,8 @@ not a guarantee that every calibration workload fits in the same memory.
 From the cloned repository:
 
 ```bash
-conda create -n subbitkv python=3.12 -y
-conda activate subbitkv
+conda create -n subitkv python=3.12 -y
+conda activate subitkv
 python -m pip install --upgrade pip
 python -m pip install -e '.[release]'
 conda install -c conda-forge ffmpeg -y
@@ -66,7 +66,7 @@ PY
 Then preview the Wan workflow without loading a model:
 
 ```bash
-python scripts/subbitkv.py infer --model wan2_2_5b --run-id wan-demo --budget 0.5
+python scripts/run_subitkv.py infer --model wan2_2_5b --run-id wan-demo --budget 0.5
 ```
 
 ### Attention backends
@@ -92,23 +92,23 @@ quality, timing, and memory across runs.
 ## Paths and model access
 
 The five-stage workflow works with the paths in
-[`configs/subbitkv.yaml`](../configs/subbitkv.yaml); `.env` is optional.
-Its checkpoints and outputs live under `outputs/subbitkv` by default.
+[`configs/subitkv.yaml`](../configs/subitkv.yaml); `.env` is optional.
+Its checkpoints and outputs live under `outputs/subitkv` by default.
 
 To use another disk, set this before the first stage and keep it set for the run:
 
 ```bash
-export SUBBITKV_ROOT=/path/to/your/storage/subbitkv
+export SUBITKV_ROOT=/path/to/your/storage/subitkv
 ```
 
-For HY-WorldPlay image inputs, set `SUBBITKV_IMAGES` or edit
-`data.conditioning_images`. See [conditioning images](subbitkv.md#conditioning-images-for-hy-worldplay).
+For HY-WorldPlay image inputs, set `SUBITKV_IMAGES` or edit
+`data.conditioning_images`. See [conditioning images](subitkv.md#conditioning-images-for-hy-worldplay).
 
 If an upstream Hugging Face model requires account access, authenticate with
 your usual Hugging Face setup and accept that model's terms. The downloader
 uses `huggingface_hub`; do not put tokens in YAML or command examples.
 The first metrics run may also download RAFT, LPIPS, and VBench weights.
 
-The `QVG_*` variables and `configs/paths.local.yaml` belong to the older
+The `SUBITKV_*` variables and `configs/paths.local.yaml` belong to the older
 reproduction tools. See [historical research protocols](research_protocols.md)
 when using those entrypoints.

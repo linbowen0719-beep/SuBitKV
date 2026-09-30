@@ -251,7 +251,7 @@ bitplanes 和 FP8 scales。在 `prompt0/layer29/head17` 上：
 - 真实物理 codec smoke：
   [`results/analysis/uniform_grid_gaussian_physical_smoke_p0_l29_h17_20260725/`](../results/analysis/uniform_grid_gaussian_physical_smoke_p0_l29_h17_20260725/)
 - 物理 codec：
-  [`quant_videogen/uniform_grid_gaussian.py`](../quant_videogen/uniform_grid_gaussian.py)
+  [`subitkv/uniform_grid_gaussian.py`](../subitkv/uniform_grid_gaussian.py)
 - 实验/聚合/物理验证脚本：
   [`scripts/diagnose_uniform_gaussian_k.py`](../scripts/diagnose_uniform_gaussian_k.py)、
   [`scripts/aggregate_uniform_gaussian_k.py`](../scripts/aggregate_uniform_gaussian_k.py)、

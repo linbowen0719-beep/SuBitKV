@@ -206,7 +206,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def codec_module() -> Any:
-    from quant_videogen import r2aq
+    from subitkv import r2aq
 
     return r2aq
 
@@ -716,7 +716,7 @@ def quantvideo_roundtrip(
     bits: int,
     args: argparse.Namespace,
 ) -> tuple[torch.Tensor, torch.Tensor, int]:
-    from eval_rvq_quantvideo_cascade import qv_pair
+    from eval_subitkv_cascade import qv_pair
 
     qv_args = SimpleNamespace(
         centroids=int(args.n_clusters),
@@ -1191,15 +1191,15 @@ def validate_rows(
 def implementation_hashes() -> dict[str, str | None]:
     paths = {
         "benchmark": SCRIPT_PATH,
-        "r2aq": REPO_ROOT / "quant_videogen" / "r2aq.py",
-        "rvq": REPO_ROOT / "quant_videogen" / "rvq.py",
+        "r2aq": REPO_ROOT / "subitkv" / "r2aq.py",
+        "rvq": REPO_ROOT / "subitkv" / "rvq.py",
         "rvq_triton": REPO_ROOT
-        / "quant_videogen"
+        / "subitkv"
         / "kernels"
         / "triton"
         / "rvq.py",
         "quantvideo_pack": REPO_ROOT
-        / "quant_videogen"
+        / "subitkv"
         / "real"
         / "quant_pack.py",
     }

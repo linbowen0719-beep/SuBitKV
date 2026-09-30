@@ -229,7 +229,7 @@ def test_fitted_params_load_and_roundtrip_in_reference_codec(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from quant_videogen import r2aq
+    from subitkv import r2aq
 
     args = _args(tmp_path)
     units = _toy_units()
@@ -302,7 +302,7 @@ def test_artifacts_are_hashed_and_existing_outputs_are_rejected(
     params = torch.load(paths["params"], map_location="cpu", weights_only=False)
     assert params["schema_version"] == trainer.PARAM_SCHEMA
     assert tuple(params["utility_weights"].shape) == (6, 2, 5, 2)
-    from quant_videogen import r2aq
+    from subitkv import r2aq
 
     loaded_tree, _shared_bytes = r2aq._tree_from_params(
         "K", paths["params"], torch.device("cpu")

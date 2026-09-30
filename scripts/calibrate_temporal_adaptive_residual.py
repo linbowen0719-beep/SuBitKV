@@ -40,21 +40,21 @@ for entry in (REPO_ROOT, SCRIPT_DIR, ANALYSIS_DIR):
 
 import evaluate_r2aq_exact_attention as exact  # noqa: E402
 import evaluate_sfbr_train_marginals as train_replay  # noqa: E402
-from quant_videogen.frame_mean_gaussian import (  # noqa: E402
+from subitkv.frame_mean_gaussian import (  # noqa: E402
     decode_frame_mean_gaussian_residual,
     encode_frame_mean_gaussian_residual,
     truncate_frame_mean_gaussian_state,
 )
-from quant_videogen.progressive_sign_adaptive_absmax_scalar import (  # noqa: E402
+from subitkv.progressive_sign_adaptive_absmax_scalar import (  # noqa: E402
     decode_progressive_sign_adaptive_absmax_scalar_residual,
     encode_progressive_sign_adaptive_absmax_scalar_residual,
     truncate_progressive_sign_adaptive_absmax_state,
 )
-from quant_videogen.rvq import (  # noqa: E402
+from subitkv.rvq import (  # noqa: E402
     rvq_dequantize_tensor_cache,
     rvq_encode_tensor_cache,
 )
-from quant_videogen.temporal_adaptive_residual import PROFILE_SCHEMA  # noqa: E402
+from subitkv.temporal_adaptive_residual import PROFILE_SCHEMA  # noqa: E402
 
 
 DEFAULT_DATA = Path("/data/bowen/t2v_kv_bench_moviegen_20train_10test")

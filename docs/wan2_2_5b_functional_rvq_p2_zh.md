@@ -254,7 +254,7 @@ VBench 中：
 主要代码：
 
 ```text
-quant_videogen/rvq.py
+subitkv/rvq.py
 scripts/train_wan5b_functional_rvq.py
 scripts/evaluate_wan5b_functional_rvq_exact.py
 scripts/run_wan5b_functional_rvq_video_bench.py

@@ -3,8 +3,8 @@ from __future__ import annotations
 import pytest
 import torch
 
-import quant_videogen.r2aq as codec
-from quant_videogen.kernels.triton.r2aq_hierarchical_prefix_prototype import (
+import subitkv.r2aq as codec
+from subitkv.kernels.triton.r2aq_hierarchical_prefix_prototype import (
     build_fine_prefix,
     decode_hierarchical_prefix,
 )

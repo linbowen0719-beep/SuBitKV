@@ -36,8 +36,8 @@ if str(REPO_ROOT) not in sys.path:
 if str(REPO_ROOT / "scripts") not in sys.path:
     sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
-from quant_videogen import progressive_sign_adaptive_absmax_scalar as codec  # noqa: E402
-from quant_videogen.sign_adaptive_absmax_scalar import (  # noqa: E402
+from subitkv import progressive_sign_adaptive_absmax_scalar as codec  # noqa: E402
+from subitkv.sign_adaptive_absmax_scalar import (  # noqa: E402
     encode_sign_adaptive_absmax_scalar_residual,
 )
 from run_fixed_budget_rvq_screen import layer_path, parse_ints  # noqa: E402

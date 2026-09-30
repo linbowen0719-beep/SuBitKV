@@ -689,7 +689,7 @@ def test_gpu_high_level_parity(
 ) -> None:
     """Bitwise compare strict helper with the deployed high-level RVQ path."""
 
-    from quant_videogen.rvq import (
+    from subitkv.rvq import (
         rvq_dequantize_tensor_cache,
         rvq_encode_tensor_cache,
     )

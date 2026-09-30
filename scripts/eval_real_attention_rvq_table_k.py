@@ -17,13 +17,13 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from quant_videogen.rvq import (
+from subitkv.rvq import (
     _unpack_scale,
     load_layer_codebooks_from_dir,
     rvq_dequantize_tensor_cache,
     rvq_encode_tensor_cache,
 )
-from quant_videogen.rvq_qk import (
+from subitkv.rvq_qk import (
     rvq_qk_codebook_table_hlqc_b1,
     rvq_table_k_dense_v_attention_b1_triton,
 )

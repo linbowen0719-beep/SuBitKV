@@ -30,9 +30,9 @@ ATTEMPT_SIGNATURE_FILES = (
     RUNNER,
     REPO_ROOT / "experiments" / "LongCat" / "longcat_video" / "modules" / "utils.py",
     REPO_ROOT / "experiments" / "LongCat" / "longcat_video" / "modules" / "attention.py",
-    REPO_ROOT / "quant_videogen" / "compress.py",
-    REPO_ROOT / "quant_videogen" / "uncompress.py",
-    REPO_ROOT / "quant_videogen" / "rvq.py",
+    REPO_ROOT / "subitkv" / "compress.py",
+    REPO_ROOT / "subitkv" / "uncompress.py",
+    REPO_ROOT / "subitkv" / "rvq.py",
 )
 DEFAULT_METHODS = (
     "bf16_reference",
@@ -619,7 +619,7 @@ def free_gpus(args: argparse.Namespace, busy: set[int]) -> list[int]:
 
 
 def acquire_gpu_lease(gpu: int) -> Any | None:
-    path = Path(f"/tmp/quant_videogen_longcat_gpu_{gpu}.lock")
+    path = Path(f"/tmp/subitkv_longcat_gpu_{gpu}.lock")
     lease = path.open("a+", encoding="utf-8")
     try:
         fcntl.flock(lease.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)

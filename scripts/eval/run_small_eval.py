@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Small QuantVideoGen evaluation runner for one HY-WorldPlay setting.
+"""Small SuBitKV evaluation runner for one HY-WorldPlay setting.
 
 Example:
 python scripts/eval/run_small_eval.py \
@@ -62,7 +62,7 @@ HYWORLDPLAY_GENERATE = HYWORLDPLAY_ROOT / "wan" / "generate.py"
 
 DEFAULT_CKPT_ROOT = os.environ.get(
     "HYWORLDPLAY_CKPT_ROOT",
-    str(Path(os.environ.get("QVG_CKPT_ROOT", "ckpts")) / "HY-WorldPlay"),
+    str(Path(os.environ.get("SUBITKV_CKPT_ROOT", "ckpts")) / "HY-WorldPlay"),
 )
 
 DEFAULT_NEGATIVE_PROMPT = (
@@ -176,7 +176,7 @@ def validate_tensor_residual_codec_overrides(args: argparse.Namespace) -> None:
             "--kv_quant_structured_temporal_policy"
         )
     if k_structured_layers:
-        from quant_videogen.sim.quant.quantize_config import parse_layer_spec
+        from subitkv.sim.quant.quantize_config import parse_layer_spec
 
         parse_layer_spec(k_structured_layers)
         if overrides[0]:
@@ -185,7 +185,7 @@ def validate_tensor_residual_codec_overrides(args: argparse.Namespace) -> None:
                 "--rvq_k_residual_codec"
             )
     if span_schedule:
-        from quant_videogen.sim.quant.quantize_config import (
+        from subitkv.sim.quant.quantize_config import (
             parse_residual_codec_span_schedule,
         )
 
@@ -452,7 +452,7 @@ def rvq_residual_quant_config(args: argparse.Namespace) -> dict[str, Any]:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Run a small HY-WorldPlay QuantVideoGen eval for one setting.",
+        description="Run a small HY-WorldPlay SuBitKV eval for one setting.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
@@ -520,7 +520,7 @@ def parse_args() -> argparse.Namespace:
         default="Wan-AI/Wan2.2-TI2V-5B-Diffusers",
     )
 
-    # Existing QuantVideoGen KV-cache quantization arguments.
+    # Existing SuBitKV KV-cache quantization arguments.
     parser.add_argument(
         "--quant_type",
         type=str,
@@ -999,7 +999,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--q_rvq_codebook_dir",
         type=str,
-        default=str(Path(os.environ.get("QVG_CODEBOOK_ROOT", "codebooks")) / "q_rvq"),
+        default=str(Path(os.environ.get("SUBITKV_CODEBOOK_ROOT", "codebooks")) / "q_rvq"),
         help="Existing per-layer/head RVQ codebooks used to reconstruct Q for qrvq-vonly-int2.",
     )
     parser.add_argument("--q_rvq_batch_size", type=int, default=4096)
@@ -1013,7 +1013,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--k_rvq_codebook_dir",
         type=str,
-        default=str(Path(os.environ.get("QVG_CODEBOOK_ROOT", "codebooks")) / "k_rvq"),
+        default=str(Path(os.environ.get("SUBITKV_CODEBOOK_ROOT", "codebooks")) / "k_rvq"),
         help="Existing per-layer/head pre-RoPE K RVQ codebooks for krvq-vonly-int2.",
     )
     parser.add_argument("--k_rvq_batch_size", type=int, default=4096)
@@ -1026,7 +1026,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--v_rvq_codebook_dir",
         type=str,
-        default=str(Path(os.environ.get("QVG_CODEBOOK_ROOT", "codebooks")) / "v_rvq"),
+        default=str(Path(os.environ.get("SUBITKV_CODEBOOK_ROOT", "codebooks")) / "v_rvq"),
         help="Existing per-layer/head pre-PRoPE V RVQ codebooks for kvrvq/krvq-vrvq.",
     )
     parser.add_argument("--v_rvq_batch_size", type=int, default=4096)
@@ -1684,7 +1684,7 @@ def save_config(args: argparse.Namespace, quant_type: str, output_dir: Path) -> 
         },
     }
     if quant_type.startswith("turboquant-"):
-        from quant_videogen.turboquant import shared_parameter_manifest
+        from subitkv.turboquant import shared_parameter_manifest
         shared = shared_parameter_manifest(
             dim=128, seed=int(getattr(args, "turboquant_seed", 20260803))
         )
@@ -2069,27 +2069,27 @@ RVQ_RESIDUAL_METHODS = {
 
 def rvq_residual_state_nbytes(method: str, residual: Any) -> float:
     if method == "rvq_r2aq_residual":
-        from quant_videogen.r2aq import payload_nbytes
+        from subitkv.r2aq import payload_nbytes
 
         return float(payload_nbytes(residual, include_shared=False))
     if method == "rvq_selective_rank1_gaussian_residual":
-        from quant_videogen.selective_rank1_gaussian import payload_nbytes
+        from subitkv.selective_rank1_gaussian import payload_nbytes
 
         return float(payload_nbytes(residual, include_shared=False))
     if method == "rvq_cache_mean_gaussian_residual":
-        from quant_videogen.cache_mean_gaussian import payload_nbytes
+        from subitkv.cache_mean_gaussian import payload_nbytes
 
         return float(payload_nbytes(residual, include_shared=False))
     if method == "rvq_absmax_scalar_residual":
-        from quant_videogen.absmax_scalar import payload_nbytes
+        from subitkv.absmax_scalar import payload_nbytes
 
         return float(payload_nbytes(residual))
     if method == "rvq_sign_adaptive_absmax_scalar_residual":
-        from quant_videogen.sign_adaptive_absmax_scalar import payload_nbytes
+        from subitkv.sign_adaptive_absmax_scalar import payload_nbytes
 
         return float(payload_nbytes(residual))
     if method == "rvq_progressive_sign_adaptive_absmax_scalar_residual":
-        from quant_videogen.progressive_sign_adaptive_absmax_scalar import (
+        from subitkv.progressive_sign_adaptive_absmax_scalar import (
             payload_nbytes,
         )
 
@@ -2098,27 +2098,27 @@ def rvq_residual_state_nbytes(method: str, residual: Any) -> float:
         "rvq_frame_mean_gaussian_residual",
         "rvq_shrunk_frame_mean_gaussian_residual",
     }:
-        from quant_videogen.frame_mean_gaussian import payload_nbytes
+        from subitkv.frame_mean_gaussian import payload_nbytes
 
         return float(payload_nbytes(residual, include_shared=False))
     if method == "rvq_routed_gaussian_residual":
-        from quant_videogen.routed_gaussian import payload_nbytes
+        from subitkv.routed_gaussian import payload_nbytes
 
         return float(payload_nbytes(residual))
     if method == "rvq_uniform_grid_gaussian_residual":
-        from quant_videogen.uniform_grid_gaussian import payload_nbytes
+        from subitkv.uniform_grid_gaussian import payload_nbytes
 
         return float(payload_nbytes(residual, include_shared=False))
     if method == "rvq_centered_absmax_scalar_residual":
-        from quant_videogen.centered_absmax_scalar import payload_nbytes
+        from subitkv.centered_absmax_scalar import payload_nbytes
 
         return float(payload_nbytes(residual))
     if method == "rvq_routed_midrange_scalar_residual":
-        from quant_videogen.routed_midrange_scalar import payload_nbytes
+        from subitkv.routed_midrange_scalar import payload_nbytes
 
         return float(payload_nbytes(residual, include_shared=False))
     if method == "rvq_static_equalized_midrange_residual":
-        from quant_videogen.static_equalized_midrange import payload_nbytes
+        from subitkv.static_equalized_midrange import payload_nbytes
 
         return float(payload_nbytes(residual, include_shared=False))
     return float(nested_tensor_nbytes(residual))
@@ -2210,7 +2210,7 @@ def r2aq_shared_refs_nbytes(
 ) -> int:
     if isinstance(value, dict):
         if value.get("quant_method") == "r2aq":
-            from quant_videogen.r2aq import shared_payload_nbytes
+            from subitkv.r2aq import shared_payload_nbytes
 
             return int(shared_payload_nbytes(value, seen_table_ids))
         return sum(
@@ -2230,7 +2230,7 @@ def selective_rank1_shared_refs_nbytes(
 ) -> int:
     if isinstance(value, dict):
         if value.get("quant_method") == "selective_rank1_gaussian":
-            from quant_videogen.selective_rank1_gaussian import (
+            from subitkv.selective_rank1_gaussian import (
                 shared_payload_nbytes,
             )
 
@@ -2253,7 +2253,7 @@ def cache_mean_shared_refs_nbytes(
 ) -> int:
     if isinstance(value, dict):
         if value.get("quant_method") == "cache_mean_gaussian":
-            from quant_videogen.routed_gaussian import shared_payload_nbytes
+            from subitkv.routed_gaussian import shared_payload_nbytes
 
             return int(
                 shared_payload_nbytes(value["suffix_state"], seen_table_ids)
@@ -2276,7 +2276,7 @@ def routed_gaussian_shared_refs_nbytes(
 ) -> int:
     if isinstance(value, dict):
         if value.get("quant_method") == "routed_gaussian":
-            from quant_videogen.routed_gaussian import shared_payload_nbytes
+            from subitkv.routed_gaussian import shared_payload_nbytes
 
             return int(shared_payload_nbytes(value, seen_table_ids))
         return sum(
@@ -2297,7 +2297,7 @@ def routed_midrange_shared_refs_nbytes(
 ) -> int:
     if isinstance(value, dict):
         if value.get("quant_method") == "routed_midrange_scalar":
-            from quant_videogen.routed_midrange_scalar import (
+            from subitkv.routed_midrange_scalar import (
                 shared_payload_nbytes,
             )
 
@@ -2320,7 +2320,7 @@ def static_equalized_shared_refs_nbytes(
 ) -> int:
     if isinstance(value, dict):
         if value.get("quant_method") == "static_equalized_midrange":
-            from quant_videogen.static_equalized_midrange import (
+            from subitkv.static_equalized_midrange import (
                 shared_payload_nbytes,
             )
 
@@ -2444,7 +2444,7 @@ def oscar_rotation_refs_nbytes(value: Any, seen: set[tuple[str, int]]) -> int:
                 key = (str(rotation_path), int(layer_idx))
                 if key not in seen:
                     seen.add(key)
-                    from quant_videogen.oscar import oscar_rotation_ref_nbytes
+                    from subitkv.oscar import oscar_rotation_ref_nbytes
 
                     return oscar_rotation_ref_nbytes(str(rotation_path), int(layer_idx))
             return 0
@@ -3050,7 +3050,7 @@ def main() -> None:
             raise FileNotFoundError("K routed Gaussian routing table is required")
         if not Path(args.progressive_v_absmax_params_path).is_file():
             raise FileNotFoundError("V progressive absmax params are required")
-        from quant_videogen.temporal_adaptive_residual import load_profile
+        from subitkv.temporal_adaptive_residual import load_profile
 
         temporal_profile = load_profile(profile_path)
         if temporal_profile.residual_capacity_by_step is not None:
@@ -3318,11 +3318,11 @@ def main() -> None:
         torch.distributed.barrier()
 
     from diffusers.utils import export_to_video
-    from quant_videogen.logger import logger
-    from quant_videogen.temporal_tiered_rvq import (
+    from subitkv.logger import logger
+    from subitkv.temporal_tiered_rvq import (
         temporal_tiered_depth_schedule,
     )
-    from quant_videogen.temporal_structured_residual import (
+    from subitkv.temporal_structured_residual import (
         structured_temporal_depth_schedule,
     )
     from wan.generate import WanRunner

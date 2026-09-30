@@ -5,13 +5,13 @@ import math
 import pytest
 import torch
 
-from quant_videogen.rvq import (
+from subitkv.rvq import (
     _pack_scale,
     _quantize_codebooks_int4,
     _unpack_scale,
     materialize_rvq_codebooks,
 )
-from quant_videogen.rvq_attention import (
+from subitkv.rvq_attention import (
     build_rvq_attention_table,
     rvq_compressed_attention_reference,
     rvq_histogram_attention_b1,

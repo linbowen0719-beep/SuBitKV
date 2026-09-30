@@ -65,12 +65,12 @@ cp .env.example .env
 Set absolute shared-storage paths in `.env`:
 
 ```bash
-QVG_CKPT_ROOT=/shared/checkpoints/qvg
-QVG_DATA_ROOT=/shared/datasets/qvg
-QVG_OUTPUT_ROOT=/shared/results/qvg
-QVG_CODEBOOK_ROOT=/shared/codebooks/qvg
-QVG_CACHE_ROOT=/shared/cache/qvg
-# QVG_VBENCH=/path/to/vbench   # only needed if it is not on PATH
+SUBITKV_CKPT_ROOT=/shared/checkpoints/qvg
+SUBITKV_DATA_ROOT=/shared/datasets/qvg
+SUBITKV_OUTPUT_ROOT=/shared/results/qvg
+SUBITKV_CODEBOOK_ROOT=/shared/codebooks/qvg
+SUBITKV_CACHE_ROOT=/shared/cache/qvg
+# SUBITKV_VBENCH=/path/to/vbench   # only needed if it is not on PATH
 ```
 
 Download the two model integrations:
@@ -83,7 +83,7 @@ bash scripts/Self-Forcing/download_models.sh
 The resulting checkpoint contract is:
 
 ```text
-${QVG_CKPT_ROOT}/
+${SUBITKV_CKPT_ROOT}/
 ├── HY-WorldPlay/
 │   ├── wan_transformer/config.json
 │   ├── wan_transformer/diffusion_pytorch_model.safetensors
@@ -115,12 +115,12 @@ python scripts/main/export_main_table_bundle.py \
   --temporal-profile "$TEMPORAL_PROFILE"
 ```
 
-Copy or link that directory to `${QVG_DATA_ROOT}/paper_main_v1`. Keep the
+Copy or link that directory to `${SUBITKV_DATA_ROOT}/paper_main_v1`. Keep the
 generated `manifest.json`; `doctor` compares it against the frozen hashes in
 Git. The intended layout is:
 
 ```text
-${QVG_DATA_ROOT}/paper_main_v1/
+${SUBITKV_DATA_ROOT}/paper_main_v1/
 ├── manifest.json
 ├── shared/{tree_params.pt,progressive_v_params.pt,temporal_profile.json}
 ├── wan2_2_5b/{routing.json,nonorm_k_l16c64_codebooks/,nonorm_v_l16c64_codebooks/}
@@ -206,7 +206,7 @@ generation should be inspected through its per-job log before resubmission.
 ## Output contract
 
 ```text
-${QVG_OUTPUT_ROOT}/main-20260812-r1/
+${SUBITKV_OUTPUT_ROOT}/main-20260812-r1/
 ├── pipeline_run_info.json
 ├── wan2_2_5b/
 │   ├── config.json

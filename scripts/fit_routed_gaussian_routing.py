@@ -25,7 +25,7 @@ if str(REPO_ROOT) not in sys.path:
 if str(REPO_ROOT / "scripts") not in sys.path:
     sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
-from quant_videogen import routed_gaussian as codec  # noqa: E402
+from subitkv import routed_gaussian as codec  # noqa: E402
 from run_fixed_budget_rvq_screen import layer_path  # noqa: E402
 from run_truncatable_residual_codec_bench import (  # noqa: E402
     load_int4_base_codebook,
@@ -410,9 +410,9 @@ def main() -> None:
         "routing_hash": sha256_file(routing_path),
         "base_tree_params_path": str(args.base_tree_params),
         "base_tree_params_hash": sha256_file(args.base_tree_params),
-        "implementation_path": str(REPO_ROOT / "quant_videogen/routed_gaussian.py"),
+        "implementation_path": str(REPO_ROOT / "subitkv/routed_gaussian.py"),
         "implementation_hash": sha256_file(
-            REPO_ROOT / "quant_videogen/routed_gaussian.py"
+            REPO_ROOT / "subitkv/routed_gaussian.py"
         ),
         "physical_bits_per_value_b4": 4.0625,
         "environment": {

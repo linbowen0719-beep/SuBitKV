@@ -25,10 +25,10 @@ from typing import Any, Callable
 
 import torch
 
-from quant_videogen.compress import compress_tensor_cache, get_quantize_fn
-from quant_videogen.functions import triton_prq_dequantize_tensor
-from quant_videogen.sim.quant.quantize_config import QuantizeConfig
-from quant_videogen.temporal_adaptive_residual import (
+from subitkv.compress import compress_tensor_cache, get_quantize_fn
+from subitkv.functions import triton_prq_dequantize_tensor
+from subitkv.sim.quant.quantize_config import QuantizeConfig
+from subitkv.temporal_adaptive_residual import (
     create_b16_state,
     decode_states,
     load_profile,

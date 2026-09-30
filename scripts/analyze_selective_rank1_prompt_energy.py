@@ -14,11 +14,11 @@ from pathlib import Path
 
 import torch
 
-from quant_videogen.rvq import (
+from subitkv.rvq import (
     rvq_dequantize_tensor_cache,
     rvq_encode_tensor_cache,
 )
-from quant_videogen.selective_rank1_gaussian import load_params
+from subitkv.selective_rank1_gaussian import load_params
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]

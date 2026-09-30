@@ -33,13 +33,13 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from quant_videogen.compress import compress_tensor_cache, get_quantize_fn  # noqa: E402
-from quant_videogen.functions import triton_prq_dequantize_tensor  # noqa: E402
-from quant_videogen.rvq import (  # noqa: E402
+from subitkv.compress import compress_tensor_cache, get_quantize_fn  # noqa: E402
+from subitkv.functions import triton_prq_dequantize_tensor  # noqa: E402
+from subitkv.rvq import (  # noqa: E402
     rvq_dequantize_tensor_cache,
     rvq_encode_tensor_cache,
 )
-from quant_videogen.sim.quant.quantize_config import QuantizeConfig  # noqa: E402
+from subitkv.sim.quant.quantize_config import QuantizeConfig  # noqa: E402
 
 
 DATA = Path("/data/bowen/t2v_kv_bench_moviegen_20train_10test")

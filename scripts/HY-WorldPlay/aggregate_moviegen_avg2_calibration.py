@@ -18,8 +18,8 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from quant_videogen.hyworldplay8b_cache_codec import AVG2_RESIDUAL_BITS  # noqa: E402
-from quant_videogen.hyworldplay_attention_calibration import CALIBRATION_SCHEMA as EVENT_SCHEMA  # noqa: E402
+from subitkv.hyworldplay8b_cache_codec import AVG2_RESIDUAL_BITS  # noqa: E402
+from subitkv.hyworldplay_attention_calibration import CALIBRATION_SCHEMA as EVENT_SCHEMA  # noqa: E402
 from build_moviegen_avg2_profile import CALIBRATION_SCHEMA  # noqa: E402
 
 

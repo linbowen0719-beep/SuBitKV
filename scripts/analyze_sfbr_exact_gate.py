@@ -17,7 +17,7 @@ from typing import Any, Mapping, Sequence
 
 import numpy as np
 
-from quant_videogen.sfbr_r2aq import validate_routing_table
+from subitkv.sfbr_r2aq import validate_routing_table
 
 
 METRICS = ("output_mean", "output_p99", "output_p999", "output_cvar99")

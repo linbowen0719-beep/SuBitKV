@@ -33,7 +33,7 @@ from tqdm import tqdm
 
 from diffusers.utils import export_to_video
 from safetensors.torch import load_file
-from quant_videogen.kv_cache import offload_kv_cache_layer, onload_kv_cache_layer
+from subitkv.kv_cache import offload_kv_cache_layer, onload_kv_cache_layer
 
 
 def _env_enabled(name: str, default: str = "0") -> bool:

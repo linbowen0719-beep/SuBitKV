@@ -30,7 +30,7 @@ import sys
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from quant_videogen.rvq import (  # noqa: E402
+from subitkv.rvq import (  # noqa: E402
     _codebook_level,
     _compute_dtype,
     load_layer_codebooks_from_dir,

@@ -54,9 +54,9 @@ for _entry in (REPO_ROOT, SCRIPT_DIR):
 
 import evaluate_structured_truncatable_exact_attention as protocol  # noqa: E402
 import run_r2aq_static_bench as static  # noqa: E402
-from quant_videogen import frame_mean_gaussian as frame_codec  # noqa: E402
-from quant_videogen import routed_gaussian as routed_gaussian_codec  # noqa: E402
-from quant_videogen import uniform_grid_gaussian as grid_codec  # noqa: E402
+from subitkv import frame_mean_gaussian as frame_codec  # noqa: E402
+from subitkv import routed_gaussian as routed_gaussian_codec  # noqa: E402
+from subitkv import uniform_grid_gaussian as grid_codec  # noqa: E402
 
 
 replay = protocol.replay
@@ -430,7 +430,7 @@ def validate_parameter_files(args: argparse.Namespace) -> None:
     if args.sfbr_routing is not None:
         if not args.sfbr_routing.is_file():
             raise FileNotFoundError(args.sfbr_routing)
-        from quant_videogen.sfbr_r2aq import validate_routing_table
+        from subitkv.sfbr_r2aq import validate_routing_table
 
         routing = json.loads(args.sfbr_routing.read_text(encoding="utf-8"))
         audit = validate_routing_table(routing)
@@ -461,20 +461,20 @@ def implementation_hashes() -> dict[str, str | None]:
         "exact_capture_protocol": (
             REPO_ROOT / "scripts" / "evaluate_truncatable_residual_exact_attention.py"
         ),
-        "r2aq_codec": REPO_ROOT / "quant_videogen" / "r2aq.py",
-        "sfbr_codec": REPO_ROOT / "quant_videogen" / "sfbr_r2aq.py",
+        "r2aq_codec": REPO_ROOT / "subitkv" / "r2aq.py",
+        "sfbr_codec": REPO_ROOT / "subitkv" / "sfbr_r2aq.py",
         "sfbr_kernel": (
-            REPO_ROOT / "quant_videogen" / "kernels" / "triton" / "sfbr_r2aq.py"
+            REPO_ROOT / "subitkv" / "kernels" / "triton" / "sfbr_r2aq.py"
         ),
-        "grid_codec": REPO_ROOT / "quant_videogen" / "uniform_grid_gaussian.py",
-        "frame_codec": REPO_ROOT / "quant_videogen" / "frame_mean_gaussian.py",
-        "grid_suffix_codec": REPO_ROOT / "quant_videogen" / "routed_gaussian.py",
-        "rvq_codec": REPO_ROOT / "quant_videogen" / "rvq.py",
+        "grid_codec": REPO_ROOT / "subitkv" / "uniform_grid_gaussian.py",
+        "frame_codec": REPO_ROOT / "subitkv" / "frame_mean_gaussian.py",
+        "grid_suffix_codec": REPO_ROOT / "subitkv" / "routed_gaussian.py",
+        "rvq_codec": REPO_ROOT / "subitkv" / "rvq.py",
         "quantvideo_pack": (
-            REPO_ROOT / "quant_videogen" / "real" / "quant_pack.py"
+            REPO_ROOT / "subitkv" / "real" / "quant_pack.py"
         ),
         "quantvideo_decode": (
-            REPO_ROOT / "quant_videogen" / "real" / "accumulate.py"
+            REPO_ROOT / "subitkv" / "real" / "accumulate.py"
         ),
     }
     return {
@@ -941,7 +941,7 @@ def score_exact_attention(
 
 
 def codec_module() -> Any:
-    from quant_videogen import r2aq
+    from subitkv import r2aq
 
     return r2aq
 

@@ -8,7 +8,7 @@ import sys
 
 import pytest
 
-from quant_videogen.hyworldplay8b_cache_codec import load_avg2_profile
+from subitkv.hyworldplay8b_cache_codec import load_avg2_profile
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -24,11 +24,11 @@ def protocol_env(tmp_path: Path) -> dict[str, str]:
     moviegen.mkdir()
     return {
         **os.environ,
-        "QVG_MOVIEGEN_ROOT": str(moviegen),
-        "QVG_HY8B_MODEL": str(model),
-        "QVG_HY_ACTION_CKPT": str(action),
-        "QVG_DATA_ROOT": str(tmp_path / "data"),
-        "QVG_OUTPUT_ROOT": str(tmp_path / "outputs"),
+        "SUBITKV_MOVIEGEN_ROOT": str(moviegen),
+        "SUBITKV_HY8B_MODEL": str(model),
+        "SUBITKV_HY_ACTION_CKPT": str(action),
+        "SUBITKV_DATA_ROOT": str(tmp_path / "data"),
+        "SUBITKV_OUTPUT_ROOT": str(tmp_path / "outputs"),
     }
 
 

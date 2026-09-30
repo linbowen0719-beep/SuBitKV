@@ -32,8 +32,8 @@ if str(REPO_ROOT) not in sys.path:
 if str(REPO_ROOT / "scripts") not in sys.path:
     sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
-from eval_rvq_quantvideo_cascade import qv_pair  # noqa: E402
-from quant_videogen import routed_gaussian, uniform_grid_gaussian  # noqa: E402
+from eval_subitkv_cascade import qv_pair  # noqa: E402
+from subitkv import routed_gaussian, uniform_grid_gaussian  # noqa: E402
 from run_fixed_budget_rvq_screen import layer_path, parse_ints  # noqa: E402
 from run_truncatable_residual_codec_bench import (  # noqa: E402
     deterministic_indices,

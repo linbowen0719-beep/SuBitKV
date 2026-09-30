@@ -25,18 +25,18 @@ REPO_ROOT = SCRIPT_PATH.parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from scripts import benchmark_r2aq_vs_quantvideo_decode as base  # noqa: E402
-from quant_videogen.functions import triton_prq_dequantize_tensor  # noqa: E402
-from quant_videogen.kernels.triton.r2aq_hierarchical_prefix_prototype import (  # noqa: E402
+from scripts import benchmark_subitkv_residual_decode as base  # noqa: E402
+from subitkv.functions import triton_prq_dequantize_tensor  # noqa: E402
+from subitkv.kernels.triton.r2aq_hierarchical_prefix_prototype import (  # noqa: E402
     build_fine_prefix,
     decode_hierarchical_prefix,
 )
-from quant_videogen.r2aq import (  # noqa: E402
+from subitkv.r2aq import (  # noqa: E402
     decode_r2aq_residual,
     payload_nbytes,
     truncate_r2aq_state,
 )
-from quant_videogen.rvq import (  # noqa: E402
+from subitkv.rvq import (  # noqa: E402
     rvq_dequantize_tensor_cache,
     rvq_encode_tensor_cache,
 )
@@ -182,7 +182,7 @@ def main() -> None:
         "utility_weights_hash": base.sha256_file(args.utility_weights),
         "prototype_kernel_hash": base.sha256_file(
             REPO_ROOT
-            / "quant_videogen"
+            / "subitkv"
             / "kernels"
             / "triton"
             / "r2aq_hierarchical_prefix_prototype.py"

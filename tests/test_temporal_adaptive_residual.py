@@ -5,9 +5,9 @@ from types import SimpleNamespace
 import pytest
 import torch
 
-from quant_videogen import progressive_sign_adaptive_absmax_scalar as progressive
-from quant_videogen import compress as compress_mod
-from quant_videogen import temporal_adaptive_residual as temporal
+from subitkv import progressive_sign_adaptive_absmax_scalar as progressive
+from subitkv import compress as compress_mod
+from subitkv import temporal_adaptive_residual as temporal
 
 
 def test_b16_is_bit_exact_and_v_prefixes_physically_shrink(

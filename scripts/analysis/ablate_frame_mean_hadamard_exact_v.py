@@ -36,8 +36,8 @@ for entry in (REPO_ROOT, SCRIPT_DIR, ANALYSIS_DIR):
 import ablate_frame_mean_hadamard_exact_k as common  # noqa: E402
 import evaluate_r2aq_exact_attention as exact  # noqa: E402
 import evaluate_sfbr_train_marginals as replay  # noqa: E402
-from quant_videogen import routed_gaussian  # noqa: E402
-from quant_videogen.absmax_scalar import (  # noqa: E402
+from subitkv import routed_gaussian  # noqa: E402
+from subitkv.absmax_scalar import (  # noqa: E402
     decode_absmax_scalar_residual,
     encode_absmax_scalar_residual,
     payload_nbytes as absmax_payload_nbytes,

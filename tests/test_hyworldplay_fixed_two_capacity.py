@@ -5,7 +5,7 @@ import json
 import pytest
 import torch
 
-from quant_videogen import hyworldplay8b_cache_codec as codec
+from subitkv import hyworldplay8b_cache_codec as codec
 from scripts.main.hyworldplay_i2v import SUBBIT_SCHEDULES
 
 

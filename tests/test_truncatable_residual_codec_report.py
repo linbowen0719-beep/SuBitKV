@@ -298,11 +298,11 @@ def test_implementation_snapshot_covers_strict_training_sources() -> None:
         for path in report.IMPLEMENTATION_SNAPSHOT_PATHS
     }
     assert {
-        "quant_videogen/truncatable_residual.py",
-        "quant_videogen/rvq.py",
-        "quant_videogen/kernels/triton/rvq.py",
-        "quant_videogen/compress.py",
-        "quant_videogen/uncompress.py",
+        "subitkv/truncatable_residual.py",
+        "subitkv/rvq.py",
+        "subitkv/kernels/triton/rvq.py",
+        "subitkv/compress.py",
+        "subitkv/uncompress.py",
         "scripts/run_fixed_budget_rvq_screen.py",
         "scripts/run_truncatable_residual_codec_bench.py",
         "scripts/collect_wan5b_p1_multi_prompt_captures.py",

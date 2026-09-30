@@ -18,21 +18,21 @@ from demo_utils.memory import (
 from types import SimpleNamespace
 from termcolor import cprint
 
-from quant_videogen.compress import get_quantize_fn, compress_kv_cache
-from quant_videogen.chunk_policy import completed_chunk_compression_range
-from quant_videogen.kv_cache import ChunkedKVCache, offload_kv_cache_layer, onload_kv_cache_layer
-from quant_videogen.rvq import rvq_codebook_directory_metadata
-from quant_videogen.rng import (
+from subitkv.compress import get_quantize_fn, compress_kv_cache
+from subitkv.chunk_policy import completed_chunk_compression_range
+from subitkv.kv_cache import ChunkedKVCache, offload_kv_cache_layer, onload_kv_cache_layer
+from subitkv.rvq import rvq_codebook_directory_metadata
+from subitkv.rng import (
     compression_uses_online_rng,
     preserve_torch_rng_state,
 )
-from quant_videogen.temporal_adaptive_residual import (
+from subitkv.temporal_adaptive_residual import (
     load_profile as load_temporal_profile,
     schedule_precisions as schedule_temporal_precisions,
     transition_state as transition_temporal_state,
     validate_state as validate_temporal_state,
 )
-from quant_videogen.uncompress import (
+from subitkv.uncompress import (
     get_dequant_stats,
     reset_dequant_stats,
     uncompress_single_kv_cache,
@@ -900,7 +900,7 @@ class CausalInferencePipeline(torch.nn.Module):
         codebook_bytes = sum(int(item["codebook_storage_bytes"]) for item in codebook_metadata.values())
         shared_fixed_codec = {}
         if str(getattr(self.quant_config, "quant_type", "")).startswith("turboquant-"):
-            from quant_videogen.turboquant import shared_parameter_manifest
+            from subitkv.turboquant import shared_parameter_manifest
             shared_fixed_codec = shared_parameter_manifest(
                 dim=128,
                 seed=int(getattr(self.quant_config, "turboquant_seed", 20260803)),
@@ -1135,7 +1135,7 @@ class CausalInferencePipeline(torch.nn.Module):
 
         for _ in range(self.num_transformer_blocks):
             kv_cache1.append({
-                "subbitkv_layer": _,
+                "subitkv_layer": _,
                 "k": ChunkedKVCache(batch_size, self.frame_seq_length, 12, 128, max_num_chunks, dtype, device, layout="BSHD"),
                 "v": ChunkedKVCache(batch_size, self.frame_seq_length, 12, 128, max_num_chunks, dtype, device, layout="BSHD"),
                 "global_end_index": torch.tensor([0], dtype=torch.long, device=device),

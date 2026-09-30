@@ -1,7 +1,7 @@
 import sys, math, statistics, torch, torch.nn.functional as F
 sys.path.insert(0,"."); sys.path.insert(0,"/tmp/claude-1007/-home-bowen-Quant-VideoGen/d9dfbba0-8d43-4ce5-8eb0-f2e7cdbbbd93/scratchpad")
-from quant_videogen.kernels.triton.rvq import rvq_decode_bhsd_triton
-from quant_videogen.kernels.triton.rvq_qk import rvq_qk_decode_matmul_b1_triton
+from subitkv.kernels.triton.rvq import rvq_decode_bhsd_triton
+from subitkv.kernels.triton.rvq_qk import rvq_qk_decode_matmul_b1_triton
 from splitk_attn import splitk_attn
 dev=torch.device("cuda"); dt=torch.bfloat16; H,Q,D=24,64,128; L,C=4,256; sm=1/math.sqrt(D)
 def med(fn,reps=7,it=40):

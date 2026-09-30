@@ -38,22 +38,22 @@ module load cudatoolkit-standalone/12.8.1
 module load gcc-native/14
 export CC=/usr/bin/gcc-14 CXX=/usr/bin/g++-14
 
-export PYTHONPATH="${QVG_REPO_ROOT}:${PYTHONPATH:-}"
+export PYTHONPATH="${SUBITKV_REPO_ROOT}:${PYTHONPATH:-}"
 export PYTHONNOUSERSITE=1
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export http_proxy=http://proxy.alcf.anl.gov:3128
 export https_proxy=http://proxy.alcf.anl.gov:3128
 export HTTP_PROXY="${http_proxy}" HTTPS_PROXY="${https_proxy}"
 
-RUN_ID="${QVG_RUN_ID:-hy-main-r1}"
-cd "${QVG_REPO_ROOT}"
+RUN_ID="${SUBITKV_RUN_ID:-hy-main-r1}"
+cd "${SUBITKV_REPO_ROOT}"
 echo "job: ${PBS_JOBID}  host: $(hostname -s)  run: ${RUN_ID}  $(date)"
 nvidia-smi --query-gpu=index,name,memory.used,utilization.gpu --format=csv,noheader | sed 's/^/  GPU /'
 
 echo "=== doctor (dry run) ==="
-"${QVG_PYTHON}" scripts/main/hyworldplay_i2v.py --run-id "${RUN_ID}" --gpus 0,1,2,3 doctor
+"${SUBITKV_PYTHON}" scripts/main/hyworldplay_i2v.py --run-id "${RUN_ID}" --gpus 0,1,2,3 doctor
 echo "=== doctor --execute ==="
-"${QVG_PYTHON}" scripts/main/hyworldplay_i2v.py --run-id "${RUN_ID}" --gpus 0,1,2,3 --execute doctor
+"${SUBITKV_PYTHON}" scripts/main/hyworldplay_i2v.py --run-id "${RUN_ID}" --gpus 0,1,2,3 --execute doctor
 rc=$?
 echo "=== doctor rc=${rc}  $(date) ==="
 exit 0

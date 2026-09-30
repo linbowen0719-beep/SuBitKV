@@ -55,7 +55,7 @@ from run_fixed_budget_rvq_screen import (  # noqa: E402
     layer_path,
     rvq_reconstruct,
 )
-from quant_videogen.truncatable_residual import (  # noqa: E402
+from subitkv.truncatable_residual import (  # noqa: E402
     decode_residual,
     encode_residual,
     truncate_state,

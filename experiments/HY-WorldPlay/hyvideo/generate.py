@@ -35,8 +35,8 @@ from hyvideo.pipelines.worldplay_video_pipeline import HunyuanVideo_1_5_Pipeline
 from hyvideo.commons.parallel_states import initialize_parallel_state
 from hyvideo.commons.infer_state import get_infer_state, initialize_infer_state
 from hyvideo.generate_custom_trajectory import generate_camera_trajectory_local
-from quant_videogen.compress import get_encode_breakdown_stats, reset_encode_breakdown_stats
-from quant_videogen.uncompress import get_dequant_stats, reset_dequant_stats
+from subitkv.compress import get_encode_breakdown_stats, reset_encode_breakdown_stats
+from subitkv.uncompress import get_dequant_stats, reset_dequant_stats
 
 parallel_dims = initialize_parallel_state(sp=int(os.environ.get("WORLD_SIZE", "1")))
 torch.cuda.set_device(int(os.environ.get("LOCAL_RANK", "0")))

@@ -379,7 +379,7 @@ def test_runtime_tampering_rejected_before_output(
         _json(config_path, config)
         run_info["config_hash"] = _sha(config_path)
     elif mutation == "source":
-        run_info["source_sha256"]["quant_videogen/compress.py"] = "0" * 64
+        run_info["source_sha256"]["subitkv/compress.py"] = "0" * 64
     elif mutation == "payload":
         run_info["terminal_payload"][
             "joint_including_shared_rvq_codebooks_MiB"

@@ -32,14 +32,14 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from quant_videogen.rvq import (  # noqa: E402
+from subitkv.rvq import (  # noqa: E402
     _unpack_scale,
     load_layer_codebooks_from_dir,
     materialize_rvq_codebooks,
     rvq_dequantize_tensor_cache,
     rvq_encode_tensor_cache,
 )
-from quant_videogen.rvq_attention import (  # noqa: E402
+from subitkv.rvq_attention import (  # noqa: E402
     build_rvq_attention_table,
     rvq_compressed_attention_reference,
     rvq_histogram_attention_b1,

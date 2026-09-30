@@ -20,12 +20,12 @@ REPO = Path(__file__).resolve().parents[2]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
-from quant_videogen.frame_mean_gaussian import (  # noqa: E402
+from subitkv.frame_mean_gaussian import (  # noqa: E402
     decode_frame_mean_gaussian_calibration_depths,
     encode_frame_mean_gaussian_residual,
 )
-from quant_videogen.routed_gaussian import ROUTING_SCHEMA, validate_routing_table  # noqa: E402
-from quant_videogen.rvq import rvq_dequantize_tensor_cache, rvq_encode_tensor_cache  # noqa: E402
+from subitkv.routed_gaussian import ROUTING_SCHEMA, validate_routing_table  # noqa: E402
+from subitkv.rvq import rvq_dequantize_tensor_cache, rvq_encode_tensor_cache  # noqa: E402
 
 
 def parse_args() -> argparse.Namespace:

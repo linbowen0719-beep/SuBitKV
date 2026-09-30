@@ -3,7 +3,7 @@
 
 This runner is intentionally self-contained and resumable. It trains standard
 runtime RVQ codebooks, so generation still goes through run_small_eval.py and
-quant_videogen.rvq.rvq_encode_tensor_cache.
+subitkv.rvq.rvq_encode_tensor_cache.
 """
 
 from __future__ import annotations
@@ -717,7 +717,7 @@ def codebook_storage(storage: str) -> tuple[str, str]:
 
 @torch.no_grad()
 def reconstruct_layer(target: torch.Tensor, layer: int, cb_dir: Path, storage: str, device: torch.device) -> torch.Tensor:
-    from quant_videogen.rvq import rvq_dequantize_tensor_cache, rvq_encode_tensor_cache
+    from subitkv.rvq import rvq_dequantize_tensor_cache, rvq_encode_tensor_cache
 
     codebook_dtype, scale_dtype = codebook_storage(storage)
     packed = rvq_encode_tensor_cache(

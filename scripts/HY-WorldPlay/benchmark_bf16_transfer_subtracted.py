@@ -16,7 +16,7 @@ import time
 
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT))
-from quant_videogen.hy_kv_transfer_timer import adjusted_e2e
+from subitkv.hy_kv_transfer_timer import adjusted_e2e
 
 def write(p,d):
     with p.open('x') as f:json.dump(d,f,indent=2)
@@ -41,7 +41,7 @@ def main(a):
         caveat='Simulation only, not measured resident BF16 or proof of resident speedup. Three fresh-process repeats run concurrently after full warmup; shared-host and synchronization effects remain.')
     write(root/'config.json',config)
     info=json.loads((old/'native/run_info.json').read_text())
-    sources=[Path(__file__),ROOT/'quant_videogen/hy_kv_transfer_timer.py',ROOT/'experiments/HY-WorldPlay/hyvideo/generate.py',ROOT/'experiments/HY-WorldPlay/hyvideo/models/transformers/worldplay_1_5_transformer.py']
+    sources=[Path(__file__),ROOT/'subitkv/hy_kv_transfer_timer.py',ROOT/'experiments/HY-WorldPlay/hyvideo/generate.py',ROOT/'experiments/HY-WorldPlay/hyvideo/models/transformers/worldplay_1_5_transformer.py']
     info.update(config_path=str(root/'config.json'),config_hash=sha(root/'config.json'),timestamp=datetime.now(timezone.utc).isoformat(),
         hostname=socket.gethostname(),git_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
         source_hashes={str(p):sha(p) for p in sources})
@@ -58,11 +58,11 @@ def main(a):
             cmd=list(template)
             for k,v in [('--gpu',gpu),('--frames',frames),('--output-dir',out)]:replace(cmd,k,v)
             env=dict(os.environ,PYTHONPATH=str(ROOT),OMP_NUM_THREADS='2',MKL_NUM_THREADS='2',OPENBLAS_NUM_THREADS='2',
-                QVG_HY_MEASURE_KV_TRANSFER='1',QVG_HY_CACHE_DECODE_PREFETCH='0',
+                SUBITKV_HY_MEASURE_KV_TRANSFER='1',SUBITKV_HY_CACHE_DECODE_PREFETCH='0',
                 TRITON_CACHE_DIR=str(cache/'triton'),TORCHINDUCTOR_CACHE_DIR=str(cache/'inductor'))
-            env.pop('QVG_WARM_BENCH_PATH',None)
+            env.pop('SUBITKV_WARM_BENCH_PATH',None)
             write(task/'command.json',cmd)
-            write(task/'run_info.json',{**info,'gpu_index':gpu,'label':label,'frames':frames,'QVG_HY_MEASURE_KV_TRANSFER':1})
+            write(task/'run_info.json',{**info,'gpu_index':gpu,'label':label,'frames':frames,'SUBITKV_HY_MEASURE_KV_TRANSFER':1})
             print(f'START {label} GPU {gpu} frames {frames}',flush=True)
             with (task/'launcher.log').open('x') as log:completed=subprocess.run(cmd,cwd=ROOT,env=env,stdout=log,stderr=subprocess.STDOUT)
             result=json.loads((out/'result.json').read_text()) if (out/'result.json').exists() else {'status':'failed','returncode':completed.returncode}

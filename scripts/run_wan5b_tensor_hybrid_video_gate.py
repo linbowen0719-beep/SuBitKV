@@ -119,18 +119,18 @@ FROZEN_CODEC_PARAMS: dict[str, Any] = {
 }
 
 SOURCE_FILES = (
-    REPO_ROOT / "quant_videogen" / "compress.py",
-    REPO_ROOT / "quant_videogen" / "uncompress.py",
-    REPO_ROOT / "quant_videogen" / "sim" / "quant" / "quantize_config.py",
-    REPO_ROOT / "quant_videogen" / "structured_truncatable.py",
+    REPO_ROOT / "subitkv" / "compress.py",
+    REPO_ROOT / "subitkv" / "uncompress.py",
+    REPO_ROOT / "subitkv" / "sim" / "quant" / "quantize_config.py",
+    REPO_ROOT / "subitkv" / "structured_truncatable.py",
     REPO_ROOT
-    / "quant_videogen"
+    / "subitkv"
     / "kernels"
     / "triton"
     / "structured_truncatable.py",
-    REPO_ROOT / "quant_videogen" / "truncatable_residual.py",
-    REPO_ROOT / "quant_videogen" / "rvq.py",
-    REPO_ROOT / "quant_videogen" / "kv_cache.py",
+    REPO_ROOT / "subitkv" / "truncatable_residual.py",
+    REPO_ROOT / "subitkv" / "rvq.py",
+    REPO_ROOT / "subitkv" / "kv_cache.py",
     REPO_ROOT / "scripts" / "eval" / "run_small_eval.py",
     REPO_ROOT / "scripts" / "eval" / "compare_video_quality.py",
     REPO_ROOT / "experiments" / "HY-WorldPlay" / "wan" / "generate.py",
@@ -150,7 +150,7 @@ SOURCE_FILES = (
     Path(__file__).resolve(),
 )
 EXECUTION_SOURCE_ROOTS = (
-    REPO_ROOT / "quant_videogen",
+    REPO_ROOT / "subitkv",
     REPO_ROOT / "experiments" / "HY-WorldPlay",
 )
 

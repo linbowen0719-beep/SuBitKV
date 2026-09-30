@@ -381,12 +381,12 @@ def _source_provenance() -> dict[str, object]:
     )
     source_evidence = amendment_003["source_evidence"]
     source_hashes = {
-        "quant_videogen/temporal_structured_residual.py": "a" * 64,
+        "subitkv/temporal_structured_residual.py": "a" * 64,
         "scripts/eval/run_small_eval.py": "b" * 64,
     }
     execution_source_hashes = {
         **source_hashes,
-        "quant_videogen/kernels/triton/structured_truncatable.py": "d"
+        "subitkv/kernels/triton/structured_truncatable.py": "d"
         * 64,
         gate.GENERATE_SOURCE_KEY: source_evidence["generate"][
             "candidate_execution_source_sha256"
@@ -404,7 +404,7 @@ def _source_provenance() -> dict[str, object]:
         "worktree_dirty": True,
         "source_sha256": source_hashes,
         "execution_source_roots": [
-            "quant_videogen",
+            "subitkv",
             "experiments/HY-WorldPlay",
         ],
         "execution_source_file_count": len(execution_source_hashes),

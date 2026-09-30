@@ -18,7 +18,7 @@ import pyarrow.parquet as pq
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_DATASET = Path(os.environ.get("QVG_MOVIEGEN_ROOT", "data/movie_gen_video_bench"))
+DEFAULT_DATASET = Path(os.environ.get("SUBITKV_MOVIEGEN_ROOT", "data/movie_gen_video_bench"))
 DEFAULT_SPLIT = REPO_ROOT / "assets/moviegen_i2v_split_v1.json"
 EXPECTED_COUNTS = {"train": 20, "dev": 10, "test": 973}
 
@@ -130,7 +130,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dataset-root", type=Path, default=DEFAULT_DATASET)
     parser.add_argument("--split-file", type=Path, default=DEFAULT_SPLIT)
     parser.add_argument("--output-root", type=Path, required=True)
-    parser.add_argument("--ffmpeg", default=os.environ.get("QVG_FFMPEG", "ffmpeg"))
+    parser.add_argument("--ffmpeg", default=os.environ.get("SUBITKV_FFMPEG", "ffmpeg"))
     parser.add_argument("--dry-run", action="store_true")
     return parser.parse_args()
 

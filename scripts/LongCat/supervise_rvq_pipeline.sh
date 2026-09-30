@@ -34,7 +34,7 @@ wait_for_empty_gpu() {
       utilization=${utilization//[[:space:]]/}
       if [[ "$allowed" == *",${index},"* ]] && \
          (( memory <= EMPTY_MEM_MB && utilization <= EMPTY_UTIL )); then
-        if flock -n "/tmp/quant_videogen_longcat_gpu_${index}.lock" -c true; then
+        if flock -n "/tmp/subitkv_longcat_gpu_${index}.lock" -c true; then
           printf '%s\n' "$index"
           return 0
         fi
@@ -69,9 +69,9 @@ smoke_tag() {
     scripts/LongCat/run_chunk5_experiment.py
     scripts/LongCat/verify_rvq_smoke.py
     experiments/LongCat/longcat_video/modules/utils.py
-    quant_videogen/compress.py
-    quant_videogen/uncompress.py
-    quant_videogen/rvq.py
+    subitkv/compress.py
+    subitkv/uncompress.py
+    subitkv/rvq.py
     "$RVQ_ROOT/k_codebooks/manifest.json"
     "$RVQ_ROOT/v_codebooks/manifest.json"
   )
@@ -100,7 +100,7 @@ run_rvq_smoke() {
   for attempt in $(seq 1 "$SMOKE_MAX_ATTEMPTS"); do
     while true; do
       gpu=$(wait_for_empty_gpu)
-      exec {lease_fd}>"/tmp/quant_videogen_longcat_gpu_${gpu}.lock"
+      exec {lease_fd}>"/tmp/subitkv_longcat_gpu_${gpu}.lock"
       if flock -n "$lease_fd"; then
         break
       fi

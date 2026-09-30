@@ -49,7 +49,7 @@ Important caveat: the offline attention/QKV table is a screening metric on the f
 |---|---|---|
 | Objective exploration driver | `scripts/run_single_chunk_objective_explore.py` | trains candidate K codebooks, evaluates offline attention/QKV metrics, launches selected video generations |
 | RVQ diagnostic/training entry | `scripts/rvq/diag/run_rvq_diag.py` | implements `--train_objective` choices and K weighting/metric transforms |
-| Runtime RVQ encode/decode | `quant_videogen/rvq.py` | uses normal runtime RVQ format for these experiments |
+| Runtime RVQ encode/decode | `subitkv/rvq.py` | uses normal runtime RVQ format for these experiments |
 | Small video eval runner | `scripts/eval/run_small_eval.py` | generates videos and records runtime/memory metrics |
 | Video quality comparison | `scripts/eval/compare_video_quality.py` | computes PSNR/SSIM/LPIPS against BF16 reference |
 

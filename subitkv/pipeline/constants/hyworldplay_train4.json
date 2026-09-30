@@ -1,0 +1,107 @@
+{
+  "schema_version": "subitkv.calibration_constants.v1",
+  "model": "hyworldplay_8b",
+  "model_config": {
+    "heads": 16,
+    "head_dim": 128,
+    "spatial_tokens": 1537,
+    "latent_chunk_frames": 4
+  },
+  "calibration": {
+    "levels": 16,
+    "centroids": 64,
+    "input_norm_mode": "none",
+    "early_stop": {
+      "threshold": 0.0629,
+      "min_depth": 4,
+      "max_depth": 16
+    },
+    "schedule": {
+      "horizon": 10
+    }
+  },
+  "budget": {
+    "labels": "terminal residual bits per scalar",
+    "base_reservation": "maximum RVQ depth; uint8 index per vector per stage plus one uint8 depth per chunk",
+    "total": "horizon * reserved Base bytes per chunk + terminal bit count * chunk elements / 8",
+    "scope": "RVQ Base payload plus nominal residual bits; shared codebooks and residual metadata excluded"
+  },
+  "source": {
+    "profile": "temporal_avg2_profile.json",
+    "profile_sha256": "b5f8f2f5e7d2a7e4b98617ee87aafe8cd8a4eb2155445d99a24e55a38807c764",
+    "calibration": "attention_calibration.json",
+    "calibration_sha256": "0e0e07ffcd6c24a4fcede30b7b0958802d8ffb94b8bcfc99129a44f8b3fafb41",
+    "training": {
+      "events": 1944,
+      "history_steps": 9,
+      "includes_real_text_kv": true,
+      "layers": 54,
+      "prompts": 4,
+      "query_streams": [
+        "rope",
+        "prope"
+      ],
+      "split": "moviegen_train4_fast_validation",
+      "test_prompts_read": false
+    }
+  },
+  "distortion_provenance": {
+    "16": "exact BF16 bypass, zero distortion",
+    "8/4/3/2/1": "measured on the source train4 calibration",
+    "0": "not measured; only available with the explicitly recorded estimate policy"
+  },
+  "b0_estimate": {
+    "method": "multiply_d1",
+    "factor": 4.0,
+    "measured": false,
+    "source": "subitkv/temporal_adaptive_residual.py:DistortionProfile.distortion"
+  },
+  "tensor_profiles": {
+    "K": {
+      "age_weights": [
+        0.13743303694815945,
+        0.06549324737150325,
+        0.04927843259080811,
+        0.04055880225855673,
+        0.03873435680116354,
+        0.041928296360075126,
+        0.04330471494051134,
+        0.05091628151152421,
+        0.06895854503468231,
+        0.06895854503468231
+      ],
+      "distortions": {
+        "16": 0.0,
+        "1": 0.15465012687567176,
+        "2": 0.03553869900810445,
+        "3": 0.010630394587507615,
+        "4": 0.003227281031615964,
+        "8": 0.00011135343118534351
+      },
+      "distortion_objective": "attention_KL_plus_normalized_output_MSE"
+    },
+    "V": {
+      "age_weights": [
+        0.13743303694815945,
+        0.06549324737150325,
+        0.04927843259080811,
+        0.04055880225855673,
+        0.03873435680116354,
+        0.041928296360075126,
+        0.04330471494051134,
+        0.05091628151152421,
+        0.06895854503468231,
+        0.06895854503468231
+      ],
+      "distortions": {
+        "16": 0.0,
+        "1": 0.002162683591680029,
+        "2": 0.0006224555985817217,
+        "3": 0.00013802509352296274,
+        "4": 3.413081566595569e-05,
+        "8": 2.4057581169324147e-06
+      },
+      "distortion_objective": "normalized_output_MSE"
+    }
+  }
+}

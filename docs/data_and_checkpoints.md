@@ -3,11 +3,11 @@
 Large inputs are local-only. Configure their roots in `.env`:
 
 ```bash
-QVG_CKPT_ROOT=/path/to/checkpoints
-QVG_DATA_ROOT=/path/to/datasets
-QVG_CODEBOOK_ROOT=/path/to/codebooks
-QVG_OUTPUT_ROOT=/path/to/qvg-runs
-QVG_CACHE_ROOT=/path/to/cache
+SUBITKV_CKPT_ROOT=/path/to/checkpoints
+SUBITKV_DATA_ROOT=/path/to/datasets
+SUBITKV_CODEBOOK_ROOT=/path/to/codebooks
+SUBITKV_OUTPUT_ROOT=/path/to/qvg-runs
+SUBITKV_CACHE_ROOT=/path/to/cache
 ```
 
 ## Supported integration checkpoints
@@ -19,23 +19,23 @@ LongCat-Video:
 
 ```bash
 hf download meituan-longcat/LongCat-Video \
-  --local-dir "$QVG_CKPT_ROOT/LongCat-Video"
+  --local-dir "$SUBITKV_CKPT_ROOT/LongCat-Video"
 ```
 
 Self-Forcing and its Wan2.1 base model:
 
 ```bash
-QVG_CKPT_ROOT="$QVG_CKPT_ROOT" bash scripts/Self-Forcing/download_models.sh
+SUBITKV_CKPT_ROOT="$SUBITKV_CKPT_ROOT" bash scripts/Self-Forcing/download_models.sh
 ```
 
 HY-WorldPlay integration checkpoints:
 
 ```bash
-QVG_CKPT_ROOT="$QVG_CKPT_ROOT" bash scripts/HY-WorldPlay/download_models.sh
+SUBITKV_CKPT_ROOT="$SUBITKV_CKPT_ROOT" bash scripts/HY-WorldPlay/download_models.sh
 ```
 
 HY-WorldPlay also loads its configured pretrained model through Hugging Face;
-set `HF_HOME` or `QVG_CACHE_ROOT` to a volume with sufficient space.
+set `HF_HOME` or `SUBITKV_CACHE_ROOT` to a volume with sufficient space.
 
 ## Prompts and research data
 
@@ -49,11 +49,11 @@ that are not distributed in Git. Their preparation entrypoints include:
 
 Historical configurations may still record original `/data/bowen` evidence
 locations for auditability. They are unsupported snapshots, not portable
-entrypoints. New supported configurations must use `${QVG_DATA_ROOT}` and
-`${QVG_CODEBOOK_ROOT}`.
+entrypoints. New supported configurations must use `${SUBITKV_DATA_ROOT}` and
+`${SUBITKV_CODEBOOK_ROOT}`.
 
 The supported paper-main bundle lives at
-`${QVG_DATA_ROOT}/paper_main_v1` and is verified by a checked-in hash manifest.
+`${SUBITKV_DATA_ROOT}/paper_main_v1` and is verified by a checked-in hash manifest.
 See [the main-table guide](main_table_reproduction.md) for its exact layout and
 the create-only export command.
 

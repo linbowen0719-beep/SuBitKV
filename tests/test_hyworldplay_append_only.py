@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 import torch
 
-from quant_videogen.hyworldplay_append_only import (
+from subitkv.hyworldplay_append_only import (
     append_only_history_plan,
     append_vision_kv,
 )

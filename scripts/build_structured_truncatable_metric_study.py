@@ -1395,13 +1395,13 @@ def main() -> None:
     implementation_paths = {
         "builder_script": Path(__file__).resolve(),
         "structured_codec": (
-            REPO_ROOT / "quant_videogen" / "structured_truncatable.py"
+            REPO_ROOT / "subitkv" / "structured_truncatable.py"
         ),
         "quantvideo_prq": (
-            REPO_ROOT / "quant_videogen" / "real" / "prq.py"
+            REPO_ROOT / "subitkv" / "real" / "prq.py"
         ),
         "quantvideo_scalar_pack": (
-            REPO_ROOT / "quant_videogen" / "real" / "quant_pack.py"
+            REPO_ROOT / "subitkv" / "real" / "quant_pack.py"
         ),
         "critical_evaluator": (
             REPO_ROOT / "scripts" / "screen_structured_truncatable_residual.py"

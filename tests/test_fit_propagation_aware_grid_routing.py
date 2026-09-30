@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from quant_videogen.routed_gaussian import validate_routing_table
+from subitkv.routed_gaussian import validate_routing_table
 
 
 SCRIPT = (

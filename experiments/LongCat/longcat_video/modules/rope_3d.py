@@ -11,7 +11,7 @@ from einops import rearrange, repeat
 
 from ..context_parallel import context_parallel_util
 
-from quant_videogen.kernels.triton.rope import rope_forward
+from subitkv.kernels.triton.rope import rope_forward
 
 
 def broadcat(tensors, dim=-1):

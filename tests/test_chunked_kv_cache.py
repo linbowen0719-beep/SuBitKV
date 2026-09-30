@@ -3,12 +3,12 @@ from __future__ import annotations
 import torch
 import pytest
 
-from quant_videogen.kv_cache import ChunkedKVCache
-from quant_videogen.temporal_adaptive_residual import (
+from subitkv.kv_cache import ChunkedKVCache
+from subitkv.temporal_adaptive_residual import (
     create_b16_state,
     rvq_identity_is_valid,
 )
-from quant_videogen.uncompress import get_dequant_stats, reset_dequant_stats
+from subitkv.uncompress import get_dequant_stats, reset_dequant_stats
 
 
 @pytest.mark.parametrize("layout", ["BHSD", "BSHD"])

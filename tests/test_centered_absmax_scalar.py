@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 import torch
 
-from quant_videogen import centered_absmax_scalar as codec
+from subitkv import centered_absmax_scalar as codec
 
 
 @pytest.mark.parametrize("center_mode", ("mean", "midrange"))

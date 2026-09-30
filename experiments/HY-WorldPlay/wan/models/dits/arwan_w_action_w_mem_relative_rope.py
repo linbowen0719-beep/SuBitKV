@@ -66,7 +66,7 @@ except ImportError:
         return F.scaled_dot_product_attention(
             query, key, value, dropout_p=0.0, is_causal=is_causal
         )
-from quant_videogen.rvq import q_rvq_enabled, rvq_reconstruct_query
+from subitkv.rvq import q_rvq_enabled, rvq_reconstruct_query
 
 
 
@@ -923,10 +923,10 @@ class CausalCameraPRopeWanAttnProcessor2_0:
             )
             del key_pre_all, value_pre_all
 
-        if os.getenv("SUBBITKV_CALIBRATION_SETTINGS") and not is_cache and cache_key is not None:
+        if os.getenv("SUBITKV_CALIBRATION_SETTINGS") and not is_cache and cache_key is not None:
             if not pre_kv_reconstruct:
-                raise ValueError("SubBitKV teacher calibration requires pre-RoPE cache")
-            from quant_videogen.subbitkv.live_calibration import observe
+                raise ValueError("SuBitKV teacher calibration requires pre-RoPE cache")
+            from subitkv.pipeline.live_calibration import observe
             def positioned(history_k, history_v):
                 hkr = apply_rotary_emb(history_k, *cache_rotary_emb)
                 _, hkp, hvp, _ = prope_qkv(history_k, history_k, history_v,

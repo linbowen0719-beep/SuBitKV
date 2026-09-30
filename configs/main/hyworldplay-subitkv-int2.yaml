@@ -1,0 +1,56 @@
+schema_version: 1
+name: HY-WorldPlay INT2 baseline run
+experiment_id: hyworldplay-subitkv-int2
+suite: main
+model: hyworldplay
+description: Reproduce the public twelve-chunk HY-WorldPlay INT2 integration run.
+resources:
+  gpus: 1
+  min_vram_gib: 48
+  estimated_time: 2-6 hours
+inputs:
+  transformer: ${SUBITKV_CKPT_ROOT}/HY-WorldPlay/wan_transformer
+  distilled_checkpoint: ${SUBITKV_CKPT_ROOT}/HY-WorldPlay/wan_distilled_model/model.pt
+  image: ${SUBITKV_REPO_ROOT}/assets/hyworld.png
+required_commands: [torchrun]
+required_paths:
+  - ${SUBITKV_CKPT_ROOT}/HY-WorldPlay/wan_transformer
+  - ${SUBITKV_CKPT_ROOT}/HY-WorldPlay/wan_distilled_model/model.pt
+  - ${SUBITKV_REPO_ROOT}/assets/hyworld.png
+prepare_hint: SUBITKV_CKPT_ROOT="$SUBITKV_CKPT_ROOT" bash scripts/HY-WorldPlay/download_models.sh
+environment:
+  PYTHONPATH: ${SUBITKV_REPO_ROOT}:${SUBITKV_REPO_ROOT}/experiments/HY-WorldPlay
+  PYTORCH_ALLOC_CONF: expandable_segments:True
+  HYWORLDPLAY_OFFLOAD_FOR_DECODE: "1"
+  HYWORLDPLAY_OFFLOAD_KV_CACHE_FOR_DECODE: "1"
+steps:
+  - name: quantized_generation
+    command:
+      - torchrun
+      - --nproc_per_node=1
+      - --standalone
+      - ${SUBITKV_REPO_ROOT}/experiments/HY-WorldPlay/wan/generate.py
+      - --num_frames=961
+      - --input=A paved pathway leads toward a stone bridge in a peaceful garden.
+      - --image_path=${SUBITKV_REPO_ROOT}/assets/hyworld.png
+      - --num_chunk=12
+      - --pose=w-8,s-8,a-8,d-8,up-8,down-8
+      - --ar_model_path=${SUBITKV_CKPT_ROOT}/HY-WorldPlay/wan_transformer
+      - --ckpt_path=${SUBITKV_CKPT_ROOT}/HY-WorldPlay/wan_distilled_model/model.pt
+      - --offload_text_encoder
+      - --out=${SUBITKV_RUN_DIR}/qvg
+      - --memory_frames=48
+      - --temporal_context_size=44
+      - --pred_latent_size=4
+      - --quant_type=triton-nstages-kmeans-int2
+      - --quant_block_size=64
+      - --cache_num_k_centroids=256
+      - --cache_num_v_centroids=256
+      - --kmeans_max_iters=2
+      - --num_prq_stages=1
+expected_artifacts:
+  - qvg/*.mp4
+provenance:
+  seed: 0
+  prompt_list:
+    - inline:hyworldplay-main

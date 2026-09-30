@@ -27,13 +27,13 @@ cp .env.example .env
 至少设置以下绝对路径：
 
 ```bash
-QVG_DATA_ROOT=/shared/iclr2026/data
-QVG_OUTPUT_ROOT=/shared/iclr2026/results
-QVG_MOVIEGEN_ROOT=/datasets/movie_gen_video_bench
-QVG_HY8B_MODEL=/checkpoints/HunyuanVideo-1.5
-QVG_HY_ACTION_CKPT=/checkpoints/HY-WorldPlay/ar_distilled_action_model/model.safetensors
-QVG_PYTHON=/envs/hyworldplay/bin/python
-QVG_VBENCH=/envs/vbench/bin/vbench
+SUBITKV_DATA_ROOT=/shared/iclr2026/data
+SUBITKV_OUTPUT_ROOT=/shared/iclr2026/results
+SUBITKV_MOVIEGEN_ROOT=/datasets/movie_gen_video_bench
+SUBITKV_HY8B_MODEL=/checkpoints/HunyuanVideo-1.5
+SUBITKV_HY_ACTION_CKPT=/checkpoints/HY-WorldPlay/ar_distilled_action_model/model.safetensors
+SUBITKV_PYTHON=/envs/hyworldplay/bin/python
+SUBITKV_VBENCH=/envs/vbench/bin/vbench
 ```
 
 检查工具、checkpoint 和 GPU：
@@ -84,7 +84,7 @@ python scripts/main/hyworldplay_i2v.py \
 5. 从同一校准产物各自通过 MILP 冻结容量 10/20/30/40 的 avg1/2/3/4
    K/V profile；旧 span 只能降精度，终态必须恰好用满容量。
 
-所有 codebook、capture、profile 都位于 `QVG_DATA_ROOT`，被 `.gitignore`
+所有 codebook、capture、profile 都位于 `SUBITKV_DATA_ROOT`，被 `.gitignore`
 排除。每个阶段有 create-only `run_info.json` 和 SHA-256。
 
 ## 5. dev10 gate
@@ -164,6 +164,6 @@ python scripts/main/hyworldplay_i2v.py \
 ```
 
 正式输出在
-`${QVG_OUTPUT_ROOT}/hyworldplay-moviegen-i2v-20-973/<run-id>/`；训练资产在
-`${QVG_DATA_ROOT}/hyworldplay-moviegen-i2v-20-973/artifacts/`。视频、KV dump、
+`${SUBITKV_OUTPUT_ROOT}/hyworldplay-moviegen-i2v-20-973/<run-id>/`；训练资产在
+`${SUBITKV_DATA_ROOT}/hyworldplay-moviegen-i2v-20-973/artifacts/`。视频、KV dump、
 checkpoint、codebook、结果和日志均不进入 Git。

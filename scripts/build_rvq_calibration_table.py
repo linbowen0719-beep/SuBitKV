@@ -19,8 +19,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from quant_videogen.compress import _k_query_block_scale, _v_attention_block_scale
-from quant_videogen.rvq import _compute_dtype, rvq_dequantize_tensor_cache, rvq_encode_tensor_cache
+from subitkv.compress import _k_query_block_scale, _v_attention_block_scale
+from subitkv.rvq import _compute_dtype, rvq_dequantize_tensor_cache, rvq_encode_tensor_cache
 
 
 def parse_csv_ints(raw: str) -> list[int]:

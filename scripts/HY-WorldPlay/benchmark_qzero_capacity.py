@@ -21,7 +21,7 @@ import time
 
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO))
-from quant_videogen.hyworldplay8b_cache_codec import QZERO_LONG_PROFILE_SCHEMA, load_avg2_profile
+from subitkv.hyworldplay8b_cache_codec import QZERO_LONG_PROFILE_SCHEMA, load_avg2_profile
 from scripts.main.hyworldplay_i2v import SUBBIT_SCHEDULES
 
 
@@ -97,7 +97,7 @@ def main():
         git_diff_hash=hashlib.sha256(diff).hexdigest(),hostname=socket.gethostname(),
         timestamp=datetime.now(timezone.utc).isoformat(),
         source_hashes={str(p.relative_to(REPO)):sha(p) for p in (
-            Path(__file__).resolve(),REPO/'quant_videogen/hyworldplay8b_cache_codec.py',
+            Path(__file__).resolve(),REPO/'subitkv/hyworldplay8b_cache_codec.py',
             REPO/'tests/test_hyworldplay_qzero_capacity.py')})
     for stale in ('scope','video_frames','launcher_hash'):
         info.pop(stale,None)

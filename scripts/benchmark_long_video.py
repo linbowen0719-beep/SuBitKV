@@ -40,7 +40,7 @@ DEFAULT_VBENCH_DIMS = [
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from quant_videogen.rvq import rvq_codebook_directory_metadata  # noqa: E402
+from subitkv.rvq import rvq_codebook_directory_metadata  # noqa: E402
 
 
 @dataclass(frozen=True)

@@ -85,7 +85,7 @@ from hyvideo.utils.retrieval_context import (
     generate_points_in_sphere,
     select_aligned_memory_frames,
 )
-from quant_videogen.hyworldplay_append_only import append_only_history_plan
+from subitkv.hyworldplay_append_only import append_only_history_plan
 
 
 from .pipeline_utils import retrieve_timesteps, rescale_noise_cfg
@@ -1561,7 +1561,7 @@ class HunyuanVideo_1_5_Pipeline(DiffusionPipeline):
             "rvq_ours_avg0p2_alt",
             "rvq_ours_avg0p5",
         }:
-            from quant_videogen.hyworldplay8b_cache_codec import (
+            from subitkv.hyworldplay8b_cache_codec import (
                 validate_avg2_terminal_budget,
             )
 

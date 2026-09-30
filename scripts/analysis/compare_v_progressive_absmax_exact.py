@@ -35,8 +35,8 @@ for entry in (REPO_ROOT, SCRIPT_DIR, ANALYSIS_DIR):
 import compare_k_gaussian_absmax_exact as infra  # noqa: E402
 import evaluate_r2aq_exact_attention as exact  # noqa: E402
 import evaluate_sfbr_train_marginals as replay  # noqa: E402
-from quant_videogen import progressive_sign_adaptive_absmax_scalar as progressive  # noqa: E402
-from quant_videogen.sign_adaptive_absmax_scalar import (  # noqa: E402
+from subitkv import progressive_sign_adaptive_absmax_scalar as progressive  # noqa: E402
+from subitkv.sign_adaptive_absmax_scalar import (  # noqa: E402
     decode_sign_adaptive_absmax_scalar_residual,
     encode_sign_adaptive_absmax_scalar_residual,
 )

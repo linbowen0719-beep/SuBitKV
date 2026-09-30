@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 import torch
 
-import quant_videogen.structured_truncatable as structured
+import subitkv.structured_truncatable as structured
 from scripts import screen_structured_temporal_prefix_exact_attention as screen
 
 

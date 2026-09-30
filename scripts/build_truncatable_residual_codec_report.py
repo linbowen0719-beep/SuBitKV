@@ -45,11 +45,11 @@ DEFAULT_REPORT = (
     REPO_ROOT / "docs" / "wan2_2_5b_truncatable_residual_codec_benchmark_zh.md"
 )
 IMPLEMENTATION_SNAPSHOT_PATHS = (
-    REPO_ROOT / "quant_videogen" / "truncatable_residual.py",
-    REPO_ROOT / "quant_videogen" / "rvq.py",
-    REPO_ROOT / "quant_videogen" / "kernels" / "triton" / "rvq.py",
-    REPO_ROOT / "quant_videogen" / "compress.py",
-    REPO_ROOT / "quant_videogen" / "uncompress.py",
+    REPO_ROOT / "subitkv" / "truncatable_residual.py",
+    REPO_ROOT / "subitkv" / "rvq.py",
+    REPO_ROOT / "subitkv" / "kernels" / "triton" / "rvq.py",
+    REPO_ROOT / "subitkv" / "compress.py",
+    REPO_ROOT / "subitkv" / "uncompress.py",
     REPO_ROOT / "scripts" / "run_fixed_budget_rvq_screen.py",
     REPO_ROOT / "scripts" / "eval" / "run_small_eval.py",
     REPO_ROOT / "scripts" / "run_truncatable_residual_codec_bench.py",

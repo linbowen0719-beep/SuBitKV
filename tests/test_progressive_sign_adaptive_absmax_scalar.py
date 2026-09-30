@@ -3,11 +3,11 @@ from __future__ import annotations
 import pytest
 import torch
 
-from quant_videogen import compress, uncompress
-from quant_videogen import progressive_sign_adaptive_absmax_scalar as progressive
-from quant_videogen import sign_adaptive_absmax_scalar as leaf
-from quant_videogen.sim.quant.quantize_config import QuantizeConfig
-from quant_videogen.kernels.triton.rvq import rvq_decode_bhsd_triton
+from subitkv import compress, uncompress
+from subitkv import progressive_sign_adaptive_absmax_scalar as progressive
+from subitkv import sign_adaptive_absmax_scalar as leaf
+from subitkv.sim.quant.quantize_config import QuantizeConfig
+from subitkv.kernels.triton.rvq import rvq_decode_bhsd_triton
 
 
 @pytest.mark.parametrize(

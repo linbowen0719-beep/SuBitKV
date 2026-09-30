@@ -18,7 +18,7 @@ import time
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT))
 from scripts.main.hyworldplay_i2v import SUBBIT_SCHEDULES
-from quant_videogen.hyworldplay8b_cache_codec import load_avg2_profile
+from subitkv.hyworldplay8b_cache_codec import load_avg2_profile
 DATA=Path('/data/bowen/hyworldplay_moviegen_rvq_avg2_20260824T193800Z')
 PYTHON='/home/bowen/anaconda3/envs/longcat-official/bin/python'
 METHODS=('bf16','ours_rvq_avg0','ours_rvq_avg0p2_alt','ours_rvq_avg0p5','ours_rvq_avg1','ours_rvq_avg2','ours_rvq_avg4')
@@ -47,7 +47,7 @@ def main(a):
         failures='retain failed/OOM runs; never enable KV offload as fallback; no mean without three successes',
         prior_bf16_oom=str(a.prior_bf16_oom) if a.prior_bf16_oom else None)
     write(root/'config.json',config)
-    source_files=[Path(__file__).resolve(),ROOT/'scripts/HY-WorldPlay/run_moviegen_i2v_job.py',ROOT/'quant_videogen/hyworldplay8b_cache_codec.py',ROOT/'experiments/HY-WorldPlay/hyvideo/generate.py',ROOT/'experiments/HY-WorldPlay/hyvideo/models/transformers/worldplay_1_5_transformer.py']
+    source_files=[Path(__file__).resolve(),ROOT/'scripts/HY-WorldPlay/run_moviegen_i2v_job.py',ROOT/'subitkv/hyworldplay8b_cache_codec.py',ROOT/'experiments/HY-WorldPlay/hyvideo/generate.py',ROOT/'experiments/HY-WorldPlay/hyvideo/models/transformers/worldplay_1_5_transformer.py']
     inherited=json.loads(Path('/data/bowen/hy_fixed_two_capacity_20260911_attempt01/run_info.json').read_text())
     info={**inherited,'git_commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
         'hostname':socket.gethostname(),'timestamp':datetime.now(timezone.utc).isoformat(),'seed':123,
@@ -103,7 +103,7 @@ def main(a):
             cache=root/'jit_cache'/method;cache.mkdir(parents=True,exist_ok=True)
             env=dict(os.environ,PYTHONPATH=str(ROOT),OMP_NUM_THREADS='2',MKL_NUM_THREADS='2',OPENBLAS_NUM_THREADS='2',
                 HYWORLDPLAY_RVQ_RELATIVE_STOP_FAST_APPROXIMATE='1',HYWORLDPLAY_RVQ_RELATIVE_STOP_MONOLITHIC_EXACT='0',
-                HYWORLDPLAY_RVQ_MONOLITHIC_EXACT_AUDIT='0',QVG_HY_CACHE_DECODE_PREFETCH='0',
+                HYWORLDPLAY_RVQ_MONOLITHIC_EXACT_AUDIT='0',SUBITKV_HY_CACHE_DECODE_PREFETCH='0',
                 TRITON_CACHE_DIR=str(cache/'triton'),TORCHINDUCTOR_CACHE_DIR=str(cache/'inductor'))
             print(f'START round={round_index} method={method} GPU={gpu}',flush=True)
             start=time.perf_counter()

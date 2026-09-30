@@ -96,7 +96,7 @@ def gpu_state() -> dict[int, tuple[int, int]]:
 
 
 def acquire(gpu: int) -> IO[str] | None:
-    path = Path(f"/tmp/quant_videogen_self_forcing_gpu_{gpu}.lock")
+    path = Path(f"/tmp/subitkv_self_forcing_gpu_{gpu}.lock")
     lease = path.open("a+", encoding="utf-8")
     try:
         fcntl.flock(lease.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)

@@ -4,8 +4,8 @@ import itertools
 
 import pytest
 
-from quant_videogen.cache_budget import ResidualBudget, rvq_schedule_budget
-from quant_videogen.subbitkv.common import REPO, load_config
+from subitkv.cache_budget import ResidualBudget, rvq_schedule_budget
+from subitkv.pipeline.common import REPO, load_config
 
 
 def test_subtract_base_bytes_before_flooring():
@@ -34,7 +34,7 @@ def test_serialized_capacity_cannot_ignore_base():
 
 @pytest.mark.parametrize("model", ["wan2_2_5b", "self_forcing", "hyworldplay_8b"])
 def test_reservation_uses_uint8_indices_and_retains_terminal_budget(model):
-    cfg = load_config(REPO / "configs/subbitkv.yaml", model, "smoke")
+    cfg = load_config(REPO / "configs/subitkv.yaml", model, "smoke")
     budget = rvq_schedule_budget(cfg, 2)
     assert budget.capacities == tuple(range(11, 1, -1))
     assert budget.base_bytes_by_step[0] == budget.chunk_elements // 8 + 1
@@ -50,7 +50,7 @@ def test_reservation_uses_uint8_indices_and_retains_terminal_budget(model):
 
 def test_milp_matches_exhaustive_search_with_shrinking_capacity():
     pytest.importorskip("scipy")
-    from quant_videogen.subbitkv.calibration import solve_schedule
+    from subitkv.pipeline.calibration import solve_schedule
 
     bits = (16, 8, 4, 3, 2, 1, 0)
     raw = dict(
@@ -89,7 +89,7 @@ def test_milp_matches_exhaustive_search_with_shrinking_capacity():
 
 def test_online_dp_respects_remaining_capacity_after_base():
     pytest.importorskip("torch")
-    from quant_videogen.temporal_adaptive_residual import (
+    from subitkv.temporal_adaptive_residual import (
         DistortionProfile,
         schedule_precisions,
     )
@@ -105,7 +105,7 @@ def test_online_dp_respects_remaining_capacity_after_base():
 
 def test_historical_weights_need_no_invented_b0_distortion():
     pytest.importorskip("scipy")
-    from quant_videogen.subbitkv.calibration import solve_schedule
+    from subitkv.pipeline.calibration import solve_schedule
 
     bits = (16, 8, 4, 3, 2, 1)
     raw = dict(age_weights=[2, 1], distortions={str(b): 1 / (b + 1) for b in bits})

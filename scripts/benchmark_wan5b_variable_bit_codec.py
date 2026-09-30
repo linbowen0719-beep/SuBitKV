@@ -22,7 +22,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from quant_videogen.variable_bit_codec import (  # noqa: E402
+from subitkv.variable_bit_codec import (  # noqa: E402
     cardinality_bits,
     pack_variable_indices,
     unpack_variable_indices,
@@ -166,7 +166,7 @@ def main() -> None:
     prompt_source = Path(cfg["prompt_list_source"])
     prompt_record = json.loads(prompt_source.read_text(encoding="utf-8"))
     prompt_list = [str(item["prompt"]) for item in prompt_record["train"]]
-    code_path = REPO_ROOT / "quant_videogen" / "variable_bit_codec.py"
+    code_path = REPO_ROOT / "subitkv" / "variable_bit_codec.py"
     run_info = {
         "git_commit": git_commit(),
         "config_path": str(cfg_path.resolve()),

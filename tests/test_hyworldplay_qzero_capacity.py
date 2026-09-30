@@ -1,7 +1,7 @@
 import importlib.util
 from pathlib import Path
 import pytest
-from quant_videogen.hyworldplay8b_cache_codec import load_avg2_profile
+from subitkv.hyworldplay8b_cache_codec import load_avg2_profile
 from test_hyworldplay_fixed_two_capacity import profile_payload
 
 def driver():

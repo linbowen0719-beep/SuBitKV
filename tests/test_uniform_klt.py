@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 import torch
 
-from quant_videogen import uniform_klt
+from subitkv import uniform_klt
 
 
 def _params(heads: int = 2, dim: int = 8, rank: int = 2) -> dict:

@@ -3,7 +3,7 @@ from types import SimpleNamespace
 import pytest
 import torch
 
-from quant_videogen.rng import (
+from subitkv.rng import (
     compression_uses_online_rng,
     preserve_torch_rng_state,
 )

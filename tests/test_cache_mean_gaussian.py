@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import torch
 
-from quant_videogen import cache_mean_gaussian as codec
+from subitkv import cache_mean_gaussian as codec
 
 
 def _route() -> dict:

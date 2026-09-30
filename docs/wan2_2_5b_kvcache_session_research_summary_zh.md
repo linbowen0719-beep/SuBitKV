@@ -259,7 +259,7 @@ full 配置哈希前缀：`997bd69...`
 相关文件：
 
 ```text
-quant_videogen/variable_bit_codec.py
+subitkv/variable_bit_codec.py
 scripts/benchmark_wan5b_variable_bit_codec.py
 tests/test_variable_bit_codec.py
 results/analysis/wan5b_rvq_mechanisms_p1_variable_bit_codec

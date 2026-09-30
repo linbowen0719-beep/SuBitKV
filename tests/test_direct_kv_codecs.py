@@ -2,26 +2,26 @@ from __future__ import annotations
 
 import torch
 
-from quant_videogen.direct_bitpacking import (
+from subitkv.direct_bitpacking import (
     pack_unsigned_bitplanes,
     tensor_nbytes,
     unpack_unsigned_bitplanes,
 )
-from quant_videogen.compress import compress_kv_cache, get_quantize_fn
-from quant_videogen.kivi import (
+from subitkv.compress import compress_kv_cache, get_quantize_fn
+from subitkv.kivi import (
     decode_kivi_tensor,
     encode_kivi_tensor,
     payload_nbytes as kivi_payload_nbytes,
 )
-from quant_videogen.turboquant import (
+from subitkv.turboquant import (
     decode_turboquant,
     encode_turboquant_mse,
     encode_turboquant_prod,
     payload_nbytes as turboquant_payload_nbytes,
     shared_parameter_manifest,
 )
-from quant_videogen.sim.quant.quantize_config import QuantizeConfig
-from quant_videogen.uncompress import uncompress_kv_cache
+from subitkv.sim.quant.quantize_config import QuantizeConfig
+from subitkv.uncompress import uncompress_kv_cache
 
 
 def _mse(reference: torch.Tensor, candidate: torch.Tensor) -> float:

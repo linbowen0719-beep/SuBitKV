@@ -16,7 +16,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from quant_videogen.rvq import _codebook_level, _compute_dtype, _input_norm_mode, load_layer_codebooks_from_dir
+from subitkv.rvq import _codebook_level, _compute_dtype, _input_norm_mode, load_layer_codebooks_from_dir
 
 
 def parse_csv_ints(raw: str) -> list[int]:

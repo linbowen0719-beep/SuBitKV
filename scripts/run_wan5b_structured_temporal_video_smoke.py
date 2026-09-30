@@ -38,7 +38,7 @@ from run_wan5b_h5_recent_static_smoke import (  # noqa: E402
     prompts,
     sha256_file,
 )
-from quant_videogen.temporal_structured_residual import (  # noqa: E402
+from subitkv.temporal_structured_residual import (  # noqa: E402
     FORMAL_PHYSICAL_D128_SHARED_CODEBOOK_BYTES,
     STRUCTURED_TEMPORAL_KV_POLICY_31114,
     STRUCTURED_TEMPORAL_KV_POLICY_31114_PEAK_SAFE,
@@ -64,21 +64,21 @@ GENERATION_CHUNKS_PER_SPAN = 2
 LATENT_FRAMES_PER_SPAN = 8
 TOKENS_PER_SPAN = 7040
 SOURCE_FILES = (
-    REPO_ROOT / "quant_videogen" / "temporal_structured_residual.py",
-    REPO_ROOT / "quant_videogen" / "temporal_prefix_policy.py",
-    REPO_ROOT / "quant_videogen" / "structured_truncatable.py",
+    REPO_ROOT / "subitkv" / "temporal_structured_residual.py",
+    REPO_ROOT / "subitkv" / "temporal_prefix_policy.py",
+    REPO_ROOT / "subitkv" / "structured_truncatable.py",
     REPO_ROOT
-    / "quant_videogen"
+    / "subitkv"
     / "kernels"
     / "triton"
     / "structured_truncatable.py",
-    REPO_ROOT / "quant_videogen" / "truncatable_residual.py",
-    REPO_ROOT / "quant_videogen" / "rvq.py",
-    REPO_ROOT / "quant_videogen" / "kv_cache.py",
-    REPO_ROOT / "quant_videogen" / "uncompress.py",
-    REPO_ROOT / "quant_videogen" / "compress.py",
+    REPO_ROOT / "subitkv" / "truncatable_residual.py",
+    REPO_ROOT / "subitkv" / "rvq.py",
+    REPO_ROOT / "subitkv" / "kv_cache.py",
+    REPO_ROOT / "subitkv" / "uncompress.py",
+    REPO_ROOT / "subitkv" / "compress.py",
     REPO_ROOT
-    / "quant_videogen"
+    / "subitkv"
     / "sim"
     / "quant"
     / "quantize_config.py",
@@ -93,7 +93,7 @@ SOURCE_FILES = (
     Path(__file__).resolve(),
 )
 EXECUTION_SOURCE_ROOTS = (
-    REPO_ROOT / "quant_videogen",
+    REPO_ROOT / "subitkv",
     REPO_ROOT / "experiments" / "HY-WorldPlay",
 )
 

@@ -41,15 +41,15 @@ export HF_HOME="${DATA_ROOT}/cache/huggingface"
 export MODELSCOPE_CACHE="${DATA_ROOT}/cache/modelscope"
 mkdir -p "${HF_HOME}" "${MODELSCOPE_CACHE}"
 
-TE="${QVG_HY8B_MODEL}/text_encoder"
+TE="${SUBITKV_HY8B_MODEL}/text_encoder"
 mkdir -p "${TE}"
 echo "job: ${PBS_JOBID}  host: $(hostname -s)  $(date)"
 
 # Exactly the three commands in HunyuanVideo-1.5's checkpoints-download.md,
 # pointed at this model root.  Both CLIs resume, so re-running is a no-op
 # check once the files are present.
-HF="${QVG_VENV}/bin/hf"; [ -x "${HF}" ] || HF="${QVG_VENV}/bin/huggingface-cli"
-MS="${QVG_VENV}/bin/modelscope"
+HF="${SUBITKV_VENV}/bin/hf"; [ -x "${HF}" ] || HF="${SUBITKV_VENV}/bin/huggingface-cli"
+MS="${SUBITKV_VENV}/bin/modelscope"
 
 echo "=== 1/3 hf download Qwen/Qwen2.5-VL-7B-Instruct -> text_encoder/llm ==="
 "${HF}" download Qwen/Qwen2.5-VL-7B-Instruct --local-dir "${TE}/llm"

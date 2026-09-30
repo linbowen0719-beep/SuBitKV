@@ -11,8 +11,8 @@ from .blocks import RMSNorm_FP32
 from ..block_sparse_attention.bsa_interface import flash_attn_bsa_3d
 from ..context_parallel.ulysses_wrapper import ulysses_wrapper
 
-from quant_videogen.timer import time_logging_decorator
-from quant_videogen.uncompress import uncompress_kv_cache
+from subitkv.timer import time_logging_decorator
+from subitkv.uncompress import uncompress_kv_cache
 
 
 class Attention(nn.Module):

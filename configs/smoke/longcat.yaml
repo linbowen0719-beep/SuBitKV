@@ -9,44 +9,44 @@ resources:
   min_vram_gib: 80
   estimated_time: 20-40 minutes
 inputs:
-  checkpoint: ${QVG_CKPT_ROOT}/LongCat-Video
-  prompt_file: ${QVG_REPO_ROOT}/assets/t2v_smoke.txt
+  checkpoint: ${SUBITKV_CKPT_ROOT}/LongCat-Video
+  prompt_file: ${SUBITKV_REPO_ROOT}/assets/t2v_smoke.txt
 required_commands: [torchrun]
 required_paths:
-  - ${QVG_CKPT_ROOT}/LongCat-Video
-  - ${QVG_REPO_ROOT}/assets/t2v_smoke.txt
-prepare_hint: hf download meituan-longcat/LongCat-Video --local-dir "$QVG_CKPT_ROOT/LongCat-Video"
+  - ${SUBITKV_CKPT_ROOT}/LongCat-Video
+  - ${SUBITKV_REPO_ROOT}/assets/t2v_smoke.txt
+prepare_hint: hf download meituan-longcat/LongCat-Video --local-dir "$SUBITKV_CKPT_ROOT/LongCat-Video"
 environment:
-  PYTHONPATH: ${QVG_REPO_ROOT}/experiments/LongCat:${QVG_REPO_ROOT}
+  PYTHONPATH: ${SUBITKV_REPO_ROOT}/experiments/LongCat:${SUBITKV_REPO_ROOT}
 steps:
   - name: initial_clip
     command:
       - torchrun
       - --nproc_per_node=1
       - --standalone
-      - ${QVG_REPO_ROOT}/experiments/LongCat/run_long_t2v.py
-      - --checkpoint_dir=${QVG_CKPT_ROOT}/LongCat-Video
+      - ${SUBITKV_REPO_ROOT}/experiments/LongCat/run_long_t2v.py
+      - --checkpoint_dir=${SUBITKV_CKPT_ROOT}/LongCat-Video
       - --workload=480p_init
-      - --output_dir=${QVG_RUN_DIR}/base
+      - --output_dir=${SUBITKV_RUN_DIR}/base
       - --seed=0
       - --prompt_source=text_to_video_from_file
-      - --prompt=${QVG_REPO_ROOT}/assets/t2v_smoke.txt
+      - --prompt=${SUBITKV_REPO_ROOT}/assets/t2v_smoke.txt
       - --prompt_idx=0
   - name: quantized_continuation
     command:
       - torchrun
       - --nproc_per_node=1
       - --standalone
-      - ${QVG_REPO_ROOT}/experiments/LongCat/run_long_t2v.py
-      - --checkpoint_dir=${QVG_CKPT_ROOT}/LongCat-Video
+      - ${SUBITKV_REPO_ROOT}/experiments/LongCat/run_long_t2v.py
+      - --checkpoint_dir=${SUBITKV_CKPT_ROOT}/LongCat-Video
       - --workload=480p_long_gen
-      - --init_video_path=${QVG_RUN_DIR}/base/0-0.mp4
-      - --output_dir=${QVG_RUN_DIR}/qvg
+      - --init_video_path=${SUBITKV_RUN_DIR}/base/0-0.mp4
+      - --output_dir=${SUBITKV_RUN_DIR}/qvg
       - --num_segments=1
       - --num_cond_frames=73
       - --seed=0
       - --prompt_source=text_to_video_from_file
-      - --prompt=${QVG_REPO_ROOT}/assets/t2v_smoke.txt
+      - --prompt=${SUBITKV_REPO_ROOT}/assets/t2v_smoke.txt
       - --prompt_idx=0
       - --quant_type=triton-nstages-kmeans-int2
       - --quant_block_size=64

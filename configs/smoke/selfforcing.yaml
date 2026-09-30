@@ -9,17 +9,17 @@ resources:
   min_vram_gib: 40
   estimated_time: 10-20 minutes
 inputs:
-  base_model: ${QVG_CKPT_ROOT}/Self-Forcing/Wan2.1-T2V-1.3B
-  checkpoint: ${QVG_CKPT_ROOT}/Self-Forcing/self_forcing_dmd.pt
-  prompt_file: ${QVG_REPO_ROOT}/assets/t2v_smoke.txt
+  base_model: ${SUBITKV_CKPT_ROOT}/Self-Forcing/Wan2.1-T2V-1.3B
+  checkpoint: ${SUBITKV_CKPT_ROOT}/Self-Forcing/self_forcing_dmd.pt
+  prompt_file: ${SUBITKV_REPO_ROOT}/assets/t2v_smoke.txt
 required_commands: [torchrun]
 required_paths:
-  - ${QVG_CKPT_ROOT}/Self-Forcing/Wan2.1-T2V-1.3B
-  - ${QVG_CKPT_ROOT}/Self-Forcing/self_forcing_dmd.pt
-  - ${QVG_REPO_ROOT}/assets/t2v_smoke.txt
-prepare_hint: QVG_CKPT_ROOT="$QVG_CKPT_ROOT" bash scripts/Self-Forcing/download_models.sh
+  - ${SUBITKV_CKPT_ROOT}/Self-Forcing/Wan2.1-T2V-1.3B
+  - ${SUBITKV_CKPT_ROOT}/Self-Forcing/self_forcing_dmd.pt
+  - ${SUBITKV_REPO_ROOT}/assets/t2v_smoke.txt
+prepare_hint: SUBITKV_CKPT_ROOT="$SUBITKV_CKPT_ROOT" bash scripts/Self-Forcing/download_models.sh
 environment:
-  PYTHONPATH: ${QVG_REPO_ROOT}/experiments/Self-Forcing:${QVG_REPO_ROOT}
+  PYTHONPATH: ${SUBITKV_REPO_ROOT}/experiments/Self-Forcing:${SUBITKV_REPO_ROOT}
   DUMP_KV_LEVEL: "0"
 steps:
   - name: quantized_generation
@@ -27,11 +27,11 @@ steps:
       - torchrun
       - --nproc_per_node=1
       - --standalone
-      - ${QVG_REPO_ROOT}/experiments/Self-Forcing/inference.py
-      - --config_path=${QVG_REPO_ROOT}/experiments/Self-Forcing/configs/self_forcing_dmd.yaml
-      - --checkpoint_path=${QVG_CKPT_ROOT}/Self-Forcing/self_forcing_dmd.pt
-      - --data_path=${QVG_REPO_ROOT}/assets/t2v_smoke.txt
-      - --output_folder=${QVG_RUN_DIR}/qvg
+      - ${SUBITKV_REPO_ROOT}/experiments/Self-Forcing/inference.py
+      - --config_path=${SUBITKV_REPO_ROOT}/experiments/Self-Forcing/configs/self_forcing_dmd.yaml
+      - --checkpoint_path=${SUBITKV_CKPT_ROOT}/Self-Forcing/self_forcing_dmd.pt
+      - --data_path=${SUBITKV_REPO_ROOT}/assets/t2v_smoke.txt
+      - --output_folder=${SUBITKV_RUN_DIR}/qvg
       - --num_samples=1
       - --num_output_frames=21
       - --local_attn_size=21

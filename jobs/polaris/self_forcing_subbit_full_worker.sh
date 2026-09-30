@@ -14,10 +14,10 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export http_proxy=http://proxy.alcf.anl.gov:3128 https_proxy=http://proxy.alcf.anl.gov:3128
 export HTTP_PROXY="${http_proxy}" HTTPS_PROXY="${https_proxy}"
 
-PY="${QVG_VENV}/bin/python"
-BUNDLE="${QVG_DATA_ROOT}/paper_main_polaris_v1"
-OUT="${QVG_OUTPUT_ROOT}/self_forcing_rvq_subbit_20260904d"
-SHARDS="${QVG_NUM_SHARDS:-10}"
+PY="${SUBITKV_VENV}/bin/python"
+BUNDLE="${SUBITKV_DATA_ROOT}/paper_main_polaris_v1"
+OUT="${SUBITKV_OUTPUT_ROOT}/self_forcing_rvq_subbit_20260904d"
+SHARDS="${SUBITKV_NUM_SHARDS:-10}"
 PER_RANK=$(((1003 + SHARDS - 1) / SHARDS))
 START=$((RANK * PER_RANK))
 STOP=$((START + PER_RANK))
@@ -30,7 +30,7 @@ V_HASH=$("${PY}" -c "import json; print(json.load(open('${BUNDLE}/manifest.json'
   --methods adaptive_temporal_avg0,adaptive_temporal_avg0p2_alt,adaptive_temporal_avg0p5 \
   --prompt-file "${CODE_ROOT}/assets/MovieGenVideoBench.txt" --seed 0 \
   --model-config "${CODE_ROOT}/experiments/Self-Forcing/configs/self_forcing_dmd.yaml" \
-  --checkpoint "${QVG_CKPT_ROOT}/Self-Forcing/self_forcing_dmd.pt" \
+  --checkpoint "${SUBITKV_CKPT_ROOT}/Self-Forcing/self_forcing_dmd.pt" \
   --k-codebooks "${BUNDLE}/self_forcing/nonorm_k_l16c64_codebooks" \
   --v-codebooks "${BUNDLE}/self_forcing/nonorm_v_l16c64_codebooks" \
   --k-codebook-hash "${K_HASH}" --v-codebook-hash "${V_HASH}" \

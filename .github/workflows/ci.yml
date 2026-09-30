@@ -20,17 +20,17 @@ jobs:
           python -m pip install "PyYAML>=6" "pytest>=8"
       - name: Validate package and supported configs
         run: |
-          python -c "import quant_videogen"
+          python -c "import subitkv"
           python scripts/reproduce.py list
-          python -m compileall -q quant_videogen scripts/reproduce.py
+          python -m compileall -q subitkv scripts/reproduce.py
       - name: Run CPU reproduction tests
-        run: pytest -q tests/test_reproduce.py tests/test_repository_hygiene.py tests/test_subbitkv.py tests/test_cache_budget.py tests/test_subbitkv_schedule.py tests/test_wan_smoke_compat.py
+        run: pytest -q tests/test_reproduce.py tests/test_repository_hygiene.py tests/test_subitkv.py tests/test_cache_budget.py tests/test_subitkv_schedule.py tests/test_wan_smoke_compat.py
       - name: Generate a schedule without model dependencies
-        run: python -S scripts/subbitkv_schedule.py --budget 0.5
+        run: python -S scripts/subitkv_schedule.py --budget 0.5
       - name: Validate public workflow for every model
         run: |
           for model in wan2_2_5b self_forcing hyworldplay_8b; do
             for stage in download-models collect calibrate infer metrics; do
-              python scripts/subbitkv.py "$stage" --model "$model"
+              python scripts/run_subitkv.py "$stage" --model "$model"
             done
           done

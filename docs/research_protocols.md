@@ -1,6 +1,6 @@
 # Historical research protocols
 
-[Back to README](../README.md) · [Five-stage workflow](subbitkv.md)
+[Back to README](../README.md) · [Five-stage workflow](subitkv.md)
 
 These entrypoints reproduce the frozen MovieGen research experiments. They use
 separate configurations and asset bundles from the five-stage workflow.
@@ -43,12 +43,12 @@ cp .env.example .env
 Set paths for your machine in `.env`, for example:
 
 ```bash
-QVG_CKPT_ROOT=/shared/checkpoints/subbitkv
-QVG_DATA_ROOT=/shared/data/subbitkv
-QVG_CODEBOOK_ROOT=/shared/codebooks/subbitkv
-QVG_OUTPUT_ROOT=/shared/results/subbitkv
-QVG_CACHE_ROOT=/shared/cache/subbitkv
-HF_HOME=/shared/cache/subbitkv/huggingface
+SUBITKV_CKPT_ROOT=/shared/checkpoints/subitkv
+SUBITKV_DATA_ROOT=/shared/data/subitkv
+SUBITKV_CODEBOOK_ROOT=/shared/codebooks/subitkv
+SUBITKV_OUTPUT_ROOT=/shared/results/subitkv
+SUBITKV_CACHE_ROOT=/shared/cache/subitkv
+HF_HOME=/shared/cache/subitkv/huggingface
 ```
 
 `.env`, checkpoints, codebooks, KV dumps, videos, and generated results are
@@ -64,7 +64,7 @@ bash scripts/Self-Forcing/download_models.sh
 Expected layout:
 
 ```text
-${QVG_CKPT_ROOT}/
+${SUBITKV_CKPT_ROOT}/
 ├── HY-WorldPlay/
 │   ├── wan_transformer/config.json
 │   ├── wan_transformer/diffusion_pytorch_model.safetensors
@@ -104,7 +104,7 @@ produce its fixed routing, tree, and temporal profile. Obtain or assemble the
 matching assets according to the [main table guide](main_table_reproduction.md):
 
 ```text
-${QVG_DATA_ROOT}/paper_main_v1/
+${SUBITKV_DATA_ROOT}/paper_main_v1/
 ├── manifest.json
 ├── shared/
 │   ├── tree_params.pt
@@ -168,7 +168,7 @@ references, VBench-10, physical KV compression, end-to-end and encode/decode
 timing, peak GPU memory, and payload MiB. Aggregation checks that every expected
 method, prompt, quality result, and VBench dimension is present.
 
-Results are stored under `${QVG_OUTPUT_ROOT}/main-r1/`. Each model has its own
+Results are stored under `${SUBITKV_OUTPUT_ROOT}/main-r1/`. Each model has its own
 videos and metrics; final tables are:
 
 ```text

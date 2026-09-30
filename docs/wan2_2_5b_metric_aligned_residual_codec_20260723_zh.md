@@ -569,7 +569,7 @@ seed 由 task/layer/span/tensor context 派生；生产路径传入 seed 42，co
 exact-screen bitstream 的逐 bit replay。
 
 fused run 的 `run_info.json` 记录 git commit、dirty diff、关键 source hashes，
-并把 `quant_videogen/` 与 `experiments/HY-WorldPlay/` 下实际执行范围的
+并把 `subitkv/` 与 `experiments/HY-WorldPlay/` 下实际执行范围的
 `119` 个源码文件纳入 execution-source manifest；manifest SHA256 为
 `8b81c3a5a7e9a73a016a5e96d87ca8edfe47ab8d482cb6ee4940166819e0f049`。
 

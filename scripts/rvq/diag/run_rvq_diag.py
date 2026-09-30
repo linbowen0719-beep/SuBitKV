@@ -1252,7 +1252,7 @@ def nearest_torch(x: "Any", centroids: "Any", batch_size: int = 8192) -> "Any":
 
 def train_kmeans_quantvideo(x: "Any", k: int, max_iters: int, device: "Any") -> tuple["Any", "Any", str]:
     import torch
-    from quant_videogen.kmeans.kmeans_euclid import batch_kmeans_Euclid
+    from subitkv.kmeans.kmeans_euclid import batch_kmeans_Euclid
 
     xb = x.to(device=device, dtype=torch.float32).unsqueeze(0).contiguous()
     cluster_ids, centroids, _cluster_sizes, _iters = batch_kmeans_Euclid(

@@ -38,12 +38,12 @@ for entry in (REPO, REPO / "scripts", REPO / "scripts/analysis"):
 import calibrate_temporal_adaptive_residual as calibration  # noqa: E402
 import evaluate_r2aq_exact_attention as exact  # noqa: E402
 import evaluate_sfbr_train_marginals as train_replay  # noqa: E402
-from quant_videogen.frame_mean_gaussian import (  # noqa: E402
+from subitkv.frame_mean_gaussian import (  # noqa: E402
     decode_frame_mean_gaussian_residual,
     encode_frame_mean_gaussian_residual,
     truncate_frame_mean_gaussian_state,
 )
-from quant_videogen.progressive_sign_adaptive_absmax_scalar import (  # noqa: E402
+from subitkv.progressive_sign_adaptive_absmax_scalar import (  # noqa: E402
     decode_progressive_sign_adaptive_absmax_scalar_residual,
     encode_progressive_sign_adaptive_absmax_scalar_residual,
     truncate_progressive_sign_adaptive_absmax_state,

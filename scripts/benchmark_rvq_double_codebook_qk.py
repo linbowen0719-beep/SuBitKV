@@ -15,8 +15,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from quant_videogen.kernels.triton.rvq import rvq_decode_bhsd_triton
-from quant_videogen.rvq_qk import rvq_double_codebook_qk_b1_triton
+from subitkv.kernels.triton.rvq import rvq_decode_bhsd_triton
+from subitkv.rvq_qk import rvq_double_codebook_qk_b1_triton
 
 
 def parse_args() -> argparse.Namespace:

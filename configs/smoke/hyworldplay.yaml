@@ -9,17 +9,17 @@ resources:
   min_vram_gib: 48
   estimated_time: 10-20 minutes
 inputs:
-  transformer: ${QVG_CKPT_ROOT}/HY-WorldPlay/wan_transformer
-  distilled_checkpoint: ${QVG_CKPT_ROOT}/HY-WorldPlay/wan_distilled_model/model.pt
-  image: ${QVG_REPO_ROOT}/assets/hyworld.png
+  transformer: ${SUBITKV_CKPT_ROOT}/HY-WorldPlay/wan_transformer
+  distilled_checkpoint: ${SUBITKV_CKPT_ROOT}/HY-WorldPlay/wan_distilled_model/model.pt
+  image: ${SUBITKV_REPO_ROOT}/assets/hyworld.png
 required_commands: [torchrun]
 required_paths:
-  - ${QVG_CKPT_ROOT}/HY-WorldPlay/wan_transformer
-  - ${QVG_CKPT_ROOT}/HY-WorldPlay/wan_distilled_model/model.pt
-  - ${QVG_REPO_ROOT}/assets/hyworld.png
-prepare_hint: QVG_CKPT_ROOT="$QVG_CKPT_ROOT" bash scripts/HY-WorldPlay/download_models.sh
+  - ${SUBITKV_CKPT_ROOT}/HY-WorldPlay/wan_transformer
+  - ${SUBITKV_CKPT_ROOT}/HY-WorldPlay/wan_distilled_model/model.pt
+  - ${SUBITKV_REPO_ROOT}/assets/hyworld.png
+prepare_hint: SUBITKV_CKPT_ROOT="$SUBITKV_CKPT_ROOT" bash scripts/HY-WorldPlay/download_models.sh
 environment:
-  PYTHONPATH: ${QVG_REPO_ROOT}:${QVG_REPO_ROOT}/experiments/HY-WorldPlay
+  PYTHONPATH: ${SUBITKV_REPO_ROOT}:${SUBITKV_REPO_ROOT}/experiments/HY-WorldPlay
   PYTORCH_ALLOC_CONF: expandable_segments:True
   HYWORLDPLAY_OFFLOAD_FOR_DECODE: "1"
   HYWORLDPLAY_OFFLOAD_KV_CACHE_FOR_DECODE: "1"
@@ -29,16 +29,16 @@ steps:
       - torchrun
       - --nproc_per_node=1
       - --standalone
-      - ${QVG_REPO_ROOT}/experiments/HY-WorldPlay/wan/generate.py
+      - ${SUBITKV_REPO_ROOT}/experiments/HY-WorldPlay/wan/generate.py
       - --num_frames=21
       - --input=An explorer walks slowly along a peaceful garden path.
-      - --image_path=${QVG_REPO_ROOT}/assets/hyworld.png
+      - --image_path=${SUBITKV_REPO_ROOT}/assets/hyworld.png
       - --num_chunk=1
       - --pose=w-8
-      - --ar_model_path=${QVG_CKPT_ROOT}/HY-WorldPlay/wan_transformer
-      - --ckpt_path=${QVG_CKPT_ROOT}/HY-WorldPlay/wan_distilled_model/model.pt
+      - --ar_model_path=${SUBITKV_CKPT_ROOT}/HY-WorldPlay/wan_transformer
+      - --ckpt_path=${SUBITKV_CKPT_ROOT}/HY-WorldPlay/wan_distilled_model/model.pt
       - --offload_text_encoder
-      - --out=${QVG_RUN_DIR}/qvg
+      - --out=${SUBITKV_RUN_DIR}/qvg
       - --memory_frames=16
       - --temporal_context_size=12
       - --pred_latent_size=4

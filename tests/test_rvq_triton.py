@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 import torch
 
-from quant_videogen.kernels.triton.rvq import (
+from subitkv.kernels.triton.rvq import (
     rvq_decode_bhsd_triton,
     rvq_encode_bhsd_staged_triton,
     rvq_encode_bhsd_triton,

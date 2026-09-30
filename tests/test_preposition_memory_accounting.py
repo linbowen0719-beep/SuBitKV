@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import torch
 
-from quant_videogen.kv_cache import ChunkedKVCache
+from subitkv.kv_cache import ChunkedKVCache
 from scripts.eval.run_small_eval import cache_metrics_from_runner
 
 

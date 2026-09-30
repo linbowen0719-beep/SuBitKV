@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from quant_videogen.chunk_policy import completed_chunk_compression_range
+from subitkv.chunk_policy import completed_chunk_compression_range
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]

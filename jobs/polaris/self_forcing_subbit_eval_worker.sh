@@ -11,11 +11,11 @@ module load cudatoolkit-standalone/12.8.1
 export PYTHONPATH="${CODE_ROOT}:${PYTHONPATH:-}" PYTHONNOUSERSITE=1
 export OPENBLAS_NUM_THREADS=2 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
 export TORCH_HOME="${DATA_ROOT}/cache/torch"
-export PATH="$(dirname "${QVG_VBENCH}"):${PATH}"
+export PATH="$(dirname "${SUBITKV_VBENCH}"):${PATH}"
 
-PY="${QVG_VENV}/bin/python"
-RUN="${QVG_OUTPUT_ROOT}/self_forcing_rvq_subbit_20260904d"
-REF="${QVG_OUTPUT_ROOT}/moviegen-1003-polaris/self_forcing/bf16"
+PY="${SUBITKV_VENV}/bin/python"
+RUN="${SUBITKV_OUTPUT_ROOT}/self_forcing_rvq_subbit_20260904d"
+REF="${SUBITKV_OUTPUT_ROOT}/moviegen-1003-polaris/self_forcing/bf16"
 EVAL="${RUN}/evaluation_subbit"
 METHODS=adaptive_temporal_avg0,adaptive_temporal_avg0p2_alt,adaptive_temporal_avg0p5
 

@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 import pytest
-from quant_videogen import hy_kv_transfer_timer as timer
+from subitkv import hy_kv_transfer_timer as timer
 
 @pytest.mark.parametrize('source,target,direction',[('cuda','cpu','d2h'),('cpu','cuda','h2d')])
 def test_compute_wait_is_not_subtracted(monkeypatch,source,target,direction):

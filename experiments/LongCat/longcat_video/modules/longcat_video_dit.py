@@ -26,8 +26,8 @@ from .blocks import (
     modulate_fp32,
 )
 
-from quant_videogen.timer import time_logging_decorator
-from quant_videogen.compress import get_quantize_fn, compress_kv_cache
+from subitkv.timer import time_logging_decorator
+from subitkv.compress import get_quantize_fn, compress_kv_cache
 from .utils import _onload_kv_cache, _offload_kv_cache
 
 

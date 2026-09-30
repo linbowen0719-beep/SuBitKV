@@ -418,7 +418,7 @@ def aggregate_audit(cfg: dict[str, Any], cfg_hash: str) -> None:
         "code_evidence": [
             "scripts/rvq/diag/run_rvq_diag.py:693-785",
             "experiments/HY-WorldPlay/wan/models/dits/arwan_w_action_w_mem_relative_rope.py:739-777",
-            "quant_videogen/kv_cache.py:19-150",
+            "subitkv/kv_cache.py:19-150",
         ],
         "data_evidence": [str(root / "audit" / "source_chunk_hashes.csv"), str(root / "audit" / "duplicate_summary.csv")],
     }

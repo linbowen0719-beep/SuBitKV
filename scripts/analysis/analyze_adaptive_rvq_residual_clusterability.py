@@ -34,9 +34,9 @@ REPO = Path(__file__).resolve().parents[2]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
-from quant_videogen.kmeans.euclid_assign import euclid_assign_triton
-from quant_videogen.kmeans.kmeans_euclid import batch_kmeans_Euclid
-from quant_videogen.rvq import rvq_dequantize_tensor_cache
+from subitkv.kmeans.euclid_assign import euclid_assign_triton
+from subitkv.kmeans.kmeans_euclid import batch_kmeans_Euclid
+from subitkv.rvq import rvq_dequantize_tensor_cache
 from scripts.benchmark_temporal_codec_optimizations import encode_base
 
 

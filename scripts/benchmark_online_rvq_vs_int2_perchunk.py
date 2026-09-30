@@ -21,10 +21,10 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from quant_videogen.compress import compress_kv_cache, get_quantize_fn  # noqa: E402
-from quant_videogen.rvq import _load_layer_codebooks_cached  # noqa: E402
-from quant_videogen.sim.quant.quantize_config import QuantizeConfig  # noqa: E402
-from quant_videogen.uncompress import uncompress_kv_cache  # noqa: E402
+from subitkv.compress import compress_kv_cache, get_quantize_fn  # noqa: E402
+from subitkv.rvq import _load_layer_codebooks_cached  # noqa: E402
+from subitkv.sim.quant.quantize_config import QuantizeConfig  # noqa: E402
+from subitkv.uncompress import uncompress_kv_cache  # noqa: E402
 
 
 DEFAULT_ROOT = Path("/data/bowen/t2v_kv_bench_moviegen_20train_10test")

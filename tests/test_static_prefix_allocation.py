@@ -5,8 +5,8 @@ import json
 import pytest
 import torch
 
-import quant_videogen.static_prefix_allocation as allocated
-import quant_videogen.structured_truncatable as structured
+import subitkv.static_prefix_allocation as allocated
+import subitkv.structured_truncatable as structured
 
 
 def _gaussian_params() -> dict:

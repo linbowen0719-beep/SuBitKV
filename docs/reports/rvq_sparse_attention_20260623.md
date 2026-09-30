@@ -35,7 +35,7 @@ KV length `S` swept large (the long-video regime).
   context length**. The grouped tail cuts error to **5–15× below the deployed
   grouped method** while still beating dense at S≥65k.
 
-Code: [quant_videogen/rvq_sparse_attention.py](../quant_videogen/rvq_sparse_attention.py).
+Code: [subitkv/rvq_sparse_attention.py](../subitkv/rvq_sparse_attention.py).
 
 ## Why exact is hopeless (measured)
 
@@ -119,7 +119,7 @@ selection fraction keeps sparse cost ≈ `frac·dense` while dense grows linearl
   sparse already wins through SDPA.
 
 ## How to reproduce
-- Method: `quant_videogen/rvq_sparse_attention.py` (`build_cache`, `sparse_attn`).
+- Method: `subitkv/rvq_sparse_attention.py` (`build_cache`, `sparse_attn`).
 - Studies (scratch): concentration, router quality, hybrid accuracy, and the
   timed speed sweep are in the session scratchpad
   (`concentration.py`, `route_rope.py`, `acc_final.py`, `nosub.py`, `speed2.py`).

@@ -503,9 +503,9 @@ def main() -> None:
         REPO / "results/analysis/adaptive_rvq_optimized_runtime_fair_20260803/runtime_30layer_estimate.csv",
         REPO / "results/analysis/adaptive_rvq_optimized_runtime_fair_20260803/runtime_backend_audit.csv",
         REPO / "results/analysis/adaptive_rvq_optimized_runtime_fair_20260803/runtime_workspace_audit.csv",
-        REPO / "quant_videogen/kivi.py",
-        REPO / "quant_videogen/compress.py",
-        REPO / "quant_videogen/uncompress.py",
+        REPO / "subitkv/kivi.py",
+        REPO / "subitkv/compress.py",
+        REPO / "subitkv/uncompress.py",
     ]
     input_paths.extend(
         root / "exact_attention_full30_units" / f"run_info_shard_{shard:03d}.json"

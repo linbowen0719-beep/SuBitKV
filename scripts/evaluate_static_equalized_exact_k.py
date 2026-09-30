@@ -28,14 +28,14 @@ for entry in (REPO_ROOT, SCRIPT_DIR):
 import evaluate_r2aq_exact_attention as exact  # noqa: E402
 import evaluate_sfbr_train_marginals as train_replay  # noqa: E402
 import evaluate_structured_truncatable_exact_attention as protocol  # noqa: E402
-from quant_videogen import routed_gaussian  # noqa: E402
-from quant_videogen import uniform_grid_gaussian as grid_codec  # noqa: E402
-from quant_videogen.centered_absmax_scalar import (  # noqa: E402
+from subitkv import routed_gaussian  # noqa: E402
+from subitkv import uniform_grid_gaussian as grid_codec  # noqa: E402
+from subitkv.centered_absmax_scalar import (  # noqa: E402
     decode_centered_absmax_scalar_residual,
     encode_centered_absmax_scalar_residual,
     payload_nbytes as centered_payload_nbytes,
 )
-from quant_videogen.static_equalized_midrange import (  # noqa: E402
+from subitkv.static_equalized_midrange import (  # noqa: E402
     decode_static_equalized_midrange_residual,
     encode_static_equalized_midrange_residual,
     payload_nbytes as static_payload_nbytes,

@@ -62,7 +62,7 @@ def gpu_idle(gpu: int) -> bool:
 
 
 def acquire(gpu: int):
-    path = Path("/tmp") / f"quant_videogen_hy_moviegen_gpu_{gpu}.lock"
+    path = Path("/tmp") / f"subitkv_hy_moviegen_gpu_{gpu}.lock"
     handle = path.open("a+", encoding="utf-8")
     try:
         fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -101,7 +101,7 @@ def command(root: Path, gpu: int, tensor: str, train_prompts: int) -> list[str]:
     tasks = [layer * 100 + head for layer in range(LAYERS) for head in range(HEADS) if (layer * HEADS + head) % len(GPUS) == slot]
     subdir = f"nonorm_{tensor.lower()}_l16c64_codebooks"
     return [
-        os.environ.get("QVG_PYTHON", sys.executable),
+        os.environ.get("SUBITKV_PYTHON", sys.executable),
         str(REPO_ROOT / "scripts/rvq/diag/run_rvq_diag.py"), "train-worker",
         "--prompt_source", str(REPO_ROOT / "assets/moviegen_train20.txt"),
         "--output_dir", str(root), "--train_num", str(int(train_prompts)), "--test_num", "0",
@@ -162,7 +162,7 @@ def main() -> int:
     with validation_log.open("x", encoding="utf-8") as log:
         validation = subprocess.run(
             [
-                os.environ.get("QVG_PYTHON", sys.executable),
+                os.environ.get("SUBITKV_PYTHON", sys.executable),
                 str(REPO_ROOT / "scripts/HY-WorldPlay/validate_moviegen_kv_capture.py"),
                 "--root",
                 str(args.root),

@@ -40,8 +40,8 @@ for entry in (REPO_ROOT, SCRIPT_DIR):
         sys.path.insert(0, str(entry))
 
 import evaluate_sfbr_train_marginals as protocol  # noqa: E402
-from quant_videogen import frame_mean_gaussian as frame  # noqa: E402
-from quant_videogen import uniform_grid_gaussian as grid  # noqa: E402
+from subitkv import frame_mean_gaussian as frame  # noqa: E402
+from subitkv import uniform_grid_gaussian as grid  # noqa: E402
 
 
 exact = protocol.exact

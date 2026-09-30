@@ -22,11 +22,11 @@ from longcat_video.context_parallel.context_parallel_util import init_context_pa
 
 from prompt_loader import load_prompt_or_image
 
-from quant_videogen.timer import print_operator_log_data
+from subitkv.timer import print_operator_log_data
 
-from quant_videogen.misc import Color
-from quant_videogen.logger import logger
-from quant_videogen.sim.quant.quantize_config import QuantizeConfig
+from subitkv.misc import Color
+from subitkv.logger import logger
+from subitkv.sim.quant.quantize_config import QuantizeConfig
 
 
 def torch_gc():

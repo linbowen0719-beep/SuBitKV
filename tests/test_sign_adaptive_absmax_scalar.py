@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 import torch
 
-from quant_videogen import sign_adaptive_absmax_scalar as codec
+from subitkv import sign_adaptive_absmax_scalar as codec
 
 
 def test_cpu_roundtrip_payload_and_orientation() -> None:

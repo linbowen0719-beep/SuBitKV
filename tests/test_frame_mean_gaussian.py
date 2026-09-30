@@ -3,9 +3,9 @@ from __future__ import annotations
 import pytest
 import torch
 
-from quant_videogen import frame_mean_gaussian as codec
-from quant_videogen.uniform_grid_gaussian import DIM, SPATIAL_TOKENS
-from quant_videogen.kernels.triton.rvq import rvq_decode_bhsd_triton
+from subitkv import frame_mean_gaussian as codec
+from subitkv.uniform_grid_gaussian import DIM, SPATIAL_TOKENS
+from subitkv.kernels.triton.rvq import rvq_decode_bhsd_triton
 
 
 def _sample() -> torch.Tensor:

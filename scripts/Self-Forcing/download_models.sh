@@ -3,8 +3,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-QVG_CKPT_ROOT="${QVG_CKPT_ROOT:-$REPO_ROOT/ckpts}"
-SELF_FORCING_CKPT_ROOT="$QVG_CKPT_ROOT/Self-Forcing"
+SUBITKV_CKPT_ROOT="${SUBITKV_CKPT_ROOT:-$REPO_ROOT/ckpts}"
+SELF_FORCING_CKPT_ROOT="$SUBITKV_CKPT_ROOT/Self-Forcing"
 
 # Download Wan2.1-T2V-1.3B base model
 hf download Wan-AI/Wan2.1-T2V-1.3B --local-dir "$SELF_FORCING_CKPT_ROOT/Wan2.1-T2V-1.3B"

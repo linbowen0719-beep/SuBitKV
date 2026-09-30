@@ -38,7 +38,7 @@ for path in (REPO_ROOT, SCRIPT_DIR):
     if str(path) not in sys.path:
         sys.path.insert(0, str(path))
 
-from eval_rvq_quantvideo_cascade import qv_residual_pair  # noqa: E402
+from eval_subitkv_cascade import qv_residual_pair  # noqa: E402
 from run_fixed_budget_rvq_screen import (  # noqa: E402
     baseline_path,
     layer_path,
@@ -46,7 +46,7 @@ from run_fixed_budget_rvq_screen import (  # noqa: E402
     rvq_reconstruct,
     sha256_file,
 )
-from quant_videogen.structured_truncatable import (  # noqa: E402
+from subitkv.structured_truncatable import (  # noqa: E402
     decode_structured_residual,
     encode_structured_residual,
     payload_nbytes as structured_payload_nbytes,

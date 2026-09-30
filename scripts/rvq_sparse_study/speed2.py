@@ -1,6 +1,6 @@
 import sys, math, torch, torch.nn.functional as F
 sys.path.insert(0,"/home/bowen/Quant-VideoGen"); sys.path.insert(0,".")
-from quant_videogen.kernels.triton.rvq import rvq_decode_bhsd_triton
+from subitkv.kernels.triton.rvq import rvq_decode_bhsd_triton
 from rvq_sparse import build_cache, sparse_attn
 dev=torch.device("cuda"); dt=torch.bfloat16
 H,NQ,D,L,C,P=24,64,128,4,256,32

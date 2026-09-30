@@ -21,7 +21,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from quant_videogen.static_equalized_midrange import make_params  # noqa: E402
+from subitkv.static_equalized_midrange import make_params  # noqa: E402
 
 
 def parse_args() -> argparse.Namespace:

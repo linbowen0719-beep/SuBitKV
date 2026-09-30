@@ -23,29 +23,29 @@ export DATA_ROOT=/lus/grand/projects/SDR/chengming/zhenghui/ICLR2026_RVQ_polaris
 module use /soft/modulefiles; module load conda; module load cudatoolkit-standalone/12.8.1
 module load gcc-native/14
 export CC=/usr/bin/gcc-14 CXX=/usr/bin/g++-14
-export PYTHONPATH="${QVG_REPO_ROOT}:${PYTHONPATH:-}" PYTHONNOUSERSITE=1
+export PYTHONPATH="${SUBITKV_REPO_ROOT}:${PYTHONPATH:-}" PYTHONNOUSERSITE=1
 export OPENBLAS_NUM_THREADS=2 OMP_NUM_THREADS=2
 export HF_HOME="${DATA_ROOT}/cache/huggingface" TORCH_HOME="${DATA_ROOT}/cache/torch"
 export http_proxy=http://proxy.alcf.anl.gov:3128 https_proxy=http://proxy.alcf.anl.gov:3128
 export HTTP_PROXY="${http_proxy}" HTTPS_PROXY="${https_proxy}"
 mkdir -p "${TORCH_HOME}"
 # VBench shells out to a bare `python`; its own venv bin must be on PATH.
-export PATH="$(dirname "${QVG_VBENCH}"):${PATH}"
+export PATH="$(dirname "${SUBITKV_VBENCH}"):${PATH}"
 
-REAL="${QVG_OUTPUT_ROOT}/hyworldplay-moviegen-i2v-20-973/hy-main-r1"
+REAL="${SUBITKV_OUTPUT_ROOT}/hyworldplay-moviegen-i2v-20-973/hy-main-r1"
 S="${REAL}/smoke/one_chunk"
 P="${DATA_ROOT}/tmp/eval_probe_full"
 rm -rf "${P}"; mkdir -p "${P}/generation"
 echo "job ${PBS_JOBID} host $(hostname -s) $(date)"
-cd "${QVG_REPO_ROOT}"
+cd "${SUBITKV_REPO_ROOT}"
 
 echo "=== 0/3 build synthetic generation tree from smoke videos ==="
-"${QVG_PYTHON}" - <<'PYEOF'
+"${SUBITKV_PYTHON}" - <<'PYEOF'
 import json, os, shutil, glob
 from pathlib import Path
 P = Path(os.environ["DATA_ROOT"]) / "tmp/eval_probe_full"
-S = Path(os.environ["QVG_OUTPUT_ROOT"]) / "hyworldplay-moviegen-i2v-20-973/hy-main-r1/smoke/one_chunk"
-man = json.load(open(Path(os.environ["QVG_DATA_ROOT"]) / "hyworldplay-moviegen-i2v-20-973/artifacts/inputs/manifest.json"))
+S = Path(os.environ["SUBITKV_OUTPUT_ROOT"]) / "hyworldplay-moviegen-i2v-20-973/hy-main-r1/smoke/one_chunk"
+man = json.load(open(Path(os.environ["SUBITKV_DATA_ROOT"]) / "hyworldplay-moviegen-i2v-20-973/artifacts/inputs/manifest.json"))
 rows = [r["dataset_row"] for r in man["records"] if r["split"] == "dev"]
 methods = ["bf16", "ours_rvq_avg2", "kivi_int2"]
 for m in methods:
@@ -70,11 +70,11 @@ echo "=== 1/3 real evaluate_moviegen_i2v_dataset.py (2 methods) ==="
 rc1=0
 for m in ours_rvq_avg2 kivi_int2; do
   echo "  --- ${m} ---"
-  "${QVG_PYTHON}" scripts/HY-WorldPlay/evaluate_moviegen_i2v_dataset.py \
+  "${SUBITKV_PYTHON}" scripts/HY-WorldPlay/evaluate_moviegen_i2v_dataset.py \
     --generation-root "${P}/generation" \
-    --manifest "${QVG_DATA_ROOT}/hyworldplay-moviegen-i2v-20-973/artifacts/inputs/manifest.json" \
+    --manifest "${SUBITKV_DATA_ROOT}/hyworldplay-moviegen-i2v-20-973/artifacts/inputs/manifest.json" \
     --split dev --method "${m}" --output-dir "${P}/evaluation/${m}" \
-    --device cuda --codebook-root "${QVG_DATA_ROOT}/hyworldplay-moviegen-i2v-20-973/artifacts" 2>&1 | tail -6
+    --device cuda --codebook-root "${SUBITKV_DATA_ROOT}/hyworldplay-moviegen-i2v-20-973/artifacts" 2>&1 | tail -6
   r=${PIPESTATUS[0]}; [ "${r}" -ne 0 ] && rc1=1
   echo "    rc=${r}"
 done
@@ -87,7 +87,7 @@ printf 'a short test clip\n' > "${P}/vb/prompts.txt"
 rc2=0
 for dim in subject_consistency background_consistency imaging_quality aesthetic_quality; do
   echo "  --- ${dim} ---"
-  timeout 900 "${QVG_VBENCH}" evaluate --ngpus 1 --output_path "${P}/vb/out_${dim}" \
+  timeout 900 "${SUBITKV_VBENCH}" evaluate --ngpus 1 --output_path "${P}/vb/out_${dim}" \
     --videos_path "${P}/vb/videos" --dimension "${dim}" \
     --mode custom_input --prompt_file "${P}/vb/prompts.txt" 2>&1 | tail -4
   r=${PIPESTATUS[0]}; [ "${r}" -ne 0 ] && rc2=1
@@ -95,10 +95,10 @@ for dim in subject_consistency background_consistency imaging_quality aesthetic_
 done
 
 echo "=== 3/3 aggregation helpers read the results back ==="
-"${QVG_PYTHON}" - <<'PYEOF'
+"${SUBITKV_PYTHON}" - <<'PYEOF'
 import json, os, sys, glob
 from pathlib import Path
-sys.path.insert(0, os.environ["QVG_REPO_ROOT"])
+sys.path.insert(0, os.environ["SUBITKV_REPO_ROOT"])
 P = Path(os.environ["DATA_ROOT"]) / "tmp/eval_probe_full"
 ok = True
 for m in ("ours_rvq_avg2", "kivi_int2"):

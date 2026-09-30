@@ -42,7 +42,7 @@ def test_supported_entrypoints_have_no_personal_absolute_paths() -> None:
     public_launchers = [
         REPO_ROOT / "scripts" / integration / filename
         for integration in ("LongCat", "Self-Forcing", "HY-WorldPlay")
-        for filename in ("run_bf16.sh", "run_qvg.sh")
+        for filename in ("run_bf16.sh", "run_subitkv.sh")
     ]
     paths = [
         REPO_ROOT / "scripts/reproduce.py",

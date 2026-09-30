@@ -11,11 +11,11 @@
 
 set -uo pipefail
 ulimit -c 0
-export QVG_RUN_ID="${QVG_RUN_ID:-hy-subbit-prod-20260904b}"
+export SUBITKV_RUN_ID="${SUBITKV_RUN_ID:-hy-subbit-prod-20260904b}"
 DATA_ROOT=/lus/grand/projects/SDR/chengming/zhenghui/ICLR2026_RVQ_polaris
 . "${DATA_ROOT}/hy_i2v.env"
-OUT="${QVG_OUTPUT_ROOT}/hyworldplay-moviegen-i2v-20-973/${QVG_RUN_ID}"
-REFERENCE="${QVG_OUTPUT_ROOT}/hyworldplay-moviegen-i2v-20-973/hy-main-r1/generation/test/bf16"
+OUT="${SUBITKV_OUTPUT_ROOT}/hyworldplay-moviegen-i2v-20-973/${SUBITKV_RUN_ID}"
+REFERENCE="${SUBITKV_OUTPUT_ROOT}/hyworldplay-moviegen-i2v-20-973/hy-main-r1/generation/test/bf16"
 TARGET="${OUT}/generation/test/bf16"
 if [ ! -e "${TARGET}" ]; then
   ln -s "${REFERENCE}" "${TARGET}"

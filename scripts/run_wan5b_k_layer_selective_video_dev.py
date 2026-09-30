@@ -89,10 +89,10 @@ FROZEN_DESIGN_SHA256 = {
     ),
 }
 FROZEN_SOURCE_SHA256 = {
-    "quant_videogen/sim/quant/quantize_config.py": (
+    "subitkv/sim/quant/quantize_config.py": (
         "d63811317b842d907d8a04b11776a9c1097eaceb4b9c7494fce25154889b2576"
     ),
-    "quant_videogen/compress.py": (
+    "subitkv/compress.py": (
         "bf8b544ff092f20b5c109139e6bbc3617e1a05975a78c765f555416dc978179a"
     ),
     "scripts/eval/run_small_eval.py": (

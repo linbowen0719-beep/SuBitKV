@@ -3,9 +3,9 @@ from __future__ import annotations
 import pytest
 import torch
 
-from quant_videogen import absmax_scalar as codec
-from quant_videogen import compress, uncompress
-from quant_videogen.sim.quant.quantize_config import QuantizeConfig
+from subitkv import absmax_scalar as codec
+from subitkv import compress, uncompress
+from subitkv.sim.quant.quantize_config import QuantizeConfig
 
 
 @pytest.mark.parametrize("bits", (2, 4))

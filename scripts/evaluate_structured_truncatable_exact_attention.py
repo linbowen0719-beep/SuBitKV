@@ -63,15 +63,15 @@ for _path in (REPO_ROOT, SCRIPT_DIR):
         sys.path.insert(0, str(_path))
 
 import evaluate_truncatable_residual_exact_attention as replay  # noqa: E402
-from quant_videogen.compress import (  # noqa: E402
+from subitkv.compress import (  # noqa: E402
     compress_tensor_cache,
     get_quantize_fn,
 )
-from quant_videogen.functions import (  # noqa: E402
+from subitkv.functions import (  # noqa: E402
     triton_prq_dequantize_tensor,
 )
-from quant_videogen.sim.quant.quantize_config import QuantizeConfig  # noqa: E402
-from quant_videogen.structured_truncatable import (  # noqa: E402
+from subitkv.sim.quant.quantize_config import QuantizeConfig  # noqa: E402
+from subitkv.structured_truncatable import (  # noqa: E402
     decode_structured_residual,
     encode_structured_residual,
     payload_nbytes as structured_payload_nbytes,

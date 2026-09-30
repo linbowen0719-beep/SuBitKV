@@ -33,7 +33,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from quant_videogen.routed_gaussian import (  # noqa: E402
+from subitkv.routed_gaussian import (  # noqa: E402
     ROUTING_SCHEMA,
     validate_routing_table,
 )

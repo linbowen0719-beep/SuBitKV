@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 import torch
 
-from quant_videogen.rvq import (
+from subitkv.rvq import (
     load_layer_codebooks_from_dir,
     rvq_codebook_directory_metadata,
     rvq_dequantize_tensor_cache,

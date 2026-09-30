@@ -28,13 +28,13 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from quant_videogen.kernels.triton.rvq import rvq_decode_bhsd_triton
-from quant_videogen.rvq import (
+from subitkv.kernels.triton.rvq import rvq_decode_bhsd_triton
+from subitkv.rvq import (
     _unpack_scale,
     load_layer_codebooks_from_dir,
     rvq_dequantize_tensor_cache,
 )
-from quant_videogen.rvq_qk import (
+from subitkv.rvq_qk import (
     rvq_qk_decode_matmul_b1_triton,
     rvq_qk_codebook_table,
     rvq_qk_codebook_table_cq,

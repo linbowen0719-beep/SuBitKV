@@ -5,7 +5,7 @@ import copy
 import pytest
 import torch
 
-from quant_videogen import uniform_grid_gaussian as codec
+from subitkv import uniform_grid_gaussian as codec
 
 
 def _sample() -> torch.Tensor:

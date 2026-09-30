@@ -3,8 +3,8 @@ from __future__ import annotations
 import torch
 import pytest
 
-import quant_videogen.rvq as rvq_module
-from quant_videogen.rvq import pack_rvq_calibration_scale, rvq_dequantize_tensor_cache, rvq_encode_tensor_cache
+import subitkv.rvq as rvq_module
+from subitkv.rvq import pack_rvq_calibration_scale, rvq_dequantize_tensor_cache, rvq_encode_tensor_cache
 
 
 def _write_codebooks(

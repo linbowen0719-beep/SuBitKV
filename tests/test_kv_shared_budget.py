@@ -4,7 +4,7 @@ import copy
 
 import pytest
 
-from quant_videogen.kv_shared_budget import (
+from subitkv.kv_shared_budget import (
     ALLOWED_BITS,
     load_profile,
     residual_payload_bytes,

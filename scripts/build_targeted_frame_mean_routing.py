@@ -21,7 +21,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from quant_videogen.routed_gaussian import (
+from subitkv.routed_gaussian import (
     ROUTING_SCHEMA,
     validate_routing_table,
 )

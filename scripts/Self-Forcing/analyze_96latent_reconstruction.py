@@ -15,7 +15,7 @@ import subprocess
 
 import torch
 
-from quant_videogen.rvq import rvq_dequantize_tensor_cache, rvq_encode_tensor_cache
+from subitkv.rvq import rvq_dequantize_tensor_cache, rvq_encode_tensor_cache
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]

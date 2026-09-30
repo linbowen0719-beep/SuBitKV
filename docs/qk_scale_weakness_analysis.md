@@ -17,7 +17,7 @@
 
 ## 现有实现到底优化了什么
 
-K 的在线 block scale 在 [quant_videogen/compress.py](/home/bowen/Quant-VideoGen/quant_videogen/compress.py:370)：
+K 的在线 block scale 在 [subitkv/compress.py](/home/bowen/Quant-VideoGen/subitkv/compress.py:370)：
 
 ```text
 logits_ref = Q K^T / sqrt(d)
@@ -26,7 +26,7 @@ alpha = sum(logits_ref * logits_rec) / sum(logits_rec^2)
 alpha = clamp(alpha, 0.75, 1.33)
 ```
 
-也就是对每个 coarse block 求一个 least-squares scalar，让 `alpha * Q K_hat^T` 尽量接近 `Q K^T`。离线模式从 calibration table 读同样形状的 scale，然后在 [quant_videogen/compress.py](/home/bowen/Quant-VideoGen/quant_videogen/compress.py:507) attach 到 RVQ packed state。真正解码时，scale 在 [quant_videogen/rvq.py](/home/bowen/Quant-VideoGen/quant_videogen/rvq.py:899) 里展开到 token 维再乘回输出。
+也就是对每个 coarse block 求一个 least-squares scalar，让 `alpha * Q K_hat^T` 尽量接近 `Q K^T`。离线模式从 calibration table 读同样形状的 scale，然后在 [subitkv/compress.py](/home/bowen/Quant-VideoGen/subitkv/compress.py:507) attach 到 RVQ packed state。真正解码时，scale 在 [subitkv/rvq.py](/home/bowen/Quant-VideoGen/subitkv/rvq.py:899) 里展开到 token 维再乘回输出。
 
 因此它不是 SmoothQuant 那种等价变换，也不是改变 codebook metric 的方法。它是 post-RVQ 的一维校准：
 

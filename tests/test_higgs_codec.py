@@ -2,7 +2,7 @@ import math
 
 import torch
 
-from quant_videogen.higgs import (
+from subitkv.higgs import (
     gaussian_lloyd_max_values,
     higgs_dequantize_tensor,
     higgs_quantize_tensor,

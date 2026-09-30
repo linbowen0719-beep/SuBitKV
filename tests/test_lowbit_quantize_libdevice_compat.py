@@ -9,9 +9,9 @@ import pytest
 import torch
 import triton.language as tl
 
-from quant_videogen.real.quant_pack import quant_pack
-from quant_videogen.real.prq import prq_dequant, prq_quant
-from quant_videogen.sim.quant import lowbit_quantize
+from subitkv.real.quant_pack import quant_pack
+from subitkv.real.prq import prq_dequant, prq_quant
+from subitkv.sim.quant import lowbit_quantize
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -32,13 +32,13 @@ def test_quantvideo_qv_pair_prq_import_chain() -> None:
     script = """
 import sys
 sys.path.insert(0, "scripts")
-from quant_videogen.real.quant_pack import quant_pack
-from quant_videogen.real.prq import prq_quant, prq_dequant
-from quant_videogen.functions import (
+from subitkv.real.quant_pack import quant_pack
+from subitkv.real.prq import prq_quant, prq_dequant
+from subitkv.functions import (
     triton_prq_quantize_tensor,
     triton_prq_dequantize_tensor,
 )
-from eval_rvq_quantvideo_cascade import qv_pair
+from eval_subitkv_cascade import qv_pair
 assert all(callable(value) for value in (
     quant_pack,
     prq_quant,
@@ -174,7 +174,7 @@ import argparse
 import sys
 import torch
 sys.path.insert(0, "scripts")
-from eval_rvq_quantvideo_cascade import qv_pair
+from eval_subitkv_cascade import qv_pair
 
 torch.manual_seed(20260724)
 k = torch.randn(1, 1, 32, 128, device="cuda", dtype=torch.bfloat16)

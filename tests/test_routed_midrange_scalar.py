@@ -3,9 +3,9 @@ from __future__ import annotations
 import pytest
 import torch
 
-from quant_videogen import centered_absmax_scalar
-from quant_videogen import routed_midrange_scalar as codec
-from quant_videogen import routed_gaussian
+from subitkv import centered_absmax_scalar
+from subitkv import routed_midrange_scalar as codec
+from subitkv import routed_gaussian
 
 
 def _route(offsets: list[int]) -> dict:

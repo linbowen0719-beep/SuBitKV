@@ -5,8 +5,8 @@ import copy
 import pytest
 import torch
 
-import quant_videogen.r2aq as codec
-import quant_videogen.sfbr_r2aq as sfbr
+import subitkv.r2aq as codec
+import subitkv.sfbr_r2aq as sfbr
 
 
 @pytest.fixture(autouse=True)

@@ -37,7 +37,7 @@ from run_wan5b_h5_recent_static_smoke import (  # noqa: E402
     prompts,
     sha256_file,
 )
-from quant_videogen.temporal_tiered_rvq import (  # noqa: E402
+from subitkv.temporal_tiered_rvq import (  # noqa: E402
     H7_BOUNDARY_DEPTH,
     H7_MIDDLE_DEPTH,
     H7_OLD_DEPTH,

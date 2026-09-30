@@ -24,14 +24,14 @@ from typing import Any, Callable
 
 import torch
 
-import quant_videogen.rvq as rvq
-from quant_videogen.frame_mean_gaussian import (
+import subitkv.rvq as rvq
+from subitkv.frame_mean_gaussian import (
     decode_frame_mean_gaussian_residual,
 )
-from quant_videogen.progressive_sign_adaptive_absmax_scalar import (
+from subitkv.progressive_sign_adaptive_absmax_scalar import (
     decode_progressive_sign_adaptive_absmax_scalar_residual,
 )
-from quant_videogen.temporal_adaptive_residual import (
+from subitkv.temporal_adaptive_residual import (
     create_b16_state,
     decode_state,
     decode_states as decode_temporal_states,

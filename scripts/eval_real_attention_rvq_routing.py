@@ -17,8 +17,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from quant_videogen.rvq import rvq_encode_tensor_cache
-from quant_videogen.rvq_grouped_attention import (
+from subitkv.rvq import rvq_encode_tensor_cache
+from subitkv.rvq_grouped_attention import (
     build_first_level_group_cache_from_dense,
     make_group_log_count_attention_mask,
     rvq_grouped_attention_sdpa,

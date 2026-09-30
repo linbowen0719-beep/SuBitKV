@@ -69,14 +69,14 @@ for _path in (REPO_ROOT, SCRIPT_DIR):
     if str(_path) not in sys.path:
         sys.path.insert(0, str(_path))
 
-from quant_videogen.compress import compress_tensor_cache, get_quantize_fn  # noqa: E402
-from quant_videogen.functions import triton_prq_dequantize_tensor  # noqa: E402
-from quant_videogen.rvq import (  # noqa: E402
+from subitkv.compress import compress_tensor_cache, get_quantize_fn  # noqa: E402
+from subitkv.functions import triton_prq_dequantize_tensor  # noqa: E402
+from subitkv.rvq import (  # noqa: E402
     rvq_dequantize_tensor_cache,
     rvq_encode_tensor_cache,
 )
-from quant_videogen.sim.quant.quantize_config import QuantizeConfig  # noqa: E402
-from quant_videogen.structured_truncatable import (  # noqa: E402
+from subitkv.sim.quant.quantize_config import QuantizeConfig  # noqa: E402
+from subitkv.structured_truncatable import (  # noqa: E402
     decode_structured_residual,
     encode_structured_residual,
     payload_nbytes as structured_payload_nbytes,

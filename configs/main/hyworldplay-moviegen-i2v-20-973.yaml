@@ -3,9 +3,9 @@ experiment_id: hyworldplay-moviegen-i2v-20-973
 name: HY-WorldPlay 8B MovieGen I2V 20-train / 10-dev / 973-test
 
 protocol:
-  prompt_file: ${QVG_REPO_ROOT}/assets/MovieGenVideoBench.txt
-  split_file: ${QVG_REPO_ROOT}/assets/moviegen_i2v_split_v1.json
-  moviegen_root: ${QVG_MOVIEGEN_ROOT}
+  prompt_file: ${SUBITKV_REPO_ROOT}/assets/MovieGenVideoBench.txt
+  split_file: ${SUBITKV_REPO_ROOT}/assets/moviegen_i2v_split_v1.json
+  moviegen_root: ${SUBITKV_MOVIEGEN_ROOT}
   train_count: 20
   dev_count: 10
   test_count: 973
@@ -78,11 +78,11 @@ evaluation:
     - aesthetic_quality
 
 paths:
-  model: ${QVG_HY8B_MODEL}
-  action_checkpoint: ${QVG_HY_ACTION_CKPT}
-  manifest: ${QVG_DATA_ROOT}/hyworldplay-moviegen-i2v-20-973/artifacts/inputs/manifest.json
-  run_root: ${QVG_OUTPUT_ROOT}/hyworldplay-moviegen-i2v-20-973
-  artifact_root: ${QVG_DATA_ROOT}/hyworldplay-moviegen-i2v-20-973/artifacts
+  model: ${SUBITKV_HY8B_MODEL}
+  action_checkpoint: ${SUBITKV_HY_ACTION_CKPT}
+  manifest: ${SUBITKV_DATA_ROOT}/hyworldplay-moviegen-i2v-20-973/artifacts/inputs/manifest.json
+  run_root: ${SUBITKV_OUTPUT_ROOT}/hyworldplay-moviegen-i2v-20-973
+  artifact_root: ${SUBITKV_DATA_ROOT}/hyworldplay-moviegen-i2v-20-973/artifacts
 
 gate:
   split: dev

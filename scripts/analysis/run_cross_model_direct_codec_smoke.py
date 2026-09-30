@@ -20,8 +20,8 @@ REPO = Path(__file__).resolve().parents[2]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
-from quant_videogen.kivi import decode_kivi_tensor, encode_kivi_tensor
-from quant_videogen.turboquant import (
+from subitkv.kivi import decode_kivi_tensor, encode_kivi_tensor
+from subitkv.turboquant import (
     decode_turboquant,
     encode_turboquant_mse,
     encode_turboquant_prod,

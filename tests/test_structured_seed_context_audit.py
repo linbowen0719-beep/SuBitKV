@@ -29,21 +29,21 @@ class _QuantizeConfig:
 
 
 _stubs = {
-    "quant_videogen.compress": {
+    "subitkv.compress": {
         "compress_tensor_cache": _unused,
         "get_quantize_fn": _unused,
     },
-    "quant_videogen.functions": {
+    "subitkv.functions": {
         "triton_prq_dequantize_tensor": _unused,
     },
-    "quant_videogen.rvq": {
+    "subitkv.rvq": {
         "rvq_dequantize_tensor_cache": _unused,
         "rvq_encode_tensor_cache": _unused,
     },
-    "quant_videogen.sim.quant.quantize_config": {
+    "subitkv.sim.quant.quantize_config": {
         "QuantizeConfig": _QuantizeConfig,
     },
-    "quant_videogen.structured_truncatable": {
+    "subitkv.structured_truncatable": {
         "decode_structured_residual": _unused,
         "encode_structured_residual": _unused,
         "payload_nbytes": _unused,

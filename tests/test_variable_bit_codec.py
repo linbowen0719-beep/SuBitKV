@@ -3,13 +3,13 @@ from __future__ import annotations
 import pytest
 import torch
 
-from quant_videogen.rvq import (
+from subitkv.rvq import (
     rvq_codebook_directory_metadata,
     rvq_codebook_payload_metadata,
     rvq_dequantize_tensor_cache,
     rvq_encode_tensor_cache,
 )
-from quant_videogen.variable_bit_codec import (
+from subitkv.variable_bit_codec import (
     cardinality_bits,
     pack_variable_indices,
     unpack_variable_indices,

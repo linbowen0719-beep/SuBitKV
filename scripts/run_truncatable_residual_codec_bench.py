@@ -166,7 +166,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def codec_module() -> Any:
-    from quant_videogen import truncatable_residual
+    from subitkv import truncatable_residual
     return truncatable_residual
 
 
@@ -290,7 +290,7 @@ def assignment_protocol_metadata(args: argparse.Namespace) -> dict[str, Any]:
             "runtime_faithful": True,
             "raw_codebook_cast_before_int4": "bfloat16",
             "int4_scale_dtype": "float16",
-            "assignment": "quant_videogen.kernels.triton.rvq.rvq_encode_bhsd_triton",
+            "assignment": "subitkv.kernels.triton.rvq.rvq_encode_bhsd_triton",
             "assignment_dot_rounding": "BF16 inputs; Triton dot rounded to BF16 before distance",
             "residual_update_rounding": "bfloat16 after every RVQ level",
             "decode_accumulation_rounding": "bfloat16 after every RVQ level",
@@ -315,19 +315,19 @@ def implementation_source_hashes() -> dict[str, str]:
     return {
         "offline_benchmark_script_sha256": sha256_file(Path(__file__)),
         "truncatable_residual_module_sha256": sha256_file(
-            REPO_ROOT / "quant_videogen" / "truncatable_residual.py"
+            REPO_ROOT / "subitkv" / "truncatable_residual.py"
         ),
         "rvq_runtime_module_sha256": sha256_file(
-            REPO_ROOT / "quant_videogen" / "rvq.py"
+            REPO_ROOT / "subitkv" / "rvq.py"
         ),
         "rvq_triton_kernel_sha256": sha256_file(
-            REPO_ROOT / "quant_videogen" / "kernels" / "triton" / "rvq.py"
+            REPO_ROOT / "subitkv" / "kernels" / "triton" / "rvq.py"
         ),
         "compress_module_sha256": sha256_file(
-            REPO_ROOT / "quant_videogen" / "compress.py"
+            REPO_ROOT / "subitkv" / "compress.py"
         ),
         "uncompress_module_sha256": sha256_file(
-            REPO_ROOT / "quant_videogen" / "uncompress.py"
+            REPO_ROOT / "subitkv" / "uncompress.py"
         ),
         "fixed_budget_rvq_helper_sha256": sha256_file(
             REPO_ROOT / "scripts" / "run_fixed_budget_rvq_screen.py"
@@ -558,11 +558,11 @@ def runtime_bf16_residual(
         raise ValueError(
             f"Expected [L>=8,C,D] runtime codebook, got {tuple(codebook.shape)}"
         )
-    from quant_videogen.kernels.triton.rvq import (
+    from subitkv.kernels.triton.rvq import (
         rvq_decode_bhsd_triton,
         rvq_encode_bhsd_triton,
     )
-    from quant_videogen.rvq import (
+    from subitkv.rvq import (
         _rvq_num_levels_limit,
         _rvq_runtime_codebook_cache_enabled,
         _rvq_triton_fastpath_enabled,
@@ -684,7 +684,7 @@ def transform_for_training(
         return x.float()
     module = codec_module()
     if not hasattr(module, "groupwise_hadamard"):
-        raise AttributeError("quant_videogen.truncatable_residual.groupwise_hadamard is required")
+        raise AttributeError("subitkv.truncatable_residual.groupwise_hadamard is required")
     return module.groupwise_hadamard(x.float(), group_size, seed=seed, inverse=False)
 
 

@@ -21,8 +21,8 @@ Date: 2026-06-23
 
 本轮相关新增/修改集中在：
 
-- `quant_videogen/kernels/triton/rvq_qk.py`
-- `quant_videogen/rvq_qk.py`
+- `subitkv/kernels/triton/rvq_qk.py`
+- `subitkv/rvq_qk.py`
 - `scripts/tune_rvq_qk_kernels.py`
 - `scripts/benchmark_rvq_table_k_attention.py`
 - `scripts/eval_real_attention_rvq_table_k.py`
@@ -60,8 +60,8 @@ Kernel:
 
 位置：
 
-- implementation: `quant_videogen/kernels/triton/rvq_qk.py`
-- wrapper import: `quant_videogen/rvq_qk.py`
+- implementation: `subitkv/kernels/triton/rvq_qk.py`
+- wrapper import: `subitkv/rvq_qk.py`
 
 它在 QK kernel 内按 tile decode RVQ K，然后立刻做 BF16 TensorCore dot。这个路径复现当前 RVQ decode 的中间 BF16 rounding，所以和“packed RVQ decode 成 dense BF16 K 后再 matmul”的结果 bit-exact。
 
@@ -286,8 +286,8 @@ PATH=/home/bowen/anaconda3/envs/hw8/bin:$PATH CUDA_VISIBLE_DEVICES=${GPU:-1} \
 ```bash
 PATH=/home/bowen/anaconda3/envs/hw8/bin:$PATH \
   python -m py_compile \
-    quant_videogen/kernels/triton/rvq_qk.py \
-    quant_videogen/rvq_qk.py \
+    subitkv/kernels/triton/rvq_qk.py \
+    subitkv/rvq_qk.py \
     scripts/eval_real_attention_rvq_prefix_groups.py \
     scripts/benchmark_rvq_table_k_attention.py \
     scripts/eval_real_attention_rvq_table_k.py \

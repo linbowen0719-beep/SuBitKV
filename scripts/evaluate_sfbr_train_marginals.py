@@ -29,7 +29,7 @@ for entry in (REPO_ROOT, SCRIPT_DIR):
 
 import evaluate_r2aq_exact_attention as exact  # noqa: E402
 import evaluate_structured_truncatable_exact_attention as protocol  # noqa: E402
-from quant_videogen import sfbr_r2aq as sfbr  # noqa: E402
+from subitkv import sfbr_r2aq as sfbr  # noqa: E402
 
 
 replay = protocol.replay

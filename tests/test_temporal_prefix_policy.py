@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from quant_videogen.temporal_prefix_policy import (
+from subitkv.temporal_prefix_policy import (
     InfeasiblePrefixPolicyError,
     StructuredPayloadSpec,
     audit_schedule_history,

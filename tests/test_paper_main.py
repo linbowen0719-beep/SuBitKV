@@ -30,11 +30,11 @@ aggregate = load_module(
 def portable_environment(tmp_path: Path) -> dict[str, str]:
     env = os.environ.copy()
     env.update({
-        "QVG_CKPT_ROOT": str(tmp_path / "ckpts"),
-        "QVG_DATA_ROOT": str(tmp_path / "data"),
-        "QVG_OUTPUT_ROOT": str(tmp_path / "outputs"),
-        "QVG_CODEBOOK_ROOT": str(tmp_path / "codebooks"),
-        "QVG_CACHE_ROOT": str(tmp_path / "cache"),
+        "SUBITKV_CKPT_ROOT": str(tmp_path / "ckpts"),
+        "SUBITKV_DATA_ROOT": str(tmp_path / "data"),
+        "SUBITKV_OUTPUT_ROOT": str(tmp_path / "outputs"),
+        "SUBITKV_CODEBOOK_ROOT": str(tmp_path / "codebooks"),
+        "SUBITKV_CACHE_ROOT": str(tmp_path / "cache"),
     })
     return env
 

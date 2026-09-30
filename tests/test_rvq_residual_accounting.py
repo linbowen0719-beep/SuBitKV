@@ -5,7 +5,7 @@ from types import SimpleNamespace
 
 import pytest
 import torch
-import quant_videogen.r2aq as r2aq
+import subitkv.r2aq as r2aq
 
 
 PATH = Path(__file__).resolve().parents[1] / "scripts" / "eval" / "run_small_eval.py"

@@ -22,7 +22,7 @@ import torch
 REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
-PYTHON = os.environ.get("QVG_PYTHON", sys.executable)
+PYTHON = os.environ.get("SUBITKV_PYTHON", sys.executable)
 GPUS = (4, 5, 6, 7)
 LAYERS = 54
 DEFAULT_PROMPTS = 20
@@ -87,7 +87,7 @@ def gpu_state(gpu: int) -> dict[str, Any]:
 
 
 def acquire(gpu: int):
-    path = Path("/tmp") / f"quant_videogen_hy_moviegen_gpu_{gpu}.lock"
+    path = Path("/tmp") / f"subitkv_hy_moviegen_gpu_{gpu}.lock"
     handle = path.open("a+", encoding="utf-8")
     try:
         fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -212,7 +212,7 @@ def launch_when_idle(
 
 
 def validate_residual_stats(root: Path, prompts: int) -> dict[str, Any]:
-    from quant_videogen.hyworldplay_residual_stats import RESIDUAL_STATS_SCHEMA
+    from subitkv.hyworldplay_residual_stats import RESIDUAL_STATS_SCHEMA
 
     files = []
     for prompt in range(int(prompts)):
@@ -312,9 +312,9 @@ def main() -> int:
             "source_hashes": {
                 str(path.relative_to(REPO_ROOT)): sha256_file(path)
                 for path in (
-                    REPO_ROOT / "quant_videogen/hyworldplay_residual_stats.py",
-                    REPO_ROOT / "quant_videogen/hyworldplay_attention_calibration.py",
-                    REPO_ROOT / "quant_videogen/hyworldplay8b_cache_codec.py",
+                    REPO_ROOT / "subitkv/hyworldplay_residual_stats.py",
+                    REPO_ROOT / "subitkv/hyworldplay_attention_calibration.py",
+                    REPO_ROOT / "subitkv/hyworldplay8b_cache_codec.py",
                     REPO_ROOT / "scripts/HY-WorldPlay/fit_moviegen_avg2_residual_params.py",
                     REPO_ROOT / "scripts/HY-WorldPlay/aggregate_moviegen_avg2_calibration.py",
                     REPO_ROOT / "scripts/HY-WorldPlay/build_moviegen_avg2_profile.py",

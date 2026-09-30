@@ -6,8 +6,8 @@ from types import SimpleNamespace
 import pytest
 import torch
 
-import quant_videogen.hyworldplay8b_cache_codec as codec
-from quant_videogen.hyworldplay8b_cache_codec import (
+import subitkv.hyworldplay8b_cache_codec as codec
+from subitkv.hyworldplay8b_cache_codec import (
     AVG2_PROFILE_SCHEMA,
     TEMPORAL_PROFILE_SCHEMA,
     CODEC_QUANT_TYPES,
@@ -429,7 +429,7 @@ def test_fixed_codec_append_preserves_old_packed_segment() -> None:
     assert v_hat.shape == (1, 2, 8, 128)
     # The experimental temporal fast backend must fall back cleanly for
     # non-temporal segmented codecs such as KIVI.
-    import quant_videogen.uncompress as restore
+    import subitkv.uncompress as restore
 
     k_fast, v_fast = restore.uncompress_kv_cache(
         appended_k, appended_v, segmented_backend="preallocated"
@@ -590,7 +590,7 @@ def test_avg2_append_reuses_unchanged_span_objects(
 def test_preallocated_segmented_temporal_decode_matches_legacy(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    import quant_videogen.uncompress as restore
+    import subitkv.uncompress as restore
 
     states = [
         {

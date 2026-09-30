@@ -2,7 +2,7 @@
 """Train and audit rate-matched structured-suffix codec candidates.
 
 This is deliberately an offline, standalone experiment.  It does not modify
-``quant_videogen.structured_truncatable`` or any active video output.
+``subitkv.structured_truncatable`` or any active video output.
 
 The experiment compares four nested-Gaussian suffix configurations after the
 same online C256 vector predictor:
@@ -54,7 +54,7 @@ for entry in (REPO_ROOT, SCRIPT_PATH.parent):
     if str(entry) not in sys.path:
         sys.path.insert(0, str(entry))
 
-from quant_videogen.truncatable_residual import groupwise_hadamard  # noqa: E402
+from subitkv.truncatable_residual import groupwise_hadamard  # noqa: E402
 from run_fixed_budget_rvq_screen import baseline_path, layer_path  # noqa: E402
 from run_truncatable_residual_codec_bench import (  # noqa: E402
     fit_gaussian_tree,
@@ -345,7 +345,7 @@ def rvq_cuda_runtime(
     runtime_codebook: torch.Tensor,
     device: torch.device,
 ) -> tuple[torch.Tensor, torch.Tensor]:
-    from quant_videogen.kernels.triton.rvq import (
+    from subitkv.kernels.triton.rvq import (
         rvq_decode_bhsd_triton,
         rvq_encode_bhsd_triton,
     )
@@ -426,8 +426,8 @@ def online_predictor_cuda(
     iterations: int,
     seed: int,
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-    from quant_videogen.kmeans.kmeans_euclid import batch_kmeans_Euclid
-    from quant_videogen.real.smooth import minus_centroid
+    from subitkv.kmeans.kmeans_euclid import batch_kmeans_Euclid
+    from subitkv.real.smooth import minus_centroid
 
     flattened = residual.reshape(1, -1, DIM).contiguous()
     devices = [residual.device.index]

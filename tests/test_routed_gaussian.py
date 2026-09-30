@@ -5,7 +5,7 @@ import copy
 import pytest
 import torch
 
-from quant_videogen import routed_gaussian as codec
+from subitkv import routed_gaussian as codec
 
 
 def _routing() -> dict[str, object]:

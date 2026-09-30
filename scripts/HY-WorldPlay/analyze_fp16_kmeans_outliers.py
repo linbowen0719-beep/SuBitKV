@@ -12,7 +12,7 @@ from typing import Iterable
 
 import torch
 
-from quant_videogen.kmeans.kmeans_euclid import batch_kmeans_Euclid
+from subitkv.kmeans.kmeans_euclid import batch_kmeans_Euclid
 
 
 QUANTILES = (0.5, 0.9, 0.95, 0.99, 0.995, 0.999)

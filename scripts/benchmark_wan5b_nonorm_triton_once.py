@@ -20,8 +20,8 @@ from pathlib import Path
 
 import torch
 
-from quant_videogen.rvq import rvq_dequantize_tensor_cache, rvq_encode_tensor_cache
-from quant_videogen.temporal_tiered_rvq import (
+from subitkv.rvq import rvq_dequantize_tensor_cache, rvq_encode_tensor_cache
+from subitkv.temporal_tiered_rvq import (
     AGE_RAMP16_TIERED_POLICY,
     temporal_tiered_depth_schedule,
 )

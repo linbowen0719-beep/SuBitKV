@@ -61,7 +61,7 @@ def load_protocol(path: Path) -> dict[str, Any]:
     if not isinstance(raw, dict) or raw.get("schema_version") != 1:
         raise ProtocolError(f"{path}: expected schema_version: 1 mapping")
     variables = dict(os.environ)
-    variables["QVG_REPO_ROOT"] = str(REPO_ROOT)
+    variables["SUBITKV_REPO_ROOT"] = str(REPO_ROOT)
     return _expand(raw, variables)
 
 

@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from quant_videogen.sfbr_r2aq import validate_routing_table
+from subitkv.sfbr_r2aq import validate_routing_table
 
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "fit_sfbr_routing.py"

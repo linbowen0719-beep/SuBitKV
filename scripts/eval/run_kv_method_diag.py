@@ -255,7 +255,7 @@ def compute_reconstruction_metrics(
     quant_root: Path,
     device: torch.device,
 ) -> dict[str, Any]:
-    from quant_videogen.uncompress import uncompress_single_kv_cache
+    from subitkv.uncompress import uncompress_single_kv_cache
 
     full_index = load_full_span_index(full_root)
     accum = {

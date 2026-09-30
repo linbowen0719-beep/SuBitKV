@@ -564,7 +564,7 @@ def actual_payload_accounting(
                 ),
             }
         )
-    # quant_videogen.rvq enables an LRU acceleration cache by default.  The
+    # subitkv.rvq enables an LRU acceleration cache by default.  The
     # storage contract remains INT4, but a live process may additionally keep
     # one BF16 dequantized codebook tensor and one FP32 squared-norm scalar per
     # centroid.  Report this separately so it is neither hidden nor confused

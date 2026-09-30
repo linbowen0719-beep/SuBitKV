@@ -45,7 +45,7 @@ if str(HY_WORLDPLAY_ROOT) not in sys.path:
     sys.path.insert(0, str(HY_WORLDPLAY_ROOT))
 
 from hyvideo.prope.camera_rope import prope_qkv  # noqa: E402
-from quant_videogen.rvq import (  # noqa: E402
+from subitkv.rvq import (  # noqa: E402
     rvq_dequantize_tensor_cache,
     rvq_encode_tensor_cache,
 )

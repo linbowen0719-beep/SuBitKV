@@ -23,22 +23,22 @@ DATA_ROOT=/lus/grand/projects/SDR/chengming/zhenghui/ICLR2026_RVQ_polaris
 module use /soft/modulefiles; module load conda; module load cudatoolkit-standalone/12.8.1
 module load gcc-native/14
 export CC=/usr/bin/gcc-14 CXX=/usr/bin/g++-14
-export PYTHONPATH="${QVG_REPO_ROOT}:${PYTHONPATH:-}" PYTHONNOUSERSITE=1
+export PYTHONPATH="${SUBITKV_REPO_ROOT}:${PYTHONPATH:-}" PYTHONNOUSERSITE=1
 export OPENBLAS_NUM_THREADS=2 OMP_NUM_THREADS=2
 export HF_HOME="${DATA_ROOT}/cache/huggingface" TORCH_HOME="${DATA_ROOT}/cache/torch"
 export http_proxy=http://proxy.alcf.anl.gov:3128 https_proxy=http://proxy.alcf.anl.gov:3128
 export HTTP_PROXY="${http_proxy}" HTTPS_PROXY="${https_proxy}"
 mkdir -p "${TORCH_HOME}"
-S="${QVG_OUTPUT_ROOT}/hyworldplay-moviegen-i2v-20-973/hy-main-r1/smoke/one_chunk"
+S="${SUBITKV_OUTPUT_ROOT}/hyworldplay-moviegen-i2v-20-973/hy-main-r1/smoke/one_chunk"
 PROBE="${DATA_ROOT}/tmp/eval_probe"; rm -rf "${PROBE}"; mkdir -p "${PROBE}"
 echo "job ${PBS_JOBID} host $(hostname -s) $(date)"
 
 echo "=== 1/2 similarity path (cv2 + lpips VGG + ssim) ==="
-cd "${QVG_REPO_ROOT}"
-"${QVG_PYTHON}" - <<'PYEOF'
+cd "${SUBITKV_REPO_ROOT}"
+"${SUBITKV_PYTHON}" - <<'PYEOF'
 import os, glob, torch, cv2, lpips, time
 from scripts.eval.compare_video_quality import calculate_ssim, to_frame_tensor
-S = os.path.join(os.environ["QVG_OUTPUT_ROOT"], "hyworldplay-moviegen-i2v-20-973/hy-main-r1/smoke/one_chunk")
+S = os.path.join(os.environ["SUBITKV_OUTPUT_ROOT"], "hyworldplay-moviegen-i2v-20-973/hy-main-r1/smoke/one_chunk")
 ref = sorted(glob.glob(f"{S}/bf16/attempt_*/job/gen.mp4"))[-1]
 tst = sorted(glob.glob(f"{S}/ours_rvq_avg2/attempt_*/job/gen.mp4"))[-1]
 print("  ref:", os.path.basename(os.path.dirname(os.path.dirname(ref))), "| tst: ours_rvq_avg2", flush=True)
@@ -72,7 +72,7 @@ mkdir -p "${PROBE}/videos"
 cp "$(ls -t ${S}/bf16/attempt_*/job/gen.mp4 | head -1)" "${PROBE}/videos/probe-0.mp4"
 printf 'a short test clip\n' > "${PROBE}/prompts.txt"
 echo "  VBENCH_CACHE_DIR=${VBENCH_CACHE_DIR}"
-timeout 1200 "${QVG_VBENCH}" evaluate --ngpus 1 --output_path "${PROBE}/out" \
+timeout 1200 "${SUBITKV_VBENCH}" evaluate --ngpus 1 --output_path "${PROBE}/out" \
   --videos_path "${PROBE}/videos" --dimension subject_consistency \
   --mode custom_input --prompt_file "${PROBE}/prompts.txt" 2>&1 | tail -12
 rc2=$?

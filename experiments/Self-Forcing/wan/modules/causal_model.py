@@ -12,7 +12,7 @@ from torch.nn.attention.flex_attention import create_block_mask, flex_attention
 from diffusers.configuration_utils import ConfigMixin, register_to_config
 from torch.nn.attention.flex_attention import BlockMask
 from diffusers.models.modeling_utils import ModelMixin
-from quant_videogen.kv_cache import offload_kv_cache_layer, onload_kv_cache_layer
+from subitkv.kv_cache import offload_kv_cache_layer, onload_kv_cache_layer
 import torch.nn as nn
 import torch
 import math
@@ -328,8 +328,8 @@ class CausalWanSelfAttention(nn.Module):
             k_all, grid_sizes, freqs
         ).type_as(v)
 
-        if os.getenv("SUBBITKV_CALIBRATION_SETTINGS") and current_start > 0:
-            from quant_videogen.subbitkv.live_calibration import observe
+        if os.getenv("SUBITKV_CALIBRATION_SETTINGS") and current_start > 0:
+            from subitkv.pipeline.live_calibration import observe
             def positioned(history_k, history_v):
                 whole_k = torch.cat((history_k.permute(0, 2, 1, 3), k_all[:, current_start:]), dim=1)
                 whole_v = torch.cat((history_v.permute(0, 2, 1, 3), v_all[:, current_start:]), dim=1)
@@ -338,7 +338,7 @@ class CausalWanSelfAttention(nn.Module):
             observe(roped_query.permute(0, 2, 1, 3),
                     k_all[:, :current_start].permute(0, 2, 1, 3),
                     v_all[:, :current_start].permute(0, 2, 1, 3),
-                    layer=kv_cache["subbitkv_layer"], transform=positioned)
+                    layer=kv_cache["subitkv_layer"], transform=positioned)
 
         x = attention(roped_query, k_input, v_all)
         

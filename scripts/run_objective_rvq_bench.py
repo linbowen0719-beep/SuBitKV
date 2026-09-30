@@ -416,7 +416,7 @@ def reconstruct_layer(
     storage: str,
     device: torch.device,
 ) -> torch.Tensor:
-    from quant_videogen.rvq import rvq_dequantize_tensor_cache, rvq_encode_tensor_cache
+    from subitkv.rvq import rvq_dequantize_tensor_cache, rvq_encode_tensor_cache
 
     codebook_dtype, scale_dtype = codebook_storage(storage)
     packed = rvq_encode_tensor_cache(

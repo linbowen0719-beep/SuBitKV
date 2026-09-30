@@ -19,36 +19,36 @@
 # stage is create-only and resumable, so a stage that needs longer is simply
 # resubmitted and continues.
 #
-# qsub -v QVG_STAGE=generate hy_i2v_prod.pbs
-# qsub -v QVG_STAGE=evaluate hy_i2v_prod.pbs
+# qsub -v SUBITKV_STAGE=generate hy_i2v_prod.pbs
+# qsub -v SUBITKV_STAGE=evaluate hy_i2v_prod.pbs
 
 set -uo pipefail
 ulimit -c 0
 
 DATA_ROOT=/lus/grand/projects/SDR/chengming/zhenghui/ICLR2026_RVQ_polaris
 . "${DATA_ROOT}/hy_i2v.env"
-export QVG_STAGE="${QVG_STAGE:?QVG_STAGE must be passed with qsub -v}"
-export QVG_RUN_ID="${QVG_RUN_ID:-hy-main-r1}"
-OUT="${QVG_OUTPUT_ROOT}/hyworldplay-moviegen-i2v-20-973/${QVG_RUN_ID}"
+export SUBITKV_STAGE="${SUBITKV_STAGE:?SUBITKV_STAGE must be passed with qsub -v}"
+export SUBITKV_RUN_ID="${SUBITKV_RUN_ID:-hy-main-r1}"
+OUT="${SUBITKV_OUTPUT_ROOT}/hyworldplay-moviegen-i2v-20-973/${SUBITKV_RUN_ID}"
 
-echo "job: ${PBS_JOBID}  stage: ${QVG_STAGE}  10 nodes x 4 GPU  $(date)"
+echo "job: ${PBS_JOBID}  stage: ${SUBITKV_STAGE}  10 nodes x 4 GPU  $(date)"
 mkdir -p "${OUT}"
-rm -f "${OUT}"/.status_${QVG_STAGE}_rank*
+rm -f "${OUT}"/.status_${SUBITKV_STAGE}_rank*
 
 # One video that burns all three attempts makes every later round exit in
 # seconds with "attempt limit exceeded"; hand those rows a fresh budget first.
-if [ "${QVG_STAGE}" = "generate" ]; then
-  "${QVG_PYTHON}" "${QVG_REPO_ROOT}/jobs/polaris/hy_i2v_sweep_exhausted.py" \
+if [ "${SUBITKV_STAGE}" = "generate" ]; then
+  "${SUBITKV_PYTHON}" "${SUBITKV_REPO_ROOT}/jobs/polaris/hy_i2v_sweep_exhausted.py" \
     --generation-root "${OUT}/generation" --split test --stamp "${PBS_JOBID%%.*}"
 fi
 
 mpiexec -n 10 -ppn 1 --cpu-bind none \
-  "${QVG_REPO_ROOT}/jobs/polaris/hy_i2v_prod_worker.sh"
+  "${SUBITKV_REPO_ROOT}/jobs/polaris/hy_i2v_prod_worker.sh"
 
 RC=0
-for f in "${OUT}"/.status_${QVG_STAGE}_rank*; do
+for f in "${OUT}"/.status_${SUBITKV_STAGE}_rank*; do
   [ -f "${f}" ] || continue
   [ "$(cat "${f}")" = "0" ] || { echo "  rank failed: $(basename "${f}")"; RC=1; }
 done
-echo "=== ${QVG_STAGE} rc=${RC}  $(date) ==="
+echo "=== ${SUBITKV_STAGE} rc=${RC}  $(date) ==="
 exit "${RC}"

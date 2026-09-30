@@ -22,7 +22,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from quant_videogen.hyworldplay8b_cache_codec import (  # noqa: E402
+from subitkv.hyworldplay8b_cache_codec import (  # noqa: E402
     AVG2_CAPACITY,
     AVG2_HORIZON,
     AVG2_RESIDUAL_BITS,

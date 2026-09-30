@@ -23,25 +23,25 @@ for entry in (REPO, REPO / "scripts"):
         sys.path.insert(0, str(entry))
 
 import evaluate_r2aq_exact_attention as exact_protocol  # noqa: E402
-from quant_videogen.kivi import decode_kivi_tensor, encode_kivi_tensor  # noqa: E402
-from quant_videogen.compress import compress_kv_cache, get_quantize_fn  # noqa: E402
-from quant_videogen.frame_mean_gaussian import (  # noqa: E402
+from subitkv.kivi import decode_kivi_tensor, encode_kivi_tensor  # noqa: E402
+from subitkv.compress import compress_kv_cache, get_quantize_fn  # noqa: E402
+from subitkv.frame_mean_gaussian import (  # noqa: E402
     decode_frame_mean_gaussian_residual,
     encode_frame_mean_gaussian_residual,
 )
-from quant_videogen.progressive_sign_adaptive_absmax_scalar import (  # noqa: E402
+from subitkv.progressive_sign_adaptive_absmax_scalar import (  # noqa: E402
     decode_progressive_sign_adaptive_absmax_scalar_residual,
     encode_progressive_sign_adaptive_absmax_scalar_residual,
 )
-from quant_videogen.sim.quant.quantize_config import QuantizeConfig  # noqa: E402
-from quant_videogen import temporal_adaptive_residual as current_codec  # noqa: E402
-from quant_videogen.turboquant import (  # noqa: E402
+from subitkv.sim.quant.quantize_config import QuantizeConfig  # noqa: E402
+from subitkv import temporal_adaptive_residual as current_codec  # noqa: E402
+from subitkv.turboquant import (  # noqa: E402
     decode_turboquant,
     encode_turboquant_mse,
     encode_turboquant_prod,
     shared_parameter_manifest,
 )
-from quant_videogen.uncompress import uncompress_single_kv_cache  # noqa: E402
+from subitkv.uncompress import uncompress_single_kv_cache  # noqa: E402
 
 
 replay = exact_protocol.replay

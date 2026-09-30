@@ -28,33 +28,33 @@ import numpy as np
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DATA = Path(os.environ.get(
-    "QVG_WAN_MAIN_DATA_ROOT",
-    Path(os.environ.get("QVG_DATA_ROOT", "data")) / "paper_main_v1/wan2_2_5b",
+    "SUBITKV_WAN_MAIN_DATA_ROOT",
+    Path(os.environ.get("SUBITKV_DATA_ROOT", "data")) / "paper_main_v1/wan2_2_5b",
 ))
 DEFAULT_OUTPUT = (
     REPO_ROOT
     / "results/analysis/adaptive_rvq_progressive_int8_video10_20260731"
 )
-PYTHON = Path(os.environ.get("QVG_PYTHON", os.fspath(Path(sys.executable))))
-VBENCH = Path(os.environ.get("QVG_VBENCH", "vbench"))
+PYTHON = Path(os.environ.get("SUBITKV_PYTHON", os.fspath(Path(sys.executable))))
+VBENCH = Path(os.environ.get("SUBITKV_VBENCH", "vbench"))
 PROMPT_FILE = Path(os.environ.get(
-    "QVG_MAIN_PROMPT_FILE",
+    "SUBITKV_MAIN_PROMPT_FILE",
     REPO_ROOT / "assets/MovieGenVideoBench.txt",
 ))
 ROUTING = (
-    Path(os.environ["QVG_WAN_ROUTING"])
-    if os.environ.get("QVG_WAN_ROUTING")
+    Path(os.environ["SUBITKV_WAN_ROUTING"])
+    if os.environ.get("SUBITKV_WAN_ROUTING")
     else REPO_ROOT / "results/analysis/"
     "frame_mean_gaussian_preposition_routeK_uniformV_control_20260728/routing.json"
 )
 TREE = (
-    Path(os.environ["QVG_MAIN_TREE"])
-    if os.environ.get("QVG_MAIN_TREE")
+    Path(os.environ["SUBITKV_MAIN_TREE"])
+    if os.environ.get("SUBITKV_MAIN_TREE")
     else REPO_ROOT / "results/analysis/routed_gaussian_routing_train20_20260725_v3/tree_params.pt"
 )
 PROGRESSIVE_V_PARAMS = (
-    Path(os.environ["QVG_MAIN_PROGRESSIVE_V"])
-    if os.environ.get("QVG_MAIN_PROGRESSIVE_V")
+    Path(os.environ["SUBITKV_MAIN_PROGRESSIVE_V"])
+    if os.environ.get("SUBITKV_MAIN_PROGRESSIVE_V")
     else REPO_ROOT / "results/analysis/progressive_v_absmax_prefix_fit_train20x30_v2_20260730/params.pt"
 )
 TEMPORAL_JOINT_B23_PROFILE = (
@@ -82,13 +82,13 @@ TEMPORAL_JOINT_AVG1_PROFILE = (
     "profile.json"
 )
 TEMPORAL_PROFILE = (
-    Path(os.environ["QVG_MAIN_TEMPORAL_PROFILE"])
-    if os.environ.get("QVG_MAIN_TEMPORAL_PROFILE")
+    Path(os.environ["SUBITKV_MAIN_TEMPORAL_PROFILE"])
+    if os.environ.get("SUBITKV_MAIN_TEMPORAL_PROFILE")
     else REPO_ROOT / "results/analysis/adaptive_rvq_temporal_residual_calibration_train20_20260730/profile.json"
 )
 TEMPORAL_INT8_PROFILE = (
-    Path(os.environ["QVG_MAIN_TEMPORAL_PROFILE"])
-    if os.environ.get("QVG_MAIN_TEMPORAL_PROFILE")
+    Path(os.environ["SUBITKV_MAIN_TEMPORAL_PROFILE"])
+    if os.environ.get("SUBITKV_MAIN_TEMPORAL_PROFILE")
     else REPO_ROOT / "results/analysis/adaptive_rvq_temporal_residual_calibration_int8_train20_20260731/profile.json"
 )
 SEED = 42
@@ -235,16 +235,16 @@ def source_hashes() -> dict[str, str]:
         Path("experiments/HY-WorldPlay/wan/generate.py"),
         Path("scripts/eval/run_small_eval.py"),
         Path("scripts/eval/compare_video_quality.py"),
-        Path("quant_videogen/compress.py"),
-        Path("quant_videogen/temporal_adaptive_residual.py"),
-        Path("quant_videogen/frame_mean_gaussian.py"),
-        Path("quant_videogen/routed_gaussian.py"),
-        Path("quant_videogen/kernels/triton/routed_gaussian.py"),
-        Path("quant_videogen/progressive_sign_adaptive_absmax_scalar.py"),
-        Path("quant_videogen/direct_bitpacking.py"),
-        Path("quant_videogen/kivi.py"),
-        Path("quant_videogen/turboquant.py"),
-        Path("quant_videogen/kernels/triton/sign_adaptive_absmax_scalar.py"),
+        Path("subitkv/compress.py"),
+        Path("subitkv/temporal_adaptive_residual.py"),
+        Path("subitkv/frame_mean_gaussian.py"),
+        Path("subitkv/routed_gaussian.py"),
+        Path("subitkv/kernels/triton/routed_gaussian.py"),
+        Path("subitkv/progressive_sign_adaptive_absmax_scalar.py"),
+        Path("subitkv/direct_bitpacking.py"),
+        Path("subitkv/kivi.py"),
+        Path("subitkv/turboquant.py"),
+        Path("subitkv/kernels/triton/sign_adaptive_absmax_scalar.py"),
         Path("scripts/run_adaptive_rvq_best_residual_video_bench.py"),
     )
     return {

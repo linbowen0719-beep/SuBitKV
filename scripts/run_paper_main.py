@@ -163,7 +163,7 @@ def doctor(config_path: Path, config: dict[str, Any], *, full_hash: bool) -> int
     for label, path in checkpoints.items():
         if not path.exists():
             errors.append(f"missing {label}: {path}")
-    executables = ("nvidia-smi", os.environ.get("QVG_VBENCH", "vbench"))
+    executables = ("nvidia-smi", os.environ.get("SUBITKV_VBENCH", "vbench"))
     for executable in executables:
         if shutil.which(executable) is None and not Path(executable).is_file():
             errors.append(f"command not found: {executable}")
@@ -191,14 +191,14 @@ def command_specs(
     wan_methods = ",".join(config["methods"]["wan2_2_5b"])
     self_methods = ",".join(config["methods"]["self_forcing"])
     wan_env = {
-        "QVG_PYTHON": sys.executable,
-        "QVG_VBENCH": shutil.which("vbench") or "vbench",
-        "QVG_MAIN_PROMPT_FILE": prompt,
-        "QVG_WAN_MAIN_DATA_ROOT": str(bundle["wan2_2_5b/nonorm_k_l16c64_codebooks"].parent),
-        "QVG_WAN_ROUTING": str(bundle["wan2_2_5b/routing.json"]),
-        "QVG_MAIN_TREE": str(bundle["shared/tree_params.pt"]),
-        "QVG_MAIN_PROGRESSIVE_V": str(bundle["shared/progressive_v_params.pt"]),
-        "QVG_MAIN_TEMPORAL_PROFILE": str(bundle["shared/temporal_profile.json"]),
+        "SUBITKV_PYTHON": sys.executable,
+        "SUBITKV_VBENCH": shutil.which("vbench") or "vbench",
+        "SUBITKV_MAIN_PROMPT_FILE": prompt,
+        "SUBITKV_WAN_MAIN_DATA_ROOT": str(bundle["wan2_2_5b/nonorm_k_l16c64_codebooks"].parent),
+        "SUBITKV_WAN_ROUTING": str(bundle["wan2_2_5b/routing.json"]),
+        "SUBITKV_MAIN_TREE": str(bundle["shared/tree_params.pt"]),
+        "SUBITKV_MAIN_PROGRESSIVE_V": str(bundle["shared/progressive_v_params.pt"]),
+        "SUBITKV_MAIN_TEMPORAL_PROFILE": str(bundle["shared/temporal_profile.json"]),
         "HYWORLDPLAY_CKPT_ROOT": str(config["models"]["wan2_2_5b"]["checkpoint_root"]),
     }
     wan_runner = str(REPO_ROOT / "scripts/run_adaptive_rvq_best_residual_video_bench.py")

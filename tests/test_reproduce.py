@@ -54,12 +54,12 @@ def test_supported_configs_are_portable_and_complete() -> None:
         text = path.read_text(encoding="utf-8")
         assert not any(value in text for value in forbidden), path
         variables = {
-            "QVG_REPO_ROOT": str(REPO_ROOT),
-            "QVG_CKPT_ROOT": "/portable/ckpts",
-            "QVG_DATA_ROOT": "/portable/data",
-            "QVG_CODEBOOK_ROOT": "/portable/codebooks",
-            "QVG_OUTPUT_ROOT": "/portable/outputs",
-            "QVG_CACHE_ROOT": "/portable/cache",
+            "SUBITKV_REPO_ROOT": str(REPO_ROOT),
+            "SUBITKV_CKPT_ROOT": "/portable/ckpts",
+            "SUBITKV_DATA_ROOT": "/portable/data",
+            "SUBITKV_CODEBOOK_ROOT": "/portable/codebooks",
+            "SUBITKV_OUTPUT_ROOT": "/portable/outputs",
+            "SUBITKV_CACHE_ROOT": "/portable/cache",
         }
         config = reproduce.load_experiment(
             path, variables, Path("/portable/outputs/test-run")
@@ -129,7 +129,7 @@ def test_runner_creates_provenance_and_refuses_overwrite(
                     "-c",
                     (
                         "from pathlib import Path; "
-                        "Path(r'${QVG_RUN_DIR}/artifact.txt').write_text('ok')"
+                        "Path(r'${SUBITKV_RUN_DIR}/artifact.txt').write_text('ok')"
                     ),
                 ],
             }
@@ -185,7 +185,7 @@ def test_main_execution_requires_explicit_acknowledgement(tmp_path: Path) -> Non
                 "--suite",
                 "main",
                 "--experiment",
-                "longcat-qvg-int2",
+                "longcat-subitkv-int2",
                 "--config",
                 str(path_config),
             ]

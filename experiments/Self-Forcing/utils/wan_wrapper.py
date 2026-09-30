@@ -15,7 +15,7 @@ from wan.modules.causal_model import CausalWanModel
 
 def _self_forcing_checkpoint_root() -> Path:
     """Return the portable checkpoint root used by public launchers."""
-    checkpoint_root = Path(os.environ.get("QVG_CKPT_ROOT", "ckpts")).expanduser()
+    checkpoint_root = Path(os.environ.get("SUBITKV_CKPT_ROOT", "ckpts")).expanduser()
     return checkpoint_root / "Self-Forcing"
 
 

@@ -5,7 +5,7 @@ while supported reproductions are isolated from historical research entrypoints.
 
 ## Tracked source
 
-- `quant_videogen/`: importable compression, storage, and Triton kernel code.
+- `subitkv/`: importable compression, storage, and Triton kernel code.
 - `experiments/{LongCat,Self-Forcing,HY-WorldPlay}/`: modified model
   integrations, pinned and licensed as described in `THIRD_PARTY.md`.
 - `configs/smoke/` and `configs/main/`: portable, supported experiment specs.
@@ -32,7 +32,7 @@ logs/        launchers and runtime logs
 exports/     large sharing bundles
 ```
 
-`QVG_CKPT_ROOT`, `QVG_DATA_ROOT`, `QVG_CODEBOOK_ROOT`, and `QVG_OUTPUT_ROOT`
+`SUBITKV_CKPT_ROOT`, `SUBITKV_DATA_ROOT`, `SUBITKV_CODEBOOK_ROOT`, and `SUBITKV_OUTPUT_ROOT`
 map these logical roles to machine-specific locations. Do not add a `local-only/`
 directory to Git; it is a documentation concept, not a second copy of data.
 

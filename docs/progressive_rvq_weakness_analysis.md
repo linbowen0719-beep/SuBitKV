@@ -143,9 +143,9 @@ first+recent 已经把最关键的边界信息保成 BF16：
 
 相关实现位置：
 
-- encode: `quant_videogen/rvq.py::_rvq_encode_tensor_cache`
-- token decode: `quant_videogen/rvq.py::_rvq_dequantize_progressive_tensor_cache`
-- block decode: `quant_videogen/rvq.py::_rvq_dequantize_block_progressive_tensor_cache`
+- encode: `subitkv/rvq.py::_rvq_encode_tensor_cache`
+- token decode: `subitkv/rvq.py::_rvq_dequantize_progressive_tensor_cache`
+- block decode: `subitkv/rvq.py::_rvq_dequantize_block_progressive_tensor_cache`
 - memory accounting: `scripts/eval/run_small_eval.py::rvq_packed_tensor_nbytes`
 
 主要慢点：
