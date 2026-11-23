@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+from pathlib import Path
 
 from subitkv.pipeline.common import REPO, absolute, write_json
 
@@ -22,7 +23,8 @@ def build_command(
     from subitkv.pipeline.adapters import label
 
     c, m = run.config, run.config["model_config"]
-    image = absolute(c["data"]["conditioning_images"]) / split / f"{prompt_id:04d}.png"
+    image = (Path(c["data"]["single_conditioning_image"]) if split == "custom" else
+             absolute(c["data"]["conditioning_images"]) / split / f"{prompt_id:04d}.png")
     if not image.is_file():
         raise FileNotFoundError(f"HY-WorldPlay I2V input required: {image}")
     options = dict(
@@ -61,7 +63,9 @@ def build_command(
         terminal_cache_audit="true" if budget is not None else "false",
         metrics_path=destination / "runtime.json",
     )
-    if budget is not None:
+    if isinstance(budget, str):
+        options["kv_cache_codec"] = budget
+    elif budget is not None:
         settings = destination / "runtime_settings.json"
         write_json(settings, c)
         env["SUBITKV_RUNTIME_SETTINGS"] = str(settings)

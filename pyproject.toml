@@ -21,6 +21,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+baselines = [
+    "scipy>=1.11",
+]
+
 metrics = [
     "numpy>=1.24",
     "opencv-python>=4.8",
@@ -32,8 +36,13 @@ metrics = [
 ]
 
 release = [
-    "subitkv[all,metrics]",
+    "subitkv[all,metrics,moviegen]",
     "scikit-learn>=1.3",
+]
+
+moviegen = [
+    "huggingface-hub>=0.20",
+    "pyarrow>=14",
 ]
 
 selfforcing = [
@@ -94,9 +103,11 @@ include = ["subitkv*"]
 # Model integrations run from the checkout through their native import paths.
 exclude = ["subitkv._vendor*"]
 
-[tool.setuptools.package-data]
-"subitkv.pipeline" = ["constants/*.json"]
-
 [project.scripts]
 subitkv = "subitkv.pipeline.workflow:main"
 subitkv-schedule = "subitkv.pipeline.schedule:main"
+subitkv-experiment = "subitkv.pipeline.experiment:main"
+subitkv-calibrate = "subitkv.pipeline.experiment:offline_main"
+subitkv-infer = "subitkv.pipeline.single:main"
+subitkv-table = "subitkv.pipeline.experiment:table_main"
+subitkv-prepare-frames = "subitkv.pipeline.moviegen_frames:main"

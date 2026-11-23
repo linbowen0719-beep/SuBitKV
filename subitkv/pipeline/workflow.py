@@ -125,21 +125,23 @@ class Run:
         )
 
 
+def require_runtime():
+    import torch
+
+    version = tuple(int(value) for value in torch.__version__.split("+")[0].split(".")[:2])
+    if version < (2, 8):
+        raise RuntimeError(
+            f"Model workflow requires PyTorch >=2.8; found {torch.__version__}. Install .[release] in a dedicated environment."
+        )
+    if not torch.cuda.is_available():
+        raise RuntimeError("Model workflow requires a CUDA GPU")
+
+
 def execute(config, args):
     from . import adapters
 
     if args.stage in ("collect", "calibrate", "infer"):
-        import torch
-
-        version = tuple(
-            int(value) for value in torch.__version__.split("+")[0].split(".")[:2]
-        )
-        if version < (2, 8):
-            raise RuntimeError(
-                f"Model workflow requires PyTorch >=2.8; found {torch.__version__}. Install .[release] in a dedicated environment."
-            )
-        if not torch.cuda.is_available():
-            raise RuntimeError("Model workflow requires a CUDA GPU")
+        require_runtime()
 
     run = Run(config, args.run_id, args.resume)
     run.root.mkdir(parents=True, exist_ok=True)
@@ -198,7 +200,7 @@ def execute(config, args):
             calibrate(run, args.part)
         elif args.stage == "infer":
             verify_manifest(run.models, model=config["model"])
-            if not args.reference_only:
+            if not args.reference_only and not args.baseline:
                 bundle = verify_manifest(run.bundle, model=config["model"])
                 if (
                     bundle.get("calibration_hash") != identity(config["calibration"])
@@ -210,7 +212,7 @@ def execute(config, args):
                     raise ValueError(
                         "Bundle model revision or calibration configuration mismatch"
                     )
-            adapters.infer(run, args.budget, args.reference_only)
+            adapters.infer(run, args.budget, args.reference_only, args.baseline)
         else:
             from .metrics import evaluate
 
@@ -240,11 +242,13 @@ def execute(config, args):
 
 
 def main(argv=None):
+    from subitkv.baselines import BASELINE_QUANT_TYPES
+
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("stage", choices=STAGES)
     parser.add_argument("--config", type=Path, default=REPO / "configs/subitkv.yaml")
     parser.add_argument("--model", choices=MODELS, required=True)
-    parser.add_argument("--profile", choices=("smoke", "full"), default="smoke")
+    parser.add_argument("--profile", choices=("smoke", "full", "validation"), default="smoke")
     parser.add_argument("--run-id", default="smoke-v1")
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--execute", action="store_true")
@@ -255,6 +259,7 @@ def main(argv=None):
     )
     parser.add_argument("--budget", type=float)
     parser.add_argument("--reference-only", action="store_true")
+    parser.add_argument("--baseline", choices=tuple(BASELINE_QUANT_TYPES))
     args = parser.parse_args(argv)
     try:
         if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", args.run_id):
@@ -262,14 +267,17 @@ def main(argv=None):
         config = load_config(args.config, args.model, args.profile)
         if args.budget is not None and args.budget not in config["budgets"]:
             raise ValueError("budget must be declared in config.budgets")
-        if args.stage != "infer" and (args.reference_only or args.budget is not None):
-            raise ValueError("--budget and --reference-only belong to infer")
+        if args.stage != "infer" and (args.reference_only or args.budget is not None or args.baseline):
+            raise ValueError("--budget, --baseline and --reference-only belong to infer")
+        if args.baseline and (args.budget is not None or args.reference_only):
+            raise ValueError("--baseline cannot be combined with --budget or --reference-only")
         if args.stage != "calibrate" and args.part != "all":
             raise ValueError("--part belongs to calibrate")
         if not args.execute:
-            print(
-                json.dumps(plan(config, args.stage, args.part, args.budget), indent=2)
-            )
+            preview = plan(config, args.stage, args.part, args.budget)
+            if args.baseline:
+                preview.update(baseline=args.baseline, budgets=[], dependencies=["download-models"])
+            print(json.dumps(preview, indent=2))
             return
         execute(config, args)
     except (ValueError, FileNotFoundError, FileExistsError, RuntimeError) as exc:

@@ -4,6 +4,7 @@ from __future__ import annotations
 import os
 import time
 import torch
+from .memory import track_workspace
 from .rvq import rvq_dequantize_tensor_cache
 from .temporal_adaptive_residual import (
     QUANT_METHOD as TEMPORAL_ADAPTIVE_RESIDUAL_METHOD,
@@ -119,6 +120,7 @@ def _segmented_decode_backend(explicit: str | None) -> str:
     return normalized
 
 
+@track_workspace("decode")
 def uncompress_kv_cache(
     k_cache: torch.Tensor | dict,
     v_cache: torch.Tensor | dict,
@@ -231,6 +233,7 @@ def _parallel_preallocated_kv_decode_enabled(
     return k_device.type == "cuda" and k_device == v_device
 
 
+@track_workspace("decode")
 def uncompress_single_kv_cache(
     cache: torch.Tensor | dict,
     *,
@@ -290,6 +293,16 @@ def uncompress_single_kv_cache(
             return decode_temporal_adaptive_residual_state(
                 cache, output_dtype=output_dtype
             )
+        finally:
+            _stop_dequant_timer(timer)
+    if cache.get("quant_method") in {
+        "kivi_all_compressed", "turboquant_mse", "turboquant_prod", "quantvideo"
+    }:
+        from .baselines import decode_state
+
+        timer = _start_dequant_timer(_packed_state_device(cache))
+        try:
+            return decode_state(cache, cache.get("info", {}).get("output_dtype", torch.bfloat16))
         finally:
             _stop_dequant_timer(timer)
     if cache.get("quant_method") == "rvq":

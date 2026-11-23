@@ -9,8 +9,11 @@ import torch
 
 
 def compression_uses_online_rng(quant_config: object) -> bool:
-    """Inference uses fixed codebooks and local deterministic codec generators."""
-    return False
+    """QuantVideo fits online K-means using the generator's random stream."""
+    kind = getattr(quant_config, "quant_type", "none")
+    return kind.startswith("triton-nstages-kmeans-") and not (
+        getattr(quant_config, "k_rvq", False) or getattr(quant_config, "v_rvq", False)
+    )
 
 
 @contextmanager

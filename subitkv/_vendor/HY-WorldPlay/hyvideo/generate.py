@@ -708,6 +708,9 @@ def _validate_gpu_resident_codec(args):
 
 
 def generate_video(args):
+    from subitkv.memory import reset_workspace_stats
+
+    reset_workspace_stats()
     metrics_started = time.perf_counter()
     reset_encode_breakdown_stats()
     reset_dequant_stats()
@@ -898,7 +901,10 @@ def generate_video(args):
             top_level_accounted = model_load_seconds + pipeline_call_seconds + mp4_encode_seconds
             if terminal_cache_audit is not None:
                 top_level_accounted += float(terminal_cache_audit.get("seconds", 0.0))
+            from subitkv.memory import workspace_stats
+
             metrics = {
+                **workspace_stats(),
                 "schema_version": "hyworldplay8b_generation_metrics.v1",
                 "status": "completed",
                 "requested_frames": args.video_length,
@@ -965,6 +971,14 @@ def generate_video(args):
                 }
             )
             metrics_parent = os.path.dirname(os.path.abspath(args.metrics_path))
+            from subitkv.rvq import rvq_codebook_directory_metadata
+
+            shared_codebook_bytes = 0
+            for directory in (infer_state.kv_codec_k_codebook_dir, infer_state.kv_codec_v_codebook_dir):
+                if directory:
+                    shared_codebook_bytes += rvq_codebook_directory_metadata(directory, storage_dtype="int4")["codebook_storage_bytes"]
+            metrics["shared_codebook_mib"] = shared_codebook_bytes / 1024**2
+            metrics["peak_allocated_mib"] = max(metrics["peak_allocated_mib"], metrics["codec_process_peak_mib"])
             os.makedirs(metrics_parent, exist_ok=True)
             with open(args.metrics_path, "x", encoding="utf-8") as handle:
                 json.dump(metrics, handle, indent=2, sort_keys=True)

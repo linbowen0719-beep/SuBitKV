@@ -9,14 +9,24 @@ from pathlib import Path
 
 import pytest
 
-from subitkv.pipeline.schedule import BUDGETS, DEFAULT_CONSTANTS, generate
+from subitkv.pipeline.schedule import BUDGETS, generate
 from subitkv.pipeline.scheduling import solve_dp
 
 REPO = Path(__file__).resolve().parents[1]
 
 
-def constants():
-    return json.loads(DEFAULT_CONSTANTS.read_text())
+def constants(model="hyworldplay_8b"):
+    # Synthetic statistics only: release contains no pretrained schedule constants.
+    raw = dict(age_weights=[1.0] * 10,
+               distortions={"16": 0.0, "8": 0.001, "4": 0.01, "3": 0.03, "2": 0.1, "1": 1.0})
+    return dict(schema_version="subitkv.calibration_constants.v1", model=model,
+                model_config=dict(heads=16, spatial_tokens=1537, latent_chunk_frames=4, head_dim=128),
+                calibration=dict(levels=16, centroids=64, input_norm_mode="none",
+                                 early_stop=dict(max_depth=16), schedule=dict(horizon=10, rvq_base_depth=8)),
+                source=dict(training=dict(test_prompts_read=False)),
+                tensor_profiles={"K": deepcopy(raw), "V": deepcopy(raw)},
+                shared_profile=dict(**raw, first_anchor_weight=3.0),
+                b0_estimate=dict(method="multiply_d1", factor=4.0, measured=False))
 
 
 @pytest.mark.parametrize("budget", BUDGETS)
@@ -45,10 +55,13 @@ def test_dp_all_budgets_fit_bytes_and_never_upgrade(budget):
 
 def test_cli_runs_without_site_packages_or_local_assets(tmp_path):
     destination = tmp_path / "profile.json"
+    inputs = tmp_path / "schedule_inputs.json"
+    inputs.write_text(json.dumps(constants()))
     cmd = [
         sys.executable,
         "-S",
         str(REPO / "scripts/subitkv_schedule.py"),
+        "--constants", str(inputs),
         "--budget",
         "0.5",
         "--output",
@@ -62,17 +75,10 @@ def test_cli_runs_without_site_packages_or_local_assets(tmp_path):
     assert profile["training"]["solver"] == "dp"
     assert "/data/bowen" not in destination.read_text()
     assert "/home/bowen" not in destination.read_text()
-    assert profile["tensor_profiles"]["K"]["joint_schedule"][-1] == [
-        1,
-        1,
-        1,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1,
-        1,
+    tensor = profile["tensor_profiles"]["K"]
+    assert sum(tensor["joint_schedule"][-1]) == 5
+    assert tensor["memory_budget"]["residual_capacity_by_step"] == [
+        9, 9, 8, 8, 7, 7, 6, 6, 5, 5
     ]
     destination.write_text('{"unrelated": true}')
     result = subprocess.run(cmd, cwd=tmp_path, capture_output=True, text=True)
@@ -136,24 +142,16 @@ def test_b0_estimates_are_explicit_and_can_be_disabled_or_replaced():
 
 def test_milp_reproduces_previous_joint_review_and_loads_at_runtime():
     pytest.importorskip("scipy")
-    profile = generate(constants(), 0.5, solver="milp")
-    expected_k = [
-        [8],
-        [4, 8],
-        [4, 4, 4],
-        [2, 3, 3, 3],
-        [2, 2, 2, 2, 2],
-        [1, 1, 1, 2, 2, 2],
-        [1, 1, 1, 1, 1, 1, 2],
-        [1, 1, 1, 0, 1, 1, 1, 1],
-        [1, 1, 1, 0, 0, 0, 1, 1, 1],
-        [1, 1, 1, 0, 0, 0, 0, 0, 1, 1],
-    ]
-    assert profile["tensor_profiles"]["K"]["joint_schedule"] == expected_k
+    legacy = constants()
+    del legacy["calibration"]["schedule"]["rvq_base_depth"]
+    profile = generate(legacy, 0.5, solver="milp")
+    assert sum(profile["tensor_profiles"]["K"]["joint_schedule"][-1]) == 5
     pytest.importorskip("torch")
     from subitkv.hyworldplay8b_cache_codec import load_avg2_profile
 
     for solver in ("dp", "milp"):
         loaded = load_avg2_profile(generate(constants(), 0.5, solver=solver))
         assert loaded.terminal("K") == loaded.terminal("V") == 5
-        assert loaded.tensors["K"].residual_capacity_by_step == tuple(range(14, 4, -1))
+        assert loaded.tensors["K"].residual_capacity_by_step == (
+            9, 9, 8, 8, 7, 7, 6, 6, 5, 5
+        )

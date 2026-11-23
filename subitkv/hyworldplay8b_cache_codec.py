@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 from typing import Any
 import torch
+from subitkv.baselines import BASELINE_QUANT_TYPES
 from subitkv.compress import compress_kv_cache, get_quantize_fn
 from subitkv.sim.quant.quantize_config import QuantizeConfig
 from subitkv.rng import preserve_torch_rng_state
@@ -34,6 +35,7 @@ CODEC_QUANT_TYPES = {
         "rvq_ours_avg4",
     )
 }
+CODEC_QUANT_TYPES.update(BASELINE_QUANT_TYPES)
 OURS_BITS = (0, 1, 2, 3, 4)
 AVG2_PROFILE_SCHEMA = "hyworldplay_rvq_temporal_avg2.profile.v2"
 TEMPORAL_PROFILE_SCHEMA = "hyworldplay_rvq_temporal.profile.v3"
@@ -265,6 +267,14 @@ def make_codec_settings(
         raise ValueError(f"unsupported HY-WorldPlay KV codec: {name}")
     quant_type = CODEC_QUANT_TYPES[name]
     config = QuantizeConfig(quant_type=quant_type)
+    if name in BASELINE_QUANT_TYPES:
+        config.quant_block_size = 64
+        config.kmeans_max_iters = 2
+        config.num_prq_stages = 1
+        return CodecSettings(
+            name=name, quant_type=quant_type, quant_config=config,
+            frame_spatial_tokens=int(frame_spatial_tokens),
+        )
     temporal_rvq_names = {
         "rvq_ours_avg0",
         "rvq_ours_avg0p2_alt",
@@ -942,6 +952,8 @@ def append_encoded_vision_kv(
 def encode_vision_kv(
     k: torch.Tensor, v: torch.Tensor, *, layer_idx: int, settings: CodecSettings
 ) -> tuple[dict, dict]:
+    if settings.name in BASELINE_QUANT_TYPES:
+        return compress_kv_cache(k, v, settings.quant_type, settings.quant_config, layer_idx=layer_idx)
     return _encode_ours_avg2(k, v, layer_idx=layer_idx, settings=settings)
 
 

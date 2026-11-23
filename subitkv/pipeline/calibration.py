@@ -9,13 +9,14 @@ from subitkv.cache_budget import rvq_schedule_budget
 
 from .adapters import attempt, generate, label
 from .common import (
+    digest,
     identity,
     save_tensor,
     seal,
     validate_schedule,
     write_json,
 )
-from .scheduling import solve_schedule
+from .scheduling import solve_schedule, solve_dp
 from .workflow import prompts
 
 
@@ -252,6 +253,7 @@ def aggregate_weights(run):
         tensor_profiles=tensors,
         training=dict(
             split="train",
+            dataset_set="calibration",
             test_prompts_read=False,
             objective="K: KL + output NMSE; V: output NMSE",
             calibration_events=len(events),
@@ -266,19 +268,34 @@ def build_profiles(run):
     weights = json.loads((run.bundle / "weights.json").read_text())
     cfg = run.config["calibration"]["schedule"]
     outputs = []
+    inputs = dict(
+        schema_version="subitkv.calibration_constants.v1",
+        model=run.config["model"], model_config=run.config["model_config"],
+        calibration=run.config["calibration"],
+        source=dict(training=weights.get("training", {}), weights_sha256=digest(run.bundle / "weights.json")),
+        tensor_profiles=weights["tensor_profiles"],
+    )
+    if run.config["model"] != "hyworldplay_8b":
+        inputs["shared_profile"] = dict(
+            age_weights=weights["tensor_profiles"]["K"]["age_weights"],
+            distortions={str(b): sum(v["distortions"][str(b)] for v in weights["tensor_profiles"].values()) / 2
+                         for b in (16, 8, 4, 3, 2, 1, 0)},
+            first_anchor_weight=None,
+        )
+    write_json(run.bundle / "schedule_inputs.json", inputs)
+    outputs.append(run.bundle / "schedule_inputs.json")
     for budget in run.config["budgets"]:
         spec = cfg["budgets"][f"{budget:g}"]
         memory = rvq_schedule_budget(run.config, spec["terminal"])
         capacity = max(memory.capacities)
 
         def schedule(raw):
-            rows = spec.get("rows") or solve_schedule(
-                raw,
-                capacity,
-                spec["terminal"],
-                cfg["horizon"],
-                capacities=memory.capacities,
-            )
+            rows = spec.get("rows")
+            if rows is None:
+                rows = (solve_dp(raw, memory.capacities, spec["terminal"])
+                        if cfg["mode"] == "base_aware_dp" else solve_schedule(
+                            raw, capacity, spec["terminal"], cfg["horizon"],
+                            capacities=memory.capacities))
             validate_schedule(
                 rows,
                 capacity,
@@ -291,7 +308,7 @@ def build_profiles(run):
         provenance = (
             "frozen_config_schedule"
             if "rows" in spec
-            else "base_aware_train_attention_milp"
+            else "base_aware_train_attention_" + ("dp" if cfg["mode"] == "base_aware_dp" else "milp")
         )
         if run.config["model"] == "hyworldplay_8b":
             profiles = {}

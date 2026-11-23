@@ -128,6 +128,9 @@ def run_job(job):
     )
     torch.cuda.synchronize()
     torch.cuda.reset_peak_memory_stats()
+    from subitkv.memory import reset_workspace_stats, workspace_stats
+
+    reset_workspace_stats()
     log = io.StringIO()
     started = time.perf_counter()
     try:
@@ -148,6 +151,8 @@ def run_job(job):
         )
         row.update(parse_logged_metrics(log.getvalue()))
         row.update(cache_metrics_from_runner(runner))
+        row.update(workspace_stats())
+        row["peak_gpu_mem_mb"] = max(row["peak_gpu_mem_mb"], row["codec_process_peak_mib"])
         with (output / "metrics.csv").open("w") as stream:
             writer = csv.DictWriter(stream, fieldnames=list(row))
             writer.writeheader()

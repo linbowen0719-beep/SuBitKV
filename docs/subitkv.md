@@ -16,8 +16,8 @@ See the [code guide](repo_layout.md) for the algorithm and model adapters.
 | 4 | `metrics` | PSNR, SSIM, LPIPS, TWE, and VBench reports |
 
 For a complete copyable Wan example, start with [Quick start](../README.md#quick-start).
-For schedule generation alone, skip installation and use the
-[saved constants](#generate-schedules-from-saved-calibration-constants).
+For offline calibration, single inference and table generation, see the
+[three public commands](#three-public-commands).
 
 ## Models
 
@@ -58,55 +58,124 @@ The `smoke` profile uses `assets/default_prompt.txt` for evaluation:
 Set `profiles.smoke.eval_prompts` in the YAML to use another prompt file.
 The `full` profile uses `data.eval_prompts`.
 
-## Generate schedules from saved calibration constants
+## Three public commands
 
-The repository includes
-[`hyworldplay_train4.json`](../subitkv/pipeline/constants/hyworldplay_train4.json):
-the historical HY-WorldPlay train4 age weights, independent K/V distortion
-curves, codec geometry, Base reservation settings and source hashes. These are
-model-specific constants; they are not Wan or Self-Forcing calibration results.
-They are also included in the installed Python package.
+Use the same model/config/run ID for all three commands. The default run ID is
+`moviegen-main`; different run IDs preserve separate calibration assets.
+All commands are dry-runs until `--execute` is supplied.
 
-From a checkout, **only Python is needed** for the default sequential DP:
+### Offline calibration
 
 ```bash
-python scripts/subitkv_schedule.py --budget 0.5 --output outputs/hy_avg0p5_dp.json
-python scripts/subitkv_schedule.py --budget 2 --output outputs/hy_avg2_dp.json
-# After installing the package, the equivalent entrypoint is:
-subitkv-schedule --budget 0.5
+python scripts/calibrate.py --model wan2_2_5b --execute
 ```
 
-Budgets are `0 / 0.2 / 0.5 / 1 / 2 / 3 / 4`. No checkpoint, prompt file,
-codebook, CUDA, PyTorch, YAML library or local experiment directory is read by
-this DP command. It prints both K/V schedules and each step's remaining capacity;
-`--output` saves a runtime-readable HY profile with constants hash, algorithm and
-estimate provenance. A different existing output is never overwritten.
+This command only downloads models and performs fresh offline calibration on
+20 prompts. It generates K/V codebooks, `routing.json`, `tree_params.pt`,
+`v_params.pt`, `weights.json`, `schedule_inputs.json`, all seven `profiles/`
+and an integrity manifest. These live under
+`outputs/subitkv/<model>/moviegen-main-calibration/bundle/`. No pretrained
+statistics, codebooks, routing tables or schedules are shipped in Git.
+Completed calibration tasks are verified and reused on restart.
 
-DP solves the multiple-choice knapsack problem at each admission, keeping old
-chunk precision nonincreasing. Its recurrence is
-`F(i,c) = min_b [F(i-1,c-b) + w[age_i]*D(b)]`, with `b <= previous_bits[i]`.
-Each row uses the byte-derived capacity after deducting that row's RVQ bases;
-the final row spends exactly the terminal budget. It optimizes each step, so it
-can differ from the full-horizon joint solver used in calibration. To reproduce
-the joint optimization in the schedule reviews, install SciPy and select MILP:
+Calibration measures B0 as well as B1/B2/B3/B4/B8 and uses exact B16. Sequential
+DP is the default scheduler; use `calibration.schedule.mode: base_aware_milp`
+for joint optimization. Budgets are `0 / 0.2 / 0.5 / 1 / 2 / 3 / 4`.
+To recompute a schedule from the generated bundle using only Python:
 
 ```bash
-python -m pip install 'scipy>=1.11'
-python scripts/subitkv_schedule.py --budget 0.5 --solver milp --output outputs/hy_avg0p5_milp.json
+python -S scripts/subitkv_schedule.py --bundle outputs/subitkv/wan2_2_5b/moviegen-main-calibration/bundle --budget 0.5
 ```
 
-The source calibration measured B8/B4/B3/B2/B1; B16 is the exact bypass with
-zero distortion. **B0 was not measured.** The JSON stores the legacy
-`D(0)=4*D(1)` estimate separately from measured losses. Default `--b0-policy auto`
-uses it only below 1 bit and marks both terminal output and saved profiles as
-provisional. `--b0-policy exclude` prohibits the estimate and rejects sub-bit
-budgets when B0 is unavailable. `--b0-policy estimate` enables B0 at any budget,
-using supplied D(0) if present or the recorded fallback otherwise.
+### Single inference
 
-Use `--constants path/to/constants.json` to supply updated constants, including
-a measured D(0) when available. All existing age weights and measured losses
-are preserved. Schedule generation needs only these small constants; actual
-video inference still requires the model, RVQ codebooks and residual codec assets.
+```bash
+python scripts/infer.py --model wan2_2_5b --prompt "A frog detective" --budget 0.5 --execute
+```
+
+This generates exactly one video and its runtime accounting. It neither
+calibrates nor automatically generates a BF16 reference. `--method subitkv`
+is the default; `bf16` and the six baseline names are also accepted.
+`--budget` is only for SuBitKV. `--seed`, `--output-dir` and `--run-id` are
+optional. Model and bundle integrity is checked before generating; single-run
+requests retain prompt/image/seed identity and successful outputs can be reused.
+For HY supply an explicit `--image`; it may be a prepared MovieGen PNG or a
+custom image matching the custom prompt.
+
+### Generate the table
+
+```bash
+python scripts/generate_table.py --model wan2_2_5b --execute
+```
+
+This requires completed offline assets. It never downloads models, captures
+training K/V or recalibrates. It generates BF16, all seven SuBitKV budgets and
+the six baseline INT2/INT4 settings on both test and validation, evaluates all
+quality metrics plus TWE and VBench, and writes `main_table.csv/json` under
+`outputs/subitkv/<model>/moviegen-main/`. `--baselines` optionally selects a
+subset. Evaluations use the same immutable calibration bundle and checkpoints;
+model/config mismatches fail. Per-video and VBench reports are retained.
+
+### Fixed three-set partition
+
+The canonical 1003 MovieGen rows are partitioned by historical row IDs in
+`assets/moviegen/splits.json`: calibration **20**, test **10**, validation
+**973**. Prompt files are `assets/moviegen/{calibration,test,validation}.txt`.
+All rows are covered with disjoint membership; duplicates within a set remain
+distinct rows. Source and split hashes are checked before execution. Only the
+calibration set is used for fitting; both evaluation sets run all metrics.
+
+### Prepare HY-WorldPlay conditioning images
+
+```bash
+# Prepare the 20 calibration frames before offline calibration:
+python scripts/prepare_moviegen_frames.py --splits calibration --execute
+# Prepare both evaluation sets before table generation:
+python scripts/prepare_moviegen_frames.py --splits test validation --execute
+```
+
+The script downloads MovieGen's `test_with_generations` parquet shards from
+`meta-ai-for-media-research/movie_gen_video_bench`, matches the exact 1003-row
+prompt order, and decodes the first frame of each selected video into a PNG.
+The frame is not cropped or replaced by a different video with matching text.
+Native HY preprocessing handles resizing. The output root is
+`data.conditioning_images` (or `--output-root`), with
+`calibration/0000.png`, `test/0000.png`, `validation/0000.png`, etc. Indices are
+within each split. A receipt records original dataset row, video SHA-256,
+frame index zero, immutable dataset revision and image SHA-256. HY calibration
+and table entrypoints check these receipts before launching a model.
+
+Only the script is included; no conditioning media is pre-downloaded.
+Install `pip install -e '.[moviegen]'` and ffmpeg. The release extra already
+includes the Python dependencies. `--dataset-root` selects the parquet cache,
+`--revision` is resolved once to an immutable commit, `--local-only` uses
+existing parquet files without network, and `--indices 0` prepares only the
+first within-split image. Completed receipts are checked on restart. The
+parquet shards contain complete videos, so downloading even a small subset of
+frames can require substantial video data; temporary per-video MP4 files are
+removed after extraction.
+
+Source and download API references:
+[official dataset card](https://huggingface.co/datasets/meta-ai-for-media-research/movie_gen_video_bench)
+and [Hugging Face download documentation](https://huggingface.co/docs/huggingface_hub/guides/download).
+
+## Cache memory accounting
+
+`kv_payload_mib` includes physical KV tensor storage and codec metadata.
+`shared_parameters_mib` accounts for the greater of canonical shared storage
+and observed resident CUDA codec parameters; HY residual tables are separated
+from payload so they are not charged twice. `codec_workspace_mib` measures the
+maximum CUDA encoder source/scratch or decoder output/scratch requirement.
+`kv_total_mib` sums these three components; the primary compression ratio uses
+same-input BF16 KV payload divided by this total. A payload-only ratio remains
+explicitly named `compression_ratio_payload_only`.
+
+This is a conservative sum of memory components, not their simultaneous peak.
+The scope includes KV codec workspace, not the generator's unrelated weights,
+attention activations or VAE workspaces. Whole-process allocated peak is reported
+separately. Missing complete accounting causes evaluation to fail rather than
+reporting a payload-only number as total memory. Workspace instrumentation
+synchronizes CUDA and can affect timing.
 
 ## 0. Download models
 
@@ -169,7 +238,7 @@ The four sub-stages are available with `--part codebooks|residual|weights|schedu
    loss is output NMSE. Attention mass provides age weights. Teacher outputs and
    global RNG state are preserved by these observation-only hooks.
 4. Solve and freeze schedules for every configured budget, including 0/0.2/0.5.
-   MILP minimizes measured distortion with per-step capacity, terminal-budget
+   DP minimizes each step’s measured distortion by default; MILP can minimize it jointly with per-step capacity, terminal-budget
    and irreversible-truncation constraints. Each step subtracts RVQ Base bytes
    from total capacity before converting the remainder into residual bit counts.
    Wan/Self-Forcing share K/V schedules as required by their current runtime;
@@ -183,12 +252,15 @@ them. B16 retains its RVQ Base alongside the BF16 bypass, so it also pays Base
 cost. B0 pays Base cost and has zero residual bit count.
 
 The total budget is the final ten-chunk Base reservation plus `terminal * N / 8`
-residual bytes. Base reservation uses `early_stop.max_depth`: the current
+residual bytes. Base accounting uses `calibration.schedule.rvq_base_depth`
+(8 by default), independently of runtime `early_stop.max_depth` (16): the current
 no-norm L16C64 representation stores one **uint8**, not a packed six-bit index,
-per vector per stage, plus one depth byte per chunk. This bounds input-dependent
-early stopping without fitting a different schedule at inference. Unused Base
-reservation after early stopping is not dynamically reclaimed. Smaller maximum
-depths automatically change every step's capacity. Explicit custom `rows` are
+per vector per stage, plus one depth byte per chunk. This is an 8-layer estimate,
+not an upper bound when actual RVQ depth exceeds 8. It does not cap encoding
+depth or refit schedules at inference. Unused Base reservation after early
+stopping is not dynamically reclaimed. Changing `rvq_base_depth` changes every
+step's capacity; legacy configs without it use `early_stop.max_depth`.
+Explicit custom `rows` are
 still accepted only if they satisfy these new byte-derived limits.
 
 This accounts for local RVQ Base payload plus nominal residual bits. Shared
@@ -241,8 +313,8 @@ and cause the stage to fail; incomplete results never become a successful run.
 - Frame exclusions are explicit in each model configuration. Self-Forcing
   similarity excludes its initial nine RGB frames; HY I2V excludes the input
   frame. TWE has its own conditioning-frame exclusion, separate from similarity.
-- K/V payloads use MiB. Compression ratios exclude shared codebooks unless the
-  column explicitly says otherwise. Raw model accounting is linked by path;
+- K/V storage uses MiB. The primary compression ratio includes shared parameters
+  and codec workspace; the payload-only ratio is explicitly labeled. Raw model accounting is linked by path;
   absent counters remain empty. Process timing includes model loading/decoding,
   while native generation timing keeps the model's documented interval.
 - VBench dimensions are listed in YAML. VBench remains a separate report;
@@ -273,9 +345,9 @@ prompt file, separate from the demo.
 
 
 `--profile smoke` uses two calibration prompts and one evaluation prompt.
-`--profile full` uses 20 calibration and 10 evaluation prompts by default.
-It is a configurable public example, not an alias for the full 1003-prompt
-paper experiment. Neither profile reduces model layers or changes video length.
+`--profile full` uses 20 calibration and 10 test prompts. `--profile validation`
+uses the same calibration prompts and 973 validation prompts. The experiment
+entrypoint runs both evaluation profiles. Neither profile reduces model layers or changes video length.
 
 The YAML is the source for seeds, sample counts, fitting iterations, stopping
 thresholds, schedules, generation controls, metrics and paths. Current model

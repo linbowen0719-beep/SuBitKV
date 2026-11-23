@@ -140,13 +140,15 @@ def test_live_residual_collects_complete_frame_means(tmp_path, monkeypatch):
     assert torch.all(saved["V_residual"] == 1)
 
 
-def test_rvq_base_uses_real_no_norm_codebooks(tmp_path):
+@pytest.mark.parametrize("depth", [8, 16])
+def test_rvq_base_uses_real_no_norm_codebooks(tmp_path, depth):
     from subitkv.cache_budget import rvq_schedule_budget
     from subitkv.rvq import rvq_encode_tensor_cache
 
     cfg = load_config(REPO / "configs/subitkv.yaml", "self_forcing", "smoke")[
         "calibration"
     ]
+    cfg["schedule"]["rvq_base_depth"] = depth
     generator = torch.Generator().manual_seed(917)
     for name in ("k", "v"):
         directory = tmp_path / f"nonorm_{name}_l16c64_codebooks"
@@ -169,7 +171,7 @@ def test_rvq_base_uses_real_no_norm_codebooks(tmp_path):
         assert torch.isfinite(decoded).all()
         assert decoded.abs().sum() > 0
     # Verify the byte reservation against the actual index/depth tensors at
-    # maximum depth. C64 still uses uint8 indices in the deployed codec.
+    # the specified accounting depth. C64 still uses uint8 indices.
     state = rvq_encode_tensor_cache(
         source,
         layer_idx=0,
@@ -180,8 +182,8 @@ def test_rvq_base_uses_real_no_norm_codebooks(tmp_path):
         scale_storage_dtype="uint4",
         relative_stop=True,
         relative_stop_threshold=cfg["early_stop"]["threshold"],
-        relative_stop_min_depth=16,
-        relative_stop_max_depth=16,
+        relative_stop_min_depth=depth,
+        relative_stop_max_depth=depth,
     )
     config = dict(
         calibration=cfg,

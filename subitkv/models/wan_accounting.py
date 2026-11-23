@@ -279,7 +279,7 @@ def cache_metrics_from_runner(runner):
         return {}
     totals = {"k": 0, "v": 0}
     full_bytes = shared = 0
-    seen_codebooks, seen_residual = set(), set()
+    seen_codebooks, seen_residual, seen_baseline_matrices = set(), set(), set()
     for layer_index, layer in enumerate(layers):
         for name in ("k", "v"):
             cache = layer.get(name)
@@ -293,7 +293,20 @@ def cache_metrics_from_runner(runner):
                     full_bytes += chunk.numel() * chunk.element_size()
             for span in cache.quantized_spans:
                 state = span["quant_data"]
-                totals[name] += payload_nbytes(state)
+                if state.get("quant_method") == "rvq_temporal_adaptive_residual":
+                    totals[name] += payload_nbytes(state)
+                else:
+                    from subitkv.hyworldplay8b_cache_codec import tensor_tree_nbytes
+
+                    totals[name] += tensor_tree_nbytes(state)
+                    if state.get("quant_method") in {"turboquant_mse", "turboquant_prod"}:
+                        dim, seed = int(state["shape"][-1]), int(state["seed"])
+                        kinds = ("rotation", "qjl") if state["quant_method"] == "turboquant_prod" else ("rotation",)
+                        for kind in kinds:
+                            matrix_key = (kind, dim, seed)
+                            if matrix_key not in seen_baseline_matrices:
+                                shared += dim * dim * 4  # shared float32 matrices
+                                seen_baseline_matrices.add(matrix_key)
                 full_bytes += (
                     (span["end_chunk"] - span["start_chunk"])
                     * cache.frame_seq_length

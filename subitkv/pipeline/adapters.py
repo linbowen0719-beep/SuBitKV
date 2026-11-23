@@ -11,12 +11,15 @@ import time
 from pathlib import Path
 
 from subitkv.cache_budget import rvq_schedule_budget
+from subitkv.baselines import BASELINE_QUANT_TYPES
 
 from .common import REPO, absolute, digest, identity, seal, write_json
 from .workflow import prompts
 
 
 def label(budget):
+    if isinstance(budget, str):
+        return budget
     return "avg" + f"{budget:g}".replace(".", "p")
 
 
@@ -51,6 +54,15 @@ def process(argv, env, directory):
 
 
 def quant_config(config, bundle, budget):
+    if isinstance(budget, str):
+        return dict(
+            quant_type=BASELINE_QUANT_TYPES[budget], compression_policy="all",
+            cache_position="pre_rope", k_rvq=False, v_rvq=False,
+            temporal_adaptive_residual=False, num_prq_stages=1,
+            cache_num_k_centroids=256, cache_num_v_centroids=256,
+            quant_block_size=64, kmeans_max_iters=2,
+            kivi_group_size=32, turboquant_seed=20260803,
+        )
     c, m = config["calibration"], config["model_config"]
     return dict(
         compression_policy="all",
@@ -112,12 +124,13 @@ def generate(
     extra_env=None,
 ):
     c, m = run.config, run.config["model_config"]
+    conditioning_split = "calibration" if split == "train" and c["profile"] in {"full", "validation"} else split
     gpu = c["runtime"]["gpus"][prompt_id % len(c["runtime"]["gpus"])]
     destination.mkdir(parents=True, exist_ok=True)
     conditioning_hash = None
     if c["model"] == "hyworldplay_8b":
-        image_path = (
-            absolute(c["data"]["conditioning_images"]) / split / f"{prompt_id:04d}.png"
+        image_path = Path(c["data"]["single_conditioning_image"]) if split == "custom" else (
+            absolute(c["data"]["conditioning_images"]) / conditioning_split / f"{prompt_id:04d}.png"
         )
         conditioning_hash = digest(image_path)
     frozen_input = run.root / "inputs" / split / f"{prompt_id:04d}.json"
@@ -147,7 +160,7 @@ def generate(
         run,
         prompt_id,
         prompt,
-        split,
+        conditioning_split,
         destination,
         prompt_file,
         env,
@@ -217,6 +230,11 @@ def generate(
         ),
         runtime_metrics=runtime,
     )
+    dataset_set = "calibration" if split == "train" else c["workload"].get("eval_set")
+    if dataset_set:
+        from .dataset import verify_splits
+
+        record.update(dataset_set=dataset_set, dataset_row=verify_splits(REPO)["splits"][dataset_set]["dataset_rows"][prompt_id])
     write_json(destination / "record.json", record)
     return record
 
@@ -253,6 +271,12 @@ def runtime_metrics(config, directory):
             "kv_peak_payload_mib", "kv_cache_compressed_vision_peak_mib"
         ),
         shared_codebook_mib=numeric("shared_codebook_mib"),
+        codec_workspace_mib=numeric("codec_workspace_mib"),
+        codec_workspace_calls=numeric("codec_workspace_calls"),
+        shared_parameters_mib=max(numeric("shared_codebook_mib") or 0, numeric("codec_resident_shared_mib") or 0),
+        peak_gpu_allocated_mib=max(numeric("peak_gpu_mem_mb", "peak_allocated_mib") or 0, numeric("codec_process_peak_mib") or 0),
+        memory_accounting_scope=raw.get("memory_accounting_scope"),
+        payload_includes_metadata=True,
         generation_seconds=numeric(
             "gen_time_s", "e2e_time_s", "e2e_seconds", "mp4_complete_elapsed_seconds"
         ),
@@ -275,19 +299,19 @@ def runtime_metrics(config, directory):
             result.update(
                 k_payload_mib=(
                     terminal["physical_local_k_bytes"]
-                    + terminal["physical_shared_k_bytes"]
                 )
                 / 1024**2,
                 v_payload_mib=(
                     terminal["physical_local_v_bytes"]
-                    + terminal["physical_shared_v_bytes"]
                 )
                 / 1024**2,
                 bf16_kv_payload_mib=terminal["bf16_kv_bytes"] / 1024**2,
                 physical_residual_bpp=terminal["physical_residual_bpp"],
                 nominal_residual_avg_bits=terminal["nominal_residual_avg_bits"],
             )
-            result["kv_payload_mib"] = terminal["physical_payload_bytes"] / 1024**2
+            tables = (terminal["physical_shared_k_bytes"] + terminal["physical_shared_v_bytes"]) / 1024**2
+            result["kv_payload_mib"] = terminal["physical_payload_bytes"] / 1024**2 - tables
+            result["shared_parameters_mib"] = max((result["shared_codebook_mib"] or 0) + tables, result["shared_parameters_mib"])
         if result["kv_payload_mib"] is None and raw.get("kv_cache_codec") == "none":
             value = numeric("kv_cache_bf16_vision_peak_mib")
             result.update(
@@ -302,6 +326,9 @@ def runtime_metrics(config, directory):
         result["generation_timing_scope"] = (
             "native model runtime; see raw_accounting_path"
         )
+    from subitkv.memory import cache_footprint
+
+    result["kv_total_mib"] = cache_footprint(result["kv_payload_mib"], result["shared_parameters_mib"], result["codec_workspace_mib"])
     return result
 
 
@@ -363,12 +390,12 @@ def collect(run):
     run.task("collect_manifest", finish)
 
 
-def infer(run, budget=None, reference_only=False):
+def infer(run, budget=None, reference_only=False, baseline=None):
     values = prompts(run.config, "eval")
     budgets = (
         []
         if reference_only
-        else ([budget] if budget is not None else run.config["budgets"])
+        else ([baseline] if baseline else [budget] if budget is not None else run.config["budgets"])
     )
     for selected in [None, *budgets]:
         method = "bf16" if selected is None else label(selected)
@@ -376,7 +403,7 @@ def infer(run, budget=None, reference_only=False):
 
             def inference_one(i=i, prompt=prompt, selected=selected, method=method):
                 directory = attempt(run.root / "videos" / method / f"prompt_{i:04d}")
-                record = generate(run, i, prompt, "eval", directory, budget=selected)
+                record = generate(run, i, prompt, run.config["workload"].get("eval_set", "eval"), directory, budget=selected)
                 return [directory / "record.json", Path(record["video"])]
 
             run.task(f"infer_{method}_{i}", inference_one)

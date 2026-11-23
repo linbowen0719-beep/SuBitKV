@@ -182,13 +182,13 @@ def test_generated_profiles_load_in_existing_runtime(tmp_path, model):
                     )
         for section in sections:
             # Peak-only validation would accept this irreversible schedule:
-            # each step retains the first chunk at B8, even after Base fills up.
+            # each step retains the first chunk at B4, even after Base fills up.
             if path.stem == "avg0":
-                section["joint_schedule"] = [[8] + [0] * t for t in range(10)]
+                section["joint_schedule"] = [[4] + [0] * t for t in range(10)]
                 if model == "hyworldplay_8b":
-                    section["terminal_bit_chunks"] = 8
+                    section["terminal_bit_chunks"] = 4
                 else:
-                    section["joint_schedule_terminal_bit_chunks"] = 8
+                    section["joint_schedule_terminal_bit_chunks"] = 4
         if path.stem == "avg0":
             with pytest.raises(ValueError, match="capacity"):
                 load(raw_profile)

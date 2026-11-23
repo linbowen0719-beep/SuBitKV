@@ -650,6 +650,9 @@ class CausalInferencePipeline(torch.nn.Module):
         """
         wall_start = time.perf_counter()
         torch.cuda.reset_peak_memory_stats(noise.device)
+        from subitkv.memory import reset_workspace_stats, workspace_stats
+
+        reset_workspace_stats()
         reset_dequant_stats()
         self._encode_seconds = 0.0
         self._encode_calls = 0
@@ -900,6 +903,7 @@ class CausalInferencePipeline(torch.nn.Module):
         codebook_bytes = sum(int(item["codebook_storage_bytes"]) for item in codebook_metadata.values())
         shared_fixed_codec = {}
         self.runtime_metrics = {
+            **workspace_stats(),
             "num_latent_frames": int(num_output_frames),
             "num_generation_chunks": int(len(all_num_frames)),
             "latent_frames_per_chunk": int(self.num_frame_per_block),
@@ -911,7 +915,7 @@ class CausalInferencePipeline(torch.nn.Module):
             "quant_encode_calls": self._encode_calls,
             "quant_decode_seconds": self._decode_seconds,
             "quant_decode_calls": self._decode_calls,
-            "peak_allocated_mib": torch.cuda.max_memory_allocated(noise.device) / 1024**2,
+            "peak_allocated_mib": max(torch.cuda.max_memory_allocated(noise.device) / 1024**2, workspace_stats()["codec_process_peak_mib"]),
             "bf16_kv_bytes": bf16_bytes,
             "stored_kv_bytes": cache_bytes,
             "k_payload_bytes": cache_payload["K"],

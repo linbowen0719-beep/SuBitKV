@@ -182,7 +182,7 @@ def load_config(path: Path, model: str, profile: str) -> dict:
         <= c["levels"]
     ):
         raise ValueError("Invalid early-stop depth range")
-    if c["schedule"]["mode"] != "base_aware_milp":
+    if c["schedule"]["mode"] not in {"base_aware_dp", "base_aware_milp"}:
         raise ValueError("Unsupported schedule mode")
     t = cfg["metrics"]["twe"]
     if (

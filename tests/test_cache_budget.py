@@ -36,16 +36,29 @@ def test_serialized_capacity_cannot_ignore_base():
 def test_reservation_uses_uint8_indices_and_retains_terminal_budget(model):
     cfg = load_config(REPO / "configs/subitkv.yaml", model, "smoke")
     budget = rvq_schedule_budget(cfg, 2)
-    assert budget.capacities == tuple(range(11, 1, -1))
-    assert budget.base_bytes_by_step[0] == budget.chunk_elements // 8 + 1
+    assert budget.capacities == (6, 6, 5, 5, 4, 4, 3, 3, 2, 2)
+    assert budget.base_bytes_by_step[0] == budget.chunk_elements // 16 + 1
     assert (
         budget.total_bytes == budget.base_bytes_by_step[-1] + budget.chunk_elements // 4
     )
-    cfg["calibration"]["early_stop"]["max_depth"] = 8
-    smaller = rvq_schedule_budget(cfg, 2)
-    assert smaller.capacities[0] == 6
-    assert smaller.capacities[-1] == 2
-    assert smaller.total_bytes < budget.total_bytes
+    # Encoding depth no longer controls the explicit schedule estimate.
+    cfg["calibration"]["early_stop"]["max_depth"] = 12
+    assert rvq_schedule_budget(cfg, 2) == budget
+    cfg["calibration"]["schedule"]["rvq_base_depth"] = 16
+    larger = rvq_schedule_budget(cfg, 2)
+    assert larger.capacities == tuple(range(11, 1, -1))
+    assert larger.total_bytes > budget.total_bytes
+    del cfg["calibration"]["schedule"]["rvq_base_depth"]
+    cfg["calibration"]["early_stop"]["max_depth"] = 16
+    assert rvq_schedule_budget(cfg, 2) == larger
+
+
+@pytest.mark.parametrize("depth", [0, 17, 8.5, True])
+def test_invalid_schedule_base_depth(depth):
+    cfg = load_config(REPO / "configs/subitkv.yaml", "wan2_2_5b", "smoke")
+    cfg["calibration"]["schedule"]["rvq_base_depth"] = depth
+    with pytest.raises(ValueError, match="rvq_base_depth"):
+        rvq_schedule_budget(cfg, 2)
 
 
 def test_milp_matches_exhaustive_search_with_shrinking_capacity():

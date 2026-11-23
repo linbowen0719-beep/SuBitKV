@@ -64,11 +64,13 @@ class ResidualBudget:
 
 
 def rvq_schedule_budget(config, terminal: int) -> ResidualBudget:
-    """Conservative byte reservation for the deployed no-norm L16C64 codec.
+    """Byte estimate for the deployed no-norm L16C64 codec.
 
     Each RVQ stage stores a uint8 index per vector (not a packed six-bit
-    index), plus one uint8 relative-stop depth per chunk. Reserving max_depth
-    makes the frozen schedule independent of input-dependent early stopping.
+    index), plus one uint8 relative-stop depth per chunk. The schedule's
+    rvq_base_depth controls accounting independently of runtime early stopping.
+    Without an explicit estimate, legacy configs reserve max_depth. An estimate
+    below max_depth is not an upper bound on physical Base storage.
     Sizes describe one batch item and one K or V stream in one layer. Larger
     batches amortize the depth byte, so this per-item reservation remains safe.
     """
@@ -83,8 +85,12 @@ def rvq_schedule_budget(config, terminal: int) -> ResidualBudget:
         raise ValueError("terminal residual bit count must be a nonnegative integer")
     vectors = model["heads"] * model["spatial_tokens"] * model["latent_chunk_frames"]
     elements = vectors * model["head_dim"]
-    base_bytes = vectors * calibration["early_stop"]["max_depth"] + 1
-    horizon = calibration["schedule"]["horizon"]
+    schedule = calibration["schedule"]
+    depth = schedule.get("rvq_base_depth", calibration["early_stop"]["max_depth"])
+    if type(depth) is not int or not 1 <= depth <= calibration["levels"]:
+        raise ValueError("schedule.rvq_base_depth must be an integer from 1 to 16")
+    base_bytes = vectors * depth + 1
+    horizon = schedule["horizon"]
     return ResidualBudget(
         total_bytes=horizon * base_bytes + (terminal * elements + 7) // 8,
         chunk_elements=elements,

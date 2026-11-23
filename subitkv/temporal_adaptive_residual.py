@@ -35,6 +35,7 @@ from .progressive_sign_adaptive_absmax_scalar import (
 )
 from .rvq import prepare_fused_dense_rvq_decode, rvq_dequantize_tensor_cache
 from .cache_budget import ResidualBudget
+from .memory import track_workspace
 
 
 STATE_SCHEMA = "rvq_temporal_adaptive_residual.state.v1"
@@ -380,6 +381,7 @@ def _materialize_compressed(
 
 
 @torch.no_grad()
+@track_workspace("encode")
 def transition_state(
     state: Mapping[str, Any],
     target_bits: int,

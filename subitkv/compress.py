@@ -7,6 +7,8 @@ import torch
 from .rvq import rvq_encode_tensor_cache
 from .temporal_adaptive_residual import create_b16_state, transition_state
 from .sim.quant.quantize_config import QuantizeConfig
+from .baselines import is_baseline, encode_pair
+from .memory import track_workspace
 
 _ENCODE_BREAKDOWN_EVENTS: dict[
     str, list[tuple[torch.cuda.Event, torch.cuda.Event]]
@@ -126,6 +128,8 @@ def get_quantize_fn(quant_type: str, quant_config: QuantizeConfig):
     """Validate the integration setting; SuBitKV uses its persistent codebooks."""
     if quant_type == "none":
         return None
+    if is_baseline(quant_type, quant_config):
+        return None
     if quant_type not in {"subitkv", "triton-nstages-kmeans-int4", "naive-int4"}:
         raise ValueError(f"Only BF16 and SuBitKV are supported: {quant_type}")
     if not (quant_config.k_rvq and quant_config.v_rvq):
@@ -133,6 +137,7 @@ def get_quantize_fn(quant_type: str, quant_config: QuantizeConfig):
     return None
 
 
+@track_workspace("encode")
 def compress_kv_cache(
     k,
     v,
@@ -152,6 +157,8 @@ def compress_kv_cache(
     if quant_type == "none":
         return k, v
     get_quantize_fn(quant_type, quant_config)
+    if is_baseline(quant_type, quant_config):
+        return encode_pair(k, v, quant_type, quant_config)
     if layer_idx is None:
         raise ValueError("layer_idx is required for SuBitKV")
     if not quant_config.temporal_adaptive_residual:

@@ -11,6 +11,10 @@ class QuantizeConfig:
     kmeans_max_iters: int = 100
     quant_block_size: int = 16
     num_prq_stages: int = 4
+    k_rvq: bool = False
+    v_rvq: bool = False
+    kivi_group_size: int = 32
+    turboquant_seed: int = 20260803
     rvq_residual_quantize: bool = False
     temporal_adaptive_residual: bool = False
     temporal_adaptive_profile_path: str = ""

@@ -3,7 +3,7 @@
 Start with the workflow, then follow the stage you want to change.
 
 ```text
-scripts/                     Two CLI wrappers
+scripts/                     Calibration, single inference, table and frame preparation CLIs
 configs/subitkv.yaml          Prompts, models, budgets, and hyperparameters
 subitkv/
   pipeline/                  Download → collect → calibrate → infer → metrics
@@ -48,8 +48,11 @@ saves the bundle consumed by inference; evaluation prompts do not select it.
 
 `cache_budget.py` reserves the persistent bases admitted so far before converting
 remaining bytes into residual bit counts. `pipeline/scheduling.py` implements
-sequential DP and joint MILP. `pipeline/schedule.py` exposes the bundled-constant
-DP command, which needs only Python.
+sequential DP and joint MILP. `pipeline/schedule.py` recomputes DP schedules from a generated bundle using
+only Python; no pretrained statistics are included. `pipeline/experiment.py`
+provides separate offline and table phases; `pipeline/single.py` generates one
+video. `pipeline/moviegen_frames.py` prepares verified HY first-frame images
+from the official MovieGen videos only when explicitly executed.
 
 ## Cache lifecycle
 
@@ -67,7 +70,7 @@ listed in [third-party notices](../subitkv/_vendor/README.md).
 
 ```bash
 python -m pytest -q
-python -S scripts/subitkv_schedule.py --budget 0.5
+python scripts/calibrate.py
 ```
 
 CUDA tests skip when CUDA is unavailable. Model weights are needed only for

@@ -14,8 +14,8 @@ runtime:
   - 0
   device: cuda:0
 data:
-  train_prompts: assets/moviegen_train20.txt
-  eval_prompts: assets/paper_main_10prompts.txt
+  train_prompts: assets/moviegen/calibration.txt
+  eval_prompts: assets/moviegen/test.txt
   conditioning_images: ${SUBITKV_IMAGES:-data/subitkv/images}
 profiles:
   smoke:
@@ -25,6 +25,12 @@ profiles:
   full:
     train_count: 20
     eval_count: 10
+    eval_set: test
+  validation:
+    train_count: 20
+    eval_count: 973
+    eval_prompts: assets/moviegen/validation.txt
+    eval_set: validation
 calibration:
   seed: 42
   levels: 16
@@ -54,10 +60,12 @@ calibration:
     queries_per_stream: 4
     seed: 42
   schedule:
-    mode: base_aware_milp
+    mode: base_aware_dp
     horizon: 10
+    # Accounting estimate only; runtime early_stop.max_depth remains independent.
+    rvq_base_depth: 8
     # Labels are terminal residual bits per scalar. Total capacity reserves
-    # all 10 RVQ bases at early_stop.max_depth, then adds this residual budget.
+    # all 10 RVQ bases at rvq_base_depth, then adds this residual budget.
     # At each step subtract the admitted bases (uint8 indices + depth byte)
     # before converting the remaining bytes into residual bit counts.
     budgets:
@@ -76,6 +84,7 @@ calibration:
       '4':
         terminal: 40
 metrics:
+  require_complete_memory: true
   enabled:
   - psnr
   - ssim

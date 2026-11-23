@@ -248,8 +248,14 @@ def evaluate(config, records, output):
                 record["prompt_id"], {}
             ).get("runtime_metrics", {}).get("kv_payload_mib")
             payload = row.get("kv_payload_mib")
+            total = row.get("kv_total_mib")
+            if config["metrics"].get("require_complete_memory") and (total is None or not row.get("memory_accounting_scope")):
+                raise ValueError("Missing complete cache memory accounting; regenerate the video with codec workspace measurement")
+            if config["metrics"].get("require_complete_memory") and record["method"] != "bf16" and not row.get("codec_workspace_calls"):
+                raise ValueError("Compressed method has no observed codec workspace measurements")
+            row["compression_ratio_payload_only"] = baseline / payload if baseline and payload else None
             row["compression_ratio_vs_bf16"] = (
-                baseline / payload if baseline and payload else None
+                baseline / total if baseline and total else None
             )
             row["status"] = "success"
         except Exception as exc:
@@ -281,6 +287,11 @@ def evaluate(config, records, output):
             "kv_payload_mib",
             "kv_peak_payload_mib",
             "shared_codebook_mib",
+            "shared_parameters_mib",
+            "codec_workspace_mib",
+            "kv_total_mib",
+            "peak_gpu_allocated_mib",
+            "compression_ratio_payload_only",
             "compression_ratio_vs_bf16",
             "generation_seconds",
             "process_seconds",

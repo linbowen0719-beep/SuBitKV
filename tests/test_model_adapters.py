@@ -11,7 +11,10 @@ from subitkv.pipeline.workflow import Run
 
 
 @pytest.mark.parametrize("model", MODELS)
-@pytest.mark.parametrize("budget", [None, 0, 0.5, 4])
+@pytest.mark.parametrize("budget", [
+    None, 0, 0.5, 4, "kivi_int2", "kivi_int4", "turboquant_int2",
+    "turboquant_int4", "quantvideo_int2", "quantvideo_int4",
+])
 def test_adapter_launch_is_self_contained(tmp_path, monkeypatch, model, budget):
     from subitkv.pipeline import adapters
 
@@ -62,16 +65,23 @@ def test_adapter_launch_is_self_contained(tmp_path, monkeypatch, model, budget):
             expected = (
                 "none"
                 if budget is None
+                else budget if isinstance(budget, str)
                 else "rvq_ours_"
                 + adapters.label(budget).replace("avg0p2", "avg0p2_alt")
             )
             assert codec == expected
 
 
-def test_only_release_methods_are_accepted():
+def test_baselines_need_no_calibration_assets():
     pytest.importorskip("torch")
     from subitkv.hyworldplay8b_cache_codec import make_codec_settings
 
-    for name in ("quantvideo_int2", "kivi_int2", "turboquant_int2", "rvq_full"):
-        with pytest.raises(ValueError, match="unsupported"):
-            make_codec_settings(name)
+    from subitkv.baselines import BASELINE_QUANT_TYPES
+
+    for name, kind in BASELINE_QUANT_TYPES.items():
+        settings = make_codec_settings(name)
+        assert settings.quant_type == kind
+        assert not settings.quant_config.k_rvq
+        assert not settings.quant_config.temporal_adaptive_residual
+    with pytest.raises(ValueError, match="unsupported"):
+        make_codec_settings("rvq_full")
