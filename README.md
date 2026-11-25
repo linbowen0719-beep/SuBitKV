@@ -23,6 +23,28 @@ On **Wan2.2-5B**, SuBitKV achieves **21.42× KV cache compression** at `Q=0.2` w
 
 ---
 
+## Results
+
+[![Wan2.2 visual comparison: BF16, QuantVideo INT2, and SuBitKV Q=0.2, with adjacent frames and temporal error maps.](assets/paper/wan_visual_comparison.png)](assets/paper/wan_visual_comparison.pdf)
+
+*Visual comparison from Figure 2(a): SuBitKV at 21.42× KV compression retains detail and temporal continuity close to BF16. The right-hand TWE plot (panel b) is omitted.*
+
+**Wan2.2-5B** evaluated on **973 validation samples** (`Q` = average residual bits; **LPIPS ↓** = perceptual distance to BF16; **TWE ↓** = temporal warping error):
+
+| Method | Setting | KV Compression ↑ | LPIPS ↓ | TWE ↓ |
+| --- | --- | --- | --- | --- |
+| BF16 | Reference | 1.00× | — | 0.0173 |
+| QuantVideo | INT2 | 4.77× | 0.473 | 0.0230 |
+| KIVI | INT2 | 5.33× | 0.388 | 0.0193 |
+| TurboQuant | K2/V2 | 7.31× | 0.589 | 0.0264 |
+| **SuBitKV** | **Q=0.5** | **14.98×** | **0.276** | **0.0190** |
+| **SuBitKV** | **Q=0.2** | **21.42×** | **0.327** | **0.0194** |
+| **SuBitKV** | **Q=0** | **30.09×** | **0.416** | **0.0244** |
+
+*KV compression includes the persistent base, shared codebooks, metadata, and cache-related workspace.* [Manuscript protocol & figures →](assets/paper/README.md)
+
+---
+
 ## Installation
 
 **Requirements:** Linux, NVIDIA CUDA GPU, Python 3.12, and PyTorch 2.8.0.
@@ -136,28 +158,6 @@ Supported `--baseline` values: `kivi_int2`, `kivi_int4`, `turboquant_int2`, `tur
 * **KIVI:** Compresses all completed spans without a recent-token BF16 window.
 * **QuantVideo:** Uses the restored online K-means and Triton residual packing path.
 * Details & validation: [docs/baselines.md](docs/baselines.md)
-
----
-
-## Results
-
-[![Wan2.2 visual comparison: BF16, QuantVideo INT2, and SuBitKV Q=0.2, with adjacent frames and temporal error maps.](assets/paper/wan_visual_comparison.png)](assets/paper/wan_visual_comparison.pdf)
-
-*Visual comparison from Figure 2(a): SuBitKV at 21.42× KV compression retains detail and temporal continuity close to BF16. The right-hand TWE plot (panel b) is omitted.*
-
-**Wan2.2-5B** evaluated on **973 validation samples** (`Q` = average residual bits; **LPIPS ↓** = perceptual distance to BF16; **TWE ↓** = temporal warping error):
-
-| Method | Setting | KV Compression ↑ | LPIPS ↓ | TWE ↓ |
-| --- | --- | --- | --- | --- |
-| BF16 | Reference | 1.00× | — | 0.0173 |
-| QuantVideo | INT2 | 4.77× | 0.473 | 0.0230 |
-| KIVI | INT2 | 5.33× | 0.388 | 0.0193 |
-| TurboQuant | K2/V2 | 7.31× | 0.589 | 0.0264 |
-| **SuBitKV** | **Q=0.5** | **14.98×** | **0.276** | **0.0190** |
-| **SuBitKV** | **Q=0.2** | **21.42×** | **0.327** | **0.0194** |
-| **SuBitKV** | **Q=0** | **30.09×** | **0.416** | **0.0244** |
-
-*KV compression includes the persistent base, shared codebooks, metadata, and cache-related workspace.* [Manuscript protocol & figures →](assets/paper/README.md)
 
 ---
 
