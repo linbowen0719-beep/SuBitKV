@@ -32,5 +32,26 @@
       "png_sha256": "eb075745146c7b0a64de5ef87b1b59a16c161373a74a64b186fe03e8bcacf0f1"
     }
   ],
-  "results_source": "tables/5_table1.tex"
+  "results_source": "tables/5_table1.tex",
+  "derived_figures": [
+    {
+      "repository": "https://github.com/linbowen0719-beep/ICLR2027_COMPRESS",
+      "commit": "57916dcf21c1a5117dfa730b811c2c0090f5ddc8",
+      "source": "figs/fig2.pdf",
+      "source_sha256": "ea1a20baaac7f9353a9b3a25be3455144b4247ac1c90cfcd3a5735576849310e",
+      "transformation": "Retain Figure 2(a); crop out the right-hand Figure 2(b) TWE plot. No frame pixels, labels, error maps, or values are edited.",
+      "clip_pdf_points": [
+        0.0,
+        0.0,
+        852.0,
+        316.79998779296875
+      ],
+      "renderer": "PyMuPDF 1.28.2",
+      "width_px": 2400,
+      "pdf": "wan_visual_comparison.pdf",
+      "png": "wan_visual_comparison.png",
+      "pdf_sha256": "91c9012576d6abe9f37b500494407b5154693dd331c333d4fcbe693f6d59b2aa",
+      "png_sha256": "981d4707039641c40ab378654ed5573d83281363587d797cd1ab81df944a057c"
+    }
+  ]
 }

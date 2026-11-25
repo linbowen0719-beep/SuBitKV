@@ -15,6 +15,14 @@ PDFs are copied without modification. PNGs render the complete first page at
 values, or video frames have been changed. [provenance.json](provenance.json)
 records the source revision, renderer version, and asset hashes.
 
+The README additionally displays [Figure 2(a), PNG](wan_visual_comparison.png)
+([cropped PDF](wan_visual_comparison.pdf)), derived from
+[`figs/fig2.pdf` at commit 57916dc](https://github.com/linbowen0719-beep/ICLR2027_COMPRESS/blob/57916dcf21c1a5117dfa730b811c2c0090f5ddc8/figs/fig2.pdf).
+This crop omits the right-hand panel (b), retaining all of panel (a), including
+the video frames, error maps, color scale, labels, and caption. It is rendered
+at 2,400 pixels wide. The `derived_figures` entry in
+[provenance.json](provenance.json) records its crop bounds and hashes.
+
 The README's selected Wan2.2 results are transcribed from
 [`tables/5_table1.tex`](https://github.com/linbowen0719-beep/ICLR2027_COMPRESS/blob/4c10265a526b76656654b0371958fdab00fc8a76/tables/5_table1.tex).
 That table reports quality over 973 samples and TWE over 10 videos per setting.

@@ -141,6 +141,10 @@ Supported `--baseline` values: `kivi_int2`, `kivi_int4`, `turboquant_int2`, `tur
 
 ## Results
 
+[![Wan2.2 visual comparison: BF16, QuantVideo INT2, and SuBitKV Q=0.2, with adjacent frames and temporal error maps.](assets/paper/wan_visual_comparison.png)](assets/paper/wan_visual_comparison.pdf)
+
+*Visual comparison from Figure 2(a): SuBitKV at 21.42× KV compression retains detail and temporal continuity close to BF16. The right-hand TWE plot (panel b) is omitted.*
+
 **Wan2.2-5B** evaluated on **973 validation samples** (`Q` = average residual bits; **LPIPS ↓** = perceptual distance to BF16; **TWE ↓** = temporal warping error):
 
 | Method | Setting | KV Compression ↑ | LPIPS ↓ | TWE ↓ |
